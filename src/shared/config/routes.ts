@@ -13,6 +13,7 @@ export const ROUTES = {
     checkIn: '/patient/check-in',
     notifications: '/patient/notifications',
     caregivers: '/patient/caregivers',
+    billing: '/patient/billing',
   },
   physio: {
     dashboard: '/physio/dashboard',

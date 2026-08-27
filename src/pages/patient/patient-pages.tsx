@@ -15,6 +15,8 @@ import { PatientExerciseList } from '@/features/exercises/ui/exercise-components
 import { CheckInForm } from '@/features/patient-checkin/ui/check-in-form'
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
 import { CaregiverAuthorizeForm } from '@/features/caregiver/ui/caregiver-authorize-form'
+import { CaregiverInviteForm } from '@/features/caregiver/ui/caregiver-invite-form'
+import { RecoveryPackagesPanel } from '@/features/payment/ui/recovery-packages-panel'
 import { ClinicalProfileForm } from '@/features/clinical-profile/ui/clinical-profile-form'
 import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-progress-widget'
 import { queryKeys } from '@/shared/api/query-keys'
@@ -414,6 +416,7 @@ export function PatientCaregiversPage() {
     <AppLayout>
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-2xl font-bold">{pt.patient.caregivers}</h1>
+        {patientQuery.data && <CaregiverInviteForm patientId={patientQuery.data.id} />}
         {patientQuery.data && <CaregiverAuthorizeForm patientId={patientQuery.data.id} />}
         <Card>
           <CardHeader>
@@ -444,6 +447,25 @@ export function PatientCaregiversPage() {
             ))}
           </CardContent>
         </Card>
+      </div>
+    </AppLayout>
+  )
+}
+
+export function PatientBillingPage() {
+  const { user } = useAuth()
+  const patientQuery = useQuery({
+    queryKey: queryKeys.patient(user?.id ?? ''),
+    queryFn: () => getPatientByProfileId(user!.id),
+    enabled: !!user?.id,
+  })
+
+  return (
+    <AppLayout>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <h1 className="text-2xl font-bold">Pagamentos e programas</h1>
+        {patientQuery.isLoading && <LoadingSpinner />}
+        {patientQuery.data && <RecoveryPackagesPanel patientId={patientQuery.data.id} />}
       </div>
     </AppLayout>
   )

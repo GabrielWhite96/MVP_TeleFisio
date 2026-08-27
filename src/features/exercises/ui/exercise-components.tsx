@@ -32,7 +32,7 @@ export function AssignExerciseForm({ patientId, physiotherapistId }: AssignExerc
 
   const libraryQuery = useQuery({
     queryKey: queryKeys.exerciseLibrary,
-    queryFn: getExerciseLibrary,
+    queryFn: () => getExerciseLibrary(true),
   })
 
   const mutation = useMutation({
@@ -115,7 +115,14 @@ export function PatientExerciseList({ patientId, canComplete = false }: { patien
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {query.data.map((pe) => {
-        const exercise = pe.exercise as { title: string; description: string | null; instructions: string | null } | null
+        const exercise = pe.exercise as {
+          title: string
+          description: string | null
+          instructions: string | null
+          video_url?: string | null
+          category?: string | null
+          level?: string | null
+        } | null
         const completions = pe.completions as Array<{ id: string; completed_at: string }> | null
         const doneToday = completions?.some((c) => {
           const d = new Date(c.completed_at)
@@ -133,6 +140,20 @@ export function PatientExerciseList({ patientId, canComplete = false }: { patien
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
+              {exercise?.video_url && (
+                <video
+                  className="aspect-video w-full rounded-md bg-black"
+                  src={exercise.video_url}
+                  controls
+                  preload="metadata"
+                />
+              )}
+              {(exercise?.category || exercise?.level) && (
+                <div className="flex gap-2">
+                  {exercise.category && <Badge variant="outline">{exercise.category}</Badge>}
+                  {exercise.level && <Badge variant="secondary">{exercise.level}</Badge>}
+                </div>
+              )}
               {exercise?.description && (
                 <p className="text-sm text-[var(--color-muted-foreground)]">{exercise.description}</p>
               )}

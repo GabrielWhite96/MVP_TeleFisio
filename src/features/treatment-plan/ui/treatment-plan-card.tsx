@@ -17,6 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
   active: pt.treatmentPlan.active,
   completed: pt.treatmentPlan.completed,
   paused: pt.treatmentPlan.paused,
+  discharged: 'Alta',
 }
 
 interface TreatmentPlanCardProps {

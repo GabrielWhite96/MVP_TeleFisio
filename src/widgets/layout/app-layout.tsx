@@ -14,11 +14,14 @@ import {
   Bell,
   ScrollText,
   HeartHandshake,
+  CreditCard,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { signOut } from '@/features/auth/api/auth-api'
 import { ConsentModal } from '@/features/consent/ui/consent-modal'
+import { useRealtimeNotifications } from '@/features/notifications/hooks/use-realtime-notifications'
+import { useTranslation } from '@/shared/config/i18n/use-translation'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
 import { pt } from '@/shared/config/i18n/pt'
@@ -39,6 +42,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: pt.patient.howAmI, href: ROUTES.patient.checkIn, icon: HeartPulse },
     { label: pt.patient.notifications, href: ROUTES.patient.notifications, icon: Bell },
     { label: pt.patient.caregivers, href: ROUTES.patient.caregivers, icon: Users },
+    { label: 'Pagamentos', href: ROUTES.patient.billing, icon: CreditCard },
     { label: pt.patient.profile, href: ROUTES.patient.profile, icon: User },
   ],
   physiotherapist: [
@@ -63,6 +67,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { locale, setLocale } = useTranslation()
+  useRealtimeNotifications()
 
   if (!profile) return <>{children}</>
 
@@ -122,6 +128,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="border-t p-4">
           <p className="mb-2 truncate text-sm font-medium">{profile.full_name}</p>
+          <div className="mb-2 flex gap-2">
+            <Button
+              variant={locale === 'pt' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="flex-1"
+              onClick={() => setLocale('pt')}
+            >
+              PT
+            </Button>
+            <Button
+              variant={locale === 'en' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="flex-1"
+              onClick={() => setLocale('en')}
+            >
+              EN
+            </Button>
+          </div>
           <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             {pt.auth.logout}

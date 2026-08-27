@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react'
 import { videoProvider } from '@/shared/providers'
 import { updateAppointmentStatus } from '@/entities/appointment/api/appointment-api'
+import { getTelehealthSession } from '@/entities/telehealth/api/telehealth-api'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -40,16 +41,29 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [roomUrl, setRoomUrl] = useState<string | null>(null)
+  const [provider, setProvider] = useState<'daily' | 'mock' | null>(null)
+
+  const sessionQuery = useQuery({
+    queryKey: queryKeys.telehealthSession(appointment.id),
+    queryFn: () => getTelehealthSession(appointment.id),
+    enabled: appointment.modality === 'telehealth',
+  })
 
   useEffect(() => {
-    if (appointment.modality === 'telehealth') {
-      videoProvider.joinRoom(appointment.id).then((result) => {
-        setConnected(true)
-        setRoomUrl(result.roomUrl)
-      })
+    if (appointment.modality !== 'telehealth') return
+    let cancelled = false
+    videoProvider.joinRoom(appointment.id).then((result) => {
+      if (cancelled) return
+      setConnected(true)
+      setProvider(result.provider)
+      setRoomUrl(result.roomUrl)
+      queryClient.invalidateQueries({ queryKey: queryKeys.telehealthSession(appointment.id) })
+    })
+    return () => {
+      cancelled = true
+      void videoProvider.leaveRoom()
     }
-    return () => { videoProvider.leaveRoom() }
-  }, [appointment.id, appointment.modality])
+  }, [appointment.id, appointment.modality, queryClient])
 
   const statusMutation = useMutation({
     mutationFn: (status: AppointmentStatus) => updateAppointmentStatus(appointment.id, status),
@@ -60,8 +74,34 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
     },
   })
 
+  const toggleMic = () => {
+    const next = !micOn
+    setMicOn(next)
+    videoProvider.setAudioEnabled?.(next)
+    if (provider === 'daily') {
+      setRoomUrl(videoProvider.getRoomUrl?.() ?? roomUrl)
+    }
+  }
+
+  const toggleCam = () => {
+    const next = !camOn
+    setCamOn(next)
+    videoProvider.setVideoEnabled?.(next)
+    if (provider === 'daily') {
+      setRoomUrl(videoProvider.getRoomUrl?.() ?? roomUrl)
+    }
+  }
+
+  const hangUp = async () => {
+    await videoProvider.leaveRoom()
+    setConnected(false)
+    setRoomUrl(null)
+    queryClient.invalidateQueries({ queryKey: queryKeys.telehealthSession(appointment.id) })
+  }
+
   const patientName = appointment.patient?.profiles?.full_name ?? 'Paciente'
   const physioName = appointment.physiotherapist?.profiles?.full_name ?? 'Fisioterapeuta'
+  const sessionStatus = sessionQuery.data?.status
 
   return (
     <div className="space-y-6">
@@ -73,6 +113,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
         <div className="flex gap-2">
           <Badge>{MODALITY_LABELS[appointment.modality]}</Badge>
           <Badge variant="secondary">{APPOINTMENT_STATUS_LABELS[appointment.status]}</Badge>
+          {sessionStatus && <Badge variant="outline">Sessão: {sessionStatus}</Badge>}
         </div>
       </div>
 
@@ -85,6 +126,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
             <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-slate-900 text-white">
               {roomUrl ? (
                 <iframe
+                  key={roomUrl}
                   title="Teleconsulta Daily"
                   src={roomUrl}
                   allow="camera; microphone; fullscreen; speaker; display-capture"
@@ -97,7 +139,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
                     Sala de vídeo pronta. Configure DAILY_API_KEY para ativar Daily.
                   </p>
                   <p className="mt-1 text-xs opacity-50">
-                    Daily · Twilio · Zoom · WebRTC
+                    Mic: {micOn ? 'ligado' : 'desligado'} · Câmera: {camOn ? 'ligada' : 'desligada'}
                   </p>
                 </div>
               ) : (
@@ -105,18 +147,19 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
               )}
             </div>
             <div className="flex justify-center gap-2">
-              <Button variant={micOn ? 'secondary' : 'destructive'} size="icon" onClick={() => setMicOn(!micOn)}>
+              <Button variant={micOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleMic}>
                 {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
               </Button>
-              <Button variant={camOn ? 'secondary' : 'destructive'} size="icon" onClick={() => setCamOn(!camOn)}>
+              <Button variant={camOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleCam}>
                 {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
               </Button>
-              <Button variant="destructive" size="icon" onClick={() => videoProvider.leaveRoom()}>
+              <Button variant="destructive" size="icon" onClick={() => void hangUp()}>
                 <PhoneOff className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-center text-sm text-[var(--color-muted-foreground)]">
               {role === 'patient' ? physioName : patientName}
+              {provider === 'daily' ? ' · Daily' : provider === 'mock' ? ' · Mock' : ''}
             </p>
           </CardContent>
         </Card>

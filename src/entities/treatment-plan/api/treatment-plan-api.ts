@@ -1,6 +1,6 @@
 import { supabase } from '@/shared/api/supabase'
 
-export type TreatmentPlanStatus = 'active' | 'completed' | 'paused'
+export type TreatmentPlanStatus = 'active' | 'completed' | 'paused' | 'discharged'
 export type GoalMetricType = 'distance' | 'reps' | 'pain_scale' | 'custom'
 
 export interface TreatmentPlan {
@@ -148,4 +148,8 @@ export async function updateGoalProgress(goalId: string, currentValue: number): 
     .single()
   if (error) throw error
   return data as TreatmentGoal
+}
+
+export async function dischargeTreatmentPlan(id: string): Promise<TreatmentPlan> {
+  return updateTreatmentPlan(id, { status: 'discharged' })
 }

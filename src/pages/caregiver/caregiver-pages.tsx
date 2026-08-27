@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getCaregiverLinksForCaregiver } from '@/entities/caregiver/api/caregiver-api'
+import {
+  acceptCaregiverInvite,
+  getPendingInvitesForEmail,
+} from '@/entities/caregiver/api/caregiver-invite-api'
 import { getAppointments } from '@/entities/appointment/api/appointment-api'
 import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-progress-widget'
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
@@ -10,6 +14,7 @@ import { queryKeys } from '@/shared/api/query-keys'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { EmptyState, LoadingSpinner } from '@/shared/ui/states'
 import { pt } from '@/shared/config/i18n/pt'
@@ -18,12 +23,28 @@ import { formatDateTime, isUpcoming } from '@/shared/lib/dates'
 
 export function CaregiverDashboardPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
+  const email = user?.email ?? ''
 
   const linksQuery = useQuery({
     queryKey: queryKeys.caregiverPatients(user?.id ?? ''),
     queryFn: () => getCaregiverLinksForCaregiver(user!.id),
     enabled: !!user?.id,
+  })
+
+  const invitesQuery = useQuery({
+    queryKey: queryKeys.pendingCaregiverInvites(email),
+    queryFn: () => getPendingInvitesForEmail(email),
+    enabled: !!email,
+  })
+
+  const acceptMutation = useMutation({
+    mutationFn: (inviteId: string) => acceptCaregiverInvite(inviteId, user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.caregiverPatients(user!.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pendingCaregiverInvites(email) })
+    },
   })
 
   const links = linksQuery.data ?? []
@@ -70,8 +91,35 @@ export function CaregiverDashboardPage() {
           )}
         </div>
 
+        {!!invitesQuery.data?.length && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Convites pendentes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {invitesQuery.data.map((invite) => (
+                <div key={invite.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">Convite de acompanhamento</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">
+                      Expira {formatDateTime(invite.expires_at)}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => acceptMutation.mutate(invite.id)}
+                    disabled={acceptMutation.isPending}
+                  >
+                    Aceitar
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {linksQuery.isLoading && <LoadingSpinner />}
-        {!linksQuery.isLoading && links.length === 0 && (
+        {!linksQuery.isLoading && links.length === 0 && !invitesQuery.data?.length && (
           <EmptyState title={pt.caregiver.noPatients} description={pt.caregiver.noPatientsHint} />
         )}
 

@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
 
   const obj = event.data?.object;
   const paymentId = obj?.metadata?.payment_id;
+  const purchaseId = obj?.metadata?.package_purchase_id;
   const sessionId = obj?.id;
 
   if (event.type === "checkout.session.completed" && (paymentId || sessionId)) {
@@ -39,6 +40,27 @@ Deno.serve(async (req) => {
     if (paymentId) query = query.eq("id", paymentId);
     else if (sessionId) query = query.eq("stripe_checkout_session_id", sessionId);
     await query;
+
+    if (purchaseId) {
+      const started = new Date();
+      const expires = new Date(started);
+      expires.setDate(expires.getDate() + 8 * 7);
+      await supabase
+        .from("package_purchases")
+        .update({
+          status: "active",
+          started_at: started.toISOString(),
+          expires_at: expires.toISOString(),
+        })
+        .eq("id", purchaseId);
+    }
+
+    if (paymentId) {
+      await supabase
+        .from("invoices")
+        .update({ status: "paid", paid_at: new Date().toISOString() })
+        .eq("payment_id", paymentId);
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {

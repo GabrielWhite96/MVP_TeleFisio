@@ -31,6 +31,7 @@ Deno.serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const origin = body.successUrl ?? "http://localhost:5173";
+    const packageId = body.packageId as string | undefined;
 
     const { data: patient } = await supabase
       .from("patients")
@@ -40,24 +41,66 @@ Deno.serve(async (req) => {
 
     if (!patient) return json({ error: "Patient profile not found" }, 400);
 
+    let packageName = "TeleFisio — sessão / programa";
+    if (packageId) {
+      const { data: pkg } = await supabase
+        .from("recovery_packages")
+        .select("name, price_cents")
+        .eq("id", packageId)
+        .single();
+      if (pkg?.name) packageName = pkg.name;
+    }
+
     const { data: payment, error: payError } = await supabase
       .from("payments")
       .insert({
         patient_id: patient.id,
         appointment_id: body.appointmentId ?? null,
         treatment_plan_id: body.treatmentPlanId ?? null,
+        package_id: packageId ?? null,
         amount_cents: amountCents,
         currency: "CAD",
         status: "pending",
+        metadata: packageId ? { package_id: packageId } : {},
       })
       .select()
       .single();
 
     if (payError) return json({ error: payError.message }, 400);
 
+    let purchaseId: string | null = null;
+    if (packageId) {
+      const { data: purchase } = await supabase
+        .from("package_purchases")
+        .insert({
+          patient_id: patient.id,
+          package_id: packageId,
+          payment_id: payment.id,
+          status: "pending",
+        })
+        .select()
+        .single();
+      purchaseId = purchase?.id ?? null;
+
+      const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+      await supabase.from("invoices").insert({
+        patient_id: patient.id,
+        payment_id: payment.id,
+        package_purchase_id: purchaseId,
+        invoice_number: invoiceNumber,
+        amount_cents: amountCents,
+        currency: "CAD",
+        status: "open",
+        line_items: [{ label: packageName, amount_cents: amountCents }],
+      });
+    }
+
     if (!stripeKey) {
+      if (packageId && purchaseId) {
+        await activatePackagePurchase(supabase, purchaseId, payment.id, patient.id, amountCents);
+      }
       return json({
-        url: `${origin}?paid=demo&payment_id=${payment.id}`,
+        url: `${origin}${origin.includes("?") ? "&" : "?"}paid=demo&payment_id=${payment.id}`,
         paymentId: payment.id,
         demo: true,
       });
@@ -68,11 +111,13 @@ Deno.serve(async (req) => {
     params.set("success_url", body.successUrl ?? `${origin}?paid=1`);
     params.set("cancel_url", body.cancelUrl ?? `${origin}?paid=0`);
     params.set("line_items[0][price_data][currency]", "cad");
-    params.set("line_items[0][price_data][product_data][name]", "TeleFisio — sessão / programa");
+    params.set("line_items[0][price_data][product_data][name]", packageName);
     params.set("line_items[0][price_data][unit_amount]", String(amountCents));
     params.set("line_items[0][quantity]", "1");
     params.set("metadata[payment_id]", payment.id);
     params.set("metadata[patient_id]", patient.id);
+    if (packageId) params.set("metadata[package_id]", packageId);
+    if (purchaseId) params.set("metadata[package_purchase_id]", purchaseId);
 
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -97,6 +142,34 @@ Deno.serve(async (req) => {
     return json({ error: error instanceof Error ? error.message : "Unknown error" }, 500);
   }
 });
+
+async function activatePackagePurchase(
+  supabase: ReturnType<typeof createClient>,
+  purchaseId: string,
+  paymentId: string,
+  patientId: string,
+  amountCents: number,
+) {
+  const started = new Date();
+  const expires = new Date(started);
+  expires.setDate(expires.getDate() + 8 * 7);
+
+  await supabase.from("payments").update({ status: "succeeded" }).eq("id", paymentId);
+  await supabase
+    .from("package_purchases")
+    .update({
+      status: "active",
+      started_at: started.toISOString(),
+      expires_at: expires.toISOString(),
+    })
+    .eq("id", purchaseId);
+  await supabase
+    .from("invoices")
+    .update({ status: "paid", paid_at: started.toISOString() })
+    .eq("payment_id", paymentId)
+    .eq("patient_id", patientId);
+  void amountCents;
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

@@ -6,14 +6,17 @@ import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId, getPhysioPatients, updatePhysiotherapist } from '@/entities/physiotherapist/api/physiotherapist-api'
+import { getPhysioPatientStats } from '@/entities/physiotherapist/api/physio-stats-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
 import { getClinicalRecords } from '@/entities/clinical-record/api/clinical-record-api'
 import { getAtRiskPatients } from '@/entities/notification/api/notification-api'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
 import { ClinicalRecordForm } from '@/features/clinical-record/ui/clinical-record-form'
 import { AssignExerciseForm, PatientExerciseList } from '@/features/exercises/ui/exercise-components'
+import { ExerciseLibraryEditor } from '@/features/exercises/ui/exercise-library-editor'
 import { TreatmentPlanForm } from '@/features/treatment-plan/ui/treatment-plan-form'
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
+import { DischargePlanButton } from '@/features/treatment-plan/ui/discharge-plan-button'
 import { ClinicalTimeline } from '@/features/clinical-timeline/ui/clinical-timeline'
 import { AvailabilityEditor } from '@/features/scheduling/ui/availability-editor'
 import { queryKeys } from '@/shared/api/query-keys'
@@ -50,6 +53,12 @@ export function PhysioDashboardPage() {
     enabled: !!physioQuery.data?.id,
   })
 
+  const statsQuery = useQuery({
+    queryKey: queryKeys.physioPatientStats(physioQuery.data?.id ?? ''),
+    queryFn: () => getPhysioPatientStats(physioQuery.data!.id),
+    enabled: !!physioQuery.data?.id,
+  })
+
   const atRiskQuery = useQuery({
     queryKey: queryKeys.atRiskPatients(physioQuery.data?.id),
     queryFn: () => getAtRiskPatients(physioQuery.data!.id),
@@ -69,6 +78,12 @@ export function PhysioDashboardPage() {
     <AppLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.physio.dashboard}</h1>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard title="Ativos" value={statsQuery.data?.active ?? 0} loading={statsQuery.isLoading} />
+          <StatCard title="Em risco" value={statsQuery.data?.atRisk ?? 0} loading={statsQuery.isLoading} />
+          <StatCard title="Aguardando" value={statsQuery.data?.awaiting ?? 0} loading={statsQuery.isLoading} />
+          <StatCard title="Alta" value={statsQuery.data?.discharged ?? 0} loading={statsQuery.isLoading} />
+        </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <StatCard title={pt.physio.todayAppointments} value={today.length} loading={appointmentsQuery.isLoading} />
           <StatCard title={pt.physio.upcoming} value={upcoming.length} loading={appointmentsQuery.isLoading} />
@@ -235,6 +250,7 @@ export function PhysioPatientDetailPage() {
           </TabsContent>
           <TabsContent value="plan" className="space-y-4">
             <TreatmentPlanCard patientId={id!} />
+            <DischargePlanButton patientId={id!} />
             <TreatmentPlanForm physiotherapistId={physioQuery.data.id} patientId={id!} />
           </TabsContent>
           <TabsContent value="timeline">
@@ -243,8 +259,9 @@ export function PhysioPatientDetailPage() {
           <TabsContent value="exercises">
             <PatientExerciseList patientId={id!} />
           </TabsContent>
-          <TabsContent value="assign">
+          <TabsContent value="assign" className="space-y-4">
             <AssignExerciseForm patientId={id!} physiotherapistId={physioQuery.data.id} />
+            <ExerciseLibraryEditor />
           </TabsContent>
         </Tabs>
       </div>

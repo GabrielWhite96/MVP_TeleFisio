@@ -12,6 +12,7 @@ import {
   PatientCheckInPage,
   PatientNotificationsPage,
   PatientCaregiversPage,
+  PatientBillingPage,
 } from '@/pages/patient/patient-pages'
 import {
   PhysioDashboardPage,
@@ -71,6 +72,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.patient.caregivers,
     element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientCaregiversPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: ROUTES.patient.billing,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientBillingPage /></RoleGuard></ProtectedRoute>,
   },
 
   {

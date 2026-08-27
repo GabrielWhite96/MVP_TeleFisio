@@ -1,14 +1,41 @@
 import { format, parseISO, addMinutes, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { ptBR, enCA } from 'date-fns/locale'
+import { getLocale } from '@/shared/config/i18n'
+
+export const DEFAULT_TZ = 'America/Edmonton'
+
+/** Format an ISO/UTC instant in a user timezone via Intl (stores remain UTC). */
+export function formatInTimeZone(
+  date: string | Date,
+  timeZone = DEFAULT_TZ,
+  options: Intl.DateTimeFormatOptions = {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }
+): string {
+  const d = typeof date === 'string' ? parseISO(date) : date
+  const locale = getLocale() === 'en' ? 'en-CA' : 'pt-BR'
+  try {
+    return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(d)
+  } catch {
+    return format(d, "dd/MM/yyyy HH:mm", { locale: getLocale() === 'en' ? enCA : ptBR })
+  }
+}
 
 export function formatDate(date: string | Date, pattern = 'dd/MM/yyyy') {
   const d = typeof date === 'string' ? parseISO(date) : date
-  return format(d, pattern, { locale: ptBR })
+  const locale = getLocale() === 'en' ? enCA : ptBR
+  return format(d, pattern, { locale })
 }
 
-export function formatDateTime(date: string | Date) {
-  const d = typeof date === 'string' ? parseISO(date) : date
-  return format(d, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+export function formatDateTime(date: string | Date, timeZone = DEFAULT_TZ) {
+  return formatInTimeZone(date, timeZone, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export function formatTime(time: string) {

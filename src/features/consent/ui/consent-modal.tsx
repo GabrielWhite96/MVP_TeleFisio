@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  CURRENT_CONSENT_VERSION,
   REQUIRED_CONSENT_TYPES,
   acceptConsent,
   getConsents,
@@ -52,14 +53,26 @@ export function ConsentModal({ patientId }: ConsentModalProps) {
   })
 
   const missing = REQUIRED_CONSENT_TYPES.filter((type) => {
-    const active = consentsQuery.data?.some((c) => c.type === type && !c.revoked_at)
+    const active = consentsQuery.data?.some(
+      (c) =>
+        c.type === type &&
+        !c.revoked_at &&
+        (!c.expires_at || new Date(c.expires_at) > new Date()) &&
+        c.version === CURRENT_CONSENT_VERSION
+    )
     return !active
   })
 
   const mutation = useMutation({
     mutationFn: async () => {
       await Promise.all(
-        missing.map((type) => acceptConsent({ patientId: resolvedPatientId, type, version: '1.0' }))
+        missing.map((type) =>
+          acceptConsent({
+            patientId: resolvedPatientId,
+            type,
+            version: CURRENT_CONSENT_VERSION,
+          })
+        )
       )
     },
     onSuccess: () => {

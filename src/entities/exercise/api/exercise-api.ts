@@ -1,12 +1,33 @@
 import { supabase } from '@/shared/api/supabase'
 
-export async function getExerciseLibrary() {
-  const { data, error } = await supabase
-    .from('exercise_library')
-    .select('*')
-    .order('title')
+export type ExerciseDifficultyRating = 'easy' | 'moderate' | 'hard'
+
+export interface ExerciseLibraryItem {
+  id: string
+  created_by: string | null
+  title: string
+  description: string | null
+  instructions: string | null
+  video_url: string | null
+  difficulty: string | null
+  tags: string[]
+  category: string | null
+  level: string | null
+  duration_seconds: number | null
+  contraindications: string | null
+  clinical_notes: string | null
+  storage_path: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getExerciseLibrary(activeOnly = true): Promise<ExerciseLibraryItem[]> {
+  let query = supabase.from('exercise_library').select('*').order('title')
+  if (activeOnly) query = query.eq('is_active', true)
+  const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []) as ExerciseLibraryItem[]
 }
 
 export async function getPatientExercises(patientId: string) {
@@ -57,8 +78,6 @@ export async function assignExercise(input: {
   return data
 }
 
-export type ExerciseDifficultyRating = 'easy' | 'moderate' | 'hard'
-
 export async function completeExercise(
   patientExerciseId: string,
   notes?: string,
@@ -84,12 +103,22 @@ export async function completeExercise(
   return data
 }
 
-export async function createExercise(input: {
+export interface CreateExerciseInput {
   title: string
   description?: string
   instructions?: string
   createdBy: string
-}) {
+  category?: string
+  level?: string
+  durationSeconds?: number
+  contraindications?: string
+  clinicalNotes?: string
+  videoUrl?: string
+  tags?: string[]
+  difficulty?: string
+}
+
+export async function createExercise(input: CreateExerciseInput): Promise<ExerciseLibraryItem> {
   const { data, error } = await supabase
     .from('exercise_library')
     .insert({
@@ -97,11 +126,64 @@ export async function createExercise(input: {
       description: input.description ?? null,
       instructions: input.instructions ?? null,
       created_by: input.createdBy,
-    })
+      category: input.category ?? null,
+      level: input.level ?? 'beginner',
+      duration_seconds: input.durationSeconds ?? null,
+      contraindications: input.contraindications ?? null,
+      clinical_notes: input.clinicalNotes ?? null,
+      video_url: input.videoUrl ?? null,
+      tags: input.tags ?? [],
+      difficulty: input.difficulty ?? null,
+      is_active: true,
+    } as Record<string, unknown>)
     .select()
     .single()
   if (error) throw error
-  return data
+  return data as ExerciseLibraryItem
+}
+
+export async function updateExercise(
+  id: string,
+  updates: Partial<{
+    title: string
+    description: string | null
+    instructions: string | null
+    category: string | null
+    level: string | null
+    duration_seconds: number | null
+    contraindications: string | null
+    clinical_notes: string | null
+    video_url: string | null
+    storage_path: string | null
+    tags: string[]
+    difficulty: string | null
+    is_active: boolean
+  }>
+): Promise<ExerciseLibraryItem> {
+  const { data, error } = await supabase
+    .from('exercise_library')
+    .update(updates as Record<string, unknown>)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as ExerciseLibraryItem
+}
+
+export async function uploadExerciseVideo(exerciseId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'mp4'
+  const path = `${exerciseId}/${Date.now()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('exercise-videos')
+    .upload(path, file, { upsert: true, contentType: file.type })
+  if (uploadError) throw uploadError
+
+  const { data: publicUrl } = supabase.storage.from('exercise-videos').getPublicUrl(path)
+  await updateExercise(exerciseId, {
+    storage_path: path,
+    video_url: publicUrl.publicUrl,
+  })
+  return publicUrl.publicUrl
 }
 
 export function calculateExerciseProgress(

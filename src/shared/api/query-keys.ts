@@ -28,4 +28,11 @@ export const queryKeys = {
   auditLogs: (filters?: Record<string, unknown>) => ['audit-logs', filters] as const,
   atRiskPatients: (physioId?: string) => ['at-risk-patients', physioId] as const,
   adherence: (patientId: string) => ['adherence', patientId] as const,
+  telehealthSession: (appointmentId: string) => ['telehealth-session', appointmentId] as const,
+  recoveryPackages: ['recovery-packages'] as const,
+  packagePurchases: (patientId: string) => ['package-purchases', patientId] as const,
+  invoices: (patientId: string) => ['invoices', patientId] as const,
+  caregiverInvites: (patientId: string) => ['caregiver-invites', patientId] as const,
+  pendingCaregiverInvites: (email: string) => ['pending-caregiver-invites', email] as const,
+  physioPatientStats: (physioId: string) => ['physio-patient-stats', physioId] as const,
 }
