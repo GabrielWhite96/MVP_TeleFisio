@@ -13,7 +13,6 @@ export interface TreatmentPlan {
   frequency: string
   status: TreatmentPlanStatus
   started_at: string
-  organization_id: string | null
   created_at: string
   updated_at: string
 }
@@ -37,7 +36,6 @@ export interface CreateTreatmentPlanInput {
   condition?: string
   durationWeeks?: number
   frequency?: string
-  organizationId?: string
 }
 
 export interface UpdateTreatmentPlanInput {
@@ -90,11 +88,17 @@ export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Prom
       duration_weeks: input.durationWeeks ?? 8,
       frequency: input.frequency ?? '2 sessions/week',
       status: 'active',
-      organization_id: input.organizationId ?? null,
     } as Record<string, unknown>)
     .select()
     .single()
   if (error) throw error
+
+  await supabase
+    .from('patients')
+    .update({ clinical_status: 'in_treatment' })
+    .eq('id', input.patientId)
+    .neq('clinical_status', 'discharged')
+
   return data as TreatmentPlan
 }
 
@@ -151,5 +155,10 @@ export async function updateGoalProgress(goalId: string, currentValue: number): 
 }
 
 export async function dischargeTreatmentPlan(id: string): Promise<TreatmentPlan> {
-  return updateTreatmentPlan(id, { status: 'discharged' })
+  const plan = await updateTreatmentPlan(id, { status: 'discharged' })
+  await supabase
+    .from('patients')
+    .update({ clinical_status: 'discharged' })
+    .eq('id', plan.patient_id)
+  return plan
 }

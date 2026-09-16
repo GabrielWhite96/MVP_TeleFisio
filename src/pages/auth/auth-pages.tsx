@@ -1,6 +1,8 @@
 import { LoginForm } from '@/features/auth/ui/login-form'
 import { SignupForm } from '@/features/auth/ui/signup-form'
 import { ForgotPasswordForm } from '@/features/auth/ui/forgot-password-form'
+import { InviteAcceptForm } from '@/features/auth/ui/invite-accept-form'
+import { CaregiverSignupForm } from '@/features/auth/ui/caregiver-signup-form'
 import { Activity } from 'lucide-react'
 import { pt } from '@/shared/config/i18n/pt'
 
@@ -26,4 +28,12 @@ export function SignupPage() {
 
 export function ForgotPasswordPage() {
   return <AuthLayout><ForgotPasswordForm /></AuthLayout>
+}
+
+export function InviteAcceptPage() {
+  return <AuthLayout><InviteAcceptForm /></AuthLayout>
+}
+
+export function CaregiverSignupPage() {
+  return <AuthLayout><CaregiverSignupForm /></AuthLayout>
 }

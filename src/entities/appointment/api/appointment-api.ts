@@ -8,6 +8,7 @@ export interface CreateAppointmentInput {
   scheduledAt: string
   homeAddress?: string
   notes?: string
+  durationMinutes?: number
 }
 
 export async function getAppointments(filters?: {
@@ -19,7 +20,7 @@ export async function getAppointments(filters?: {
     .from('appointments')
     .select(`
       *,
-      patient:patients(id, profile_id, city, province, profiles:profiles(full_name, phone)),
+      patient:patients(id, profile_id, full_name, city, province, profiles:profiles(full_name, phone)),
       physiotherapist:physiotherapists(id, profile_id, profiles:profiles(full_name, phone))
     `)
     .order('scheduled_at', { ascending: true })
@@ -47,7 +48,8 @@ export type AppointmentWithRelations = {
   price_cents: number | null
   patient?: {
     id: string
-    profile_id: string
+    profile_id: string | null
+    full_name?: string
     city: string | null
     province: string | null
     profiles?: { full_name: string; phone: string | null } | null
@@ -88,6 +90,7 @@ export async function createAppointment(input: CreateAppointmentInput) {
       physiotherapist_id: input.physiotherapistId,
       modality: input.modality,
       scheduled_at: input.scheduledAt,
+      duration_minutes: input.durationMinutes ?? 60,
       home_address: input.homeAddress ?? null,
       notes: input.notes ?? null,
       status: 'scheduled',

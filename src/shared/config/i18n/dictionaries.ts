@@ -7,6 +7,8 @@ export const en = {
   auth: {
     login: 'Sign in',
     signup: 'Create account',
+    signupPhysio: 'Create professional account',
+    signupPhysioDescription: 'Sign up to manage your patients and treatments.',
     logout: 'Sign out',
     email: 'Email',
     password: 'Password',
@@ -20,6 +22,13 @@ export const en = {
     roleCaregiver: 'I am a family caregiver',
     resetSent: 'Recovery email sent.',
     greeting: 'Good morning',
+    inviteTitle: 'Activate patient account',
+    inviteDescription: '{physio} invited you. Set your password to access the portal ({email}).',
+    inviteInvalidTitle: 'Invalid or expired invite',
+    inviteInvalidDescription: 'Ask your physiotherapist to resend the invite.',
+    inviteAcceptedTitle: 'Account already active',
+    inviteAcceptedDescription: 'Sign in to access your portal.',
+    activateAccount: 'Activate account',
   },
   common: {
     save: 'Save',

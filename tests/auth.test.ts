@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { loginSchema, signupSchema, forgotPasswordSchema } from '@/features/auth/model/schemas'
+import { loginSchema, signupSchema, forgotPasswordSchema, inviteAcceptSchema } from '@/features/auth/model/schemas'
 
 describe('Auth schemas', () => {
   it('validates login form', () => {
@@ -12,12 +12,11 @@ describe('Auth schemas', () => {
     expect(result.success).toBe(false)
   })
 
-  it('validates signup form', () => {
+  it('validates physiotherapist signup form without role picker', () => {
     const result = signupSchema.safeParse({
       fullName: 'João Silva',
       email: 'joao@example.com',
       password: '123456',
-      role: 'patient',
     })
     expect(result.success).toBe(true)
   })
@@ -27,9 +26,16 @@ describe('Auth schemas', () => {
       fullName: 'João',
       email: 'joao@example.com',
       password: '123',
-      role: 'patient',
     })
     expect(result.success).toBe(false)
+  })
+
+  it('validates patient invite accept form', () => {
+    const result = inviteAcceptSchema.safeParse({
+      fullName: 'Maria Paciente',
+      password: '123456',
+    })
+    expect(result.success).toBe(true)
   })
 
   it('validates forgot password form', () => {

@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/api/supabase'
 import type { AppointmentModality } from '@/shared/types/database'
+import { getPhysioOwnedPatients } from '@/entities/patient/api/patient-api'
 
 export async function getPhysiotherapistByProfileId(profileId: string) {
   const { data, error } = await supabase
@@ -11,16 +12,12 @@ export async function getPhysiotherapistByProfileId(profileId: string) {
   return data
 }
 
-export async function getAvailablePhysiotherapists(modality?: AppointmentModality) {
-  let query = supabase
+export async function getPhysiotherapistById(id: string) {
+  const { data, error } = await supabase
     .from('physiotherapists')
     .select('*, profiles:profiles(full_name, avatar_url, phone)')
-
-  if (modality) {
-    query = query.contains('modalities', [modality])
-  }
-
-  const { data, error } = await query
+    .eq('id', id)
+    .single()
   if (error) throw error
   return data
 }
@@ -44,20 +41,9 @@ export async function updatePhysiotherapist(id: string, updates: {
   return data
 }
 
+/** @deprecated Use getPhysioOwnedPatients from patient-api */
 export async function getPhysioPatients(physiotherapistId: string) {
-  const { data, error } = await supabase
-    .from('care_relationships')
-    .select(`
-      patient:patients(
-        id, city, province,
-        profiles:profiles(full_name, phone, avatar_url)
-      )
-    `)
-    .eq('physiotherapist_id', physiotherapistId)
-    .is('ended_at', null)
-
-  if (error) throw error
-  return data?.map((r) => r.patient).filter(Boolean) ?? []
+  return getPhysioOwnedPatients(physiotherapistId)
 }
 
 export async function getAvailability(physiotherapistId: string) {

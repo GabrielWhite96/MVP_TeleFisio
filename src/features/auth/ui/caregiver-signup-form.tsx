@@ -1,35 +1,59 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { signupSchema, type SignupFormData } from '../model/schemas'
-import { signUp, getDashboardRoute } from '../api/auth-api'
+import { z } from 'zod'
+import { supabase, getSupabaseErrorMessage } from '@/shared/api/supabase'
+import { getDashboardRoute } from '../api/auth-api'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 
-export function SignupForm() {
+const schema = z.object({
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6),
+})
+
+type FormData = z.infer<typeof schema>
+
+export function CaregiverSignupForm() {
   const navigate = useNavigate()
-  const { register, handleSubmit, formState: { errors } } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
+  const [params] = useSearchParams()
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: params.get('email') ?? '' },
   })
 
   const mutation = useMutation({
-    mutationFn: signUp,
-    onSuccess: async (result) => {
-      if (result.user) {
-        navigate(getDashboardRoute('physiotherapist'))
-      }
+    mutationFn: async (data: FormData) => {
+      const { data: result, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            role: 'caregiver',
+          },
+        },
+      })
+      if (error) throw new Error(getSupabaseErrorMessage(error))
+      return result
+    },
+    onSuccess: (result) => {
+      if (result.user) navigate(getDashboardRoute('caregiver'))
     },
   })
 
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>{pt.auth.signupPhysio}</CardTitle>
-        <CardDescription>{pt.auth.signupPhysioDescription}</CardDescription>
+        <CardTitle>Criar conta de cuidador</CardTitle>
+        <CardDescription>
+          Disponível apenas se você recebeu um convite do paciente.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
@@ -53,7 +77,6 @@ export function SignupForm() {
             {mutation.isPending ? pt.common.loading : pt.auth.signup}
           </Button>
           <p className="text-center text-sm">
-            {pt.auth.hasAccount}{' '}
             <Link to={ROUTES.login} className="text-[var(--color-primary)] hover:underline">
               {pt.auth.login}
             </Link>

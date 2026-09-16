@@ -76,10 +76,12 @@ type CareRelationshipRow = {
   patient:
     | {
         id: string
+        full_name: string
         profiles: { full_name: string } | { full_name: string }[] | null
       }
     | Array<{
         id: string
+        full_name: string
         profiles: { full_name: string } | { full_name: string }[] | null
       }>
     | null
@@ -92,6 +94,7 @@ export async function getAtRiskPatients(physiotherapistId?: string): Promise<AtR
       patient_id,
       patient:patients(
         id,
+        full_name,
         profiles:profiles(full_name)
       )
     `)
@@ -113,7 +116,7 @@ export async function getAtRiskPatients(physiotherapistId?: string): Promise<AtR
       const profile = Array.isArray(patient?.profiles)
         ? patient.profiles[0]
         : patient?.profiles
-      const patientName = profile?.full_name ?? 'Paciente'
+      const patientName = patient?.full_name ?? profile?.full_name ?? 'Paciente'
 
       const [checkInResult, adherenceResult, planResult] = await Promise.all([
         supabase

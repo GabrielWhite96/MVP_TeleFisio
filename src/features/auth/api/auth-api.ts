@@ -1,5 +1,5 @@
 import { supabase, getSupabaseErrorMessage } from '@/shared/api/supabase'
-import type { LoginFormData, SignupFormData, ForgotPasswordFormData } from '../model/schemas'
+import type { LoginFormData, SignupFormData, ForgotPasswordFormData, InviteAcceptFormData } from '../model/schemas'
 import type { UserRole } from '@/shared/types/database'
 
 export async function signIn(data: LoginFormData) {
@@ -18,7 +18,27 @@ export async function signUp(data: SignupFormData) {
     options: {
       data: {
         full_name: data.fullName,
-        role: data.role,
+        role: 'physiotherapist',
+      },
+    },
+  })
+  if (error) throw new Error(getSupabaseErrorMessage(error))
+  return result
+}
+
+export async function acceptPatientInvite(input: {
+  email: string
+  inviteToken: string
+  form: InviteAcceptFormData
+}) {
+  const { data: result, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.form.password,
+    options: {
+      data: {
+        full_name: input.form.fullName,
+        role: 'patient',
+        invite_token: input.inviteToken,
       },
     },
   })

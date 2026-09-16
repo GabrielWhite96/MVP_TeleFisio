@@ -56,8 +56,9 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          Se a pessoa ainda não tem conta de cuidador, o convite fica pendente. Ao criar a conta com o
-          mesmo e-mail, ela poderá aceitar no dashboard.
+          Se a pessoa ainda não tem conta, envie o link{' '}
+          <code className="rounded bg-[var(--color-muted)] px-1 text-xs">/auth/caregiver-signup</code>{' '}
+          com o mesmo e-mail do convite. Após criar a conta, ela aceita no dashboard.
         </p>
         <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className="flex flex-wrap gap-3">
           <div className="min-w-[220px] flex-1 space-y-2">

@@ -155,6 +155,14 @@ export async function createClinicalRecord(input: {
     p_entity_id: data.id,
   })
 
+  if (recordType === 'reassessment') {
+    await supabase
+      .from('patients')
+      .update({ clinical_status: 'reassessment' })
+      .eq('id', input.patientId)
+      .neq('clinical_status', 'discharged')
+  }
+
   return data
 }
 

@@ -4,19 +4,22 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/features/auth/hooks/use-auth'
-import { getPatientByProfileId, updatePatient, updateProfile } from '@/entities/patient/api/patient-api'
+import {
+  getPatientByProfileId,
+  getPatientResponsiblePhysio,
+  updatePatient,
+  updateProfile,
+} from '@/entities/patient/api/patient-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
 import { getPatientExercises, calculateExerciseProgress } from '@/entities/exercise/api/exercise-api'
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '@/entities/notification/api/notification-api'
 import { getCaregiverLinks, revokeCaregiver } from '@/entities/caregiver/api/caregiver-api'
-import { BookingWizard } from '@/features/booking/ui/booking-wizard'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
 import { PatientExerciseList } from '@/features/exercises/ui/exercise-components'
 import { CheckInForm } from '@/features/patient-checkin/ui/check-in-form'
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
 import { CaregiverAuthorizeForm } from '@/features/caregiver/ui/caregiver-authorize-form'
 import { CaregiverInviteForm } from '@/features/caregiver/ui/caregiver-invite-form'
-import { RecoveryPackagesPanel } from '@/features/payment/ui/recovery-packages-panel'
 import { ClinicalProfileForm } from '@/features/clinical-profile/ui/clinical-profile-form'
 import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-progress-widget'
 import { queryKeys } from '@/shared/api/query-keys'
@@ -27,10 +30,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Input, Label } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { LoadingSpinner, ErrorState, EmptyState } from '@/shared/ui/states'
-import { ROUTES, CANADIAN_PROVINCES } from '@/shared/config/routes'
+import { ROUTES, CANADIAN_PROVINCES, CLINICAL_STATUS_LABELS } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { isUpcoming, formatDateTime } from '@/shared/lib/dates'
-import { CalendarPlus, Bell, HeartPulse } from 'lucide-react'
+import { Bell, HeartPulse } from 'lucide-react'
 
 const profileSchema = z.object({
   fullName: z.string().min(2),
@@ -49,6 +52,12 @@ export function PatientDashboardPage() {
     queryKey: queryKeys.patient(user?.id ?? ''),
     queryFn: () => getPatientByProfileId(user!.id),
     enabled: !!user?.id,
+  })
+
+  const physioQuery = useQuery({
+    queryKey: ['patient-responsible-physio', patientQuery.data?.id],
+    queryFn: () => getPatientResponsiblePhysio(patientQuery.data!.id),
+    enabled: !!patientQuery.data?.id,
   })
 
   const appointmentsQuery = useQuery({
@@ -76,6 +85,7 @@ export function PatientDashboardPage() {
   const progress = calculateExerciseProgress(exercisesQuery.data ?? [])
   const unread = notificationsQuery.data?.filter((n) => !n.read_at).length ?? 0
   const firstName = profile?.full_name?.split(' ')[0] ?? ''
+  const physioName = (physioQuery.data as { profiles?: { full_name?: string } | null } | undefined)?.profiles?.full_name
 
   return (
     <AppLayout>
@@ -84,24 +94,38 @@ export function PatientDashboardPage() {
           <div>
             <h1 className="text-2xl font-bold">{pt.patient.dashboard}</h1>
             <p className="text-[var(--color-muted-foreground)]">
-              {pt.auth.greeting}{firstName ? `, ${firstName}` : ''}!
+              {pt.auth.greeting}{firstName ? `, ${firstName}` : ''}! {pt.patient.portalTagline}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <Link to={ROUTES.patient.checkIn}>
-                <HeartPulse className="mr-2 h-4 w-4" />
-                {pt.patient.howAmI}
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to={ROUTES.patient.book}>
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                {pt.patient.bookAppointment}
-              </Link>
-            </Button>
-          </div>
+          <Button asChild variant="outline">
+            <Link to={ROUTES.patient.checkIn}>
+              <HeartPulse className="mr-2 h-4 w-4" />
+              {pt.patient.howAmI}
+            </Link>
+          </Button>
         </div>
+
+        {patientQuery.data && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">{pt.patient.treatmentSummary}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold">
+                  {CLINICAL_STATUS_LABELS[patientQuery.data.clinical_status]}
+                </p>
+                {physioName && (
+                  <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+                    {pt.patient.myPhysio}: {physioName}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+            <NextAppointmentCard appointment={upcoming[0]} loading={appointmentsQuery.isLoading} />
+            <StatCard title={pt.patient.progress} value={`${progress}%`} loading={exercisesQuery.isLoading} />
+          </div>
+        )}
 
         {patientQuery.data && (
           <div className="grid gap-6 lg:grid-cols-2">
@@ -109,12 +133,6 @@ export function PatientDashboardPage() {
             <TreatmentPlanCard patientId={patientQuery.data.id} />
           </div>
         )}
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NextAppointmentCard appointment={upcoming[0]} loading={appointmentsQuery.isLoading} />
-          <StatCard title={pt.patient.progress} value={`${progress}%`} loading={exercisesQuery.isLoading} />
-          <StatCard title={pt.patient.exercises} value={exercisesQuery.data?.length ?? 0} loading={exercisesQuery.isLoading} />
-        </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -159,8 +177,8 @@ export function PatientProfilePage() {
   const { register, handleSubmit, setValue, watch } = useForm({
     resolver: zodResolver(profileSchema),
     values: {
-      fullName: profile?.full_name ?? '',
-      phone: profile?.phone ?? '',
+      fullName: patientQuery.data?.full_name ?? profile?.full_name ?? '',
+      phone: patientQuery.data?.phone ?? profile?.phone ?? '',
       dateOfBirth: patientQuery.data?.date_of_birth ?? '',
       addressLine1: patientQuery.data?.address_line1 ?? '',
       city: patientQuery.data?.city ?? '',
@@ -173,6 +191,8 @@ export function PatientProfilePage() {
     mutationFn: async (data: z.infer<typeof profileSchema>) => {
       await updateProfile(user!.id, { full_name: data.fullName, phone: data.phone || null })
       await updatePatient(patientQuery.data!.id, {
+        full_name: data.fullName,
+        phone: data.phone || null,
         date_of_birth: data.dateOfBirth || null,
         address_line1: data.addressLine1 || null,
         city: data.city || null,
@@ -234,17 +254,6 @@ export function PatientProfilePage() {
           </CardContent>
         </Card>
         {patientQuery.data && <ClinicalProfileForm patientId={patientQuery.data.id} />}
-      </div>
-    </AppLayout>
-  )
-}
-
-export function PatientBookPage() {
-  return (
-    <AppLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.booking.title}</h1>
-        <BookingWizard />
       </div>
     </AppLayout>
   )
@@ -447,25 +456,6 @@ export function PatientCaregiversPage() {
             ))}
           </CardContent>
         </Card>
-      </div>
-    </AppLayout>
-  )
-}
-
-export function PatientBillingPage() {
-  const { user } = useAuth()
-  const patientQuery = useQuery({
-    queryKey: queryKeys.patient(user?.id ?? ''),
-    queryFn: () => getPatientByProfileId(user!.id),
-    enabled: !!user?.id,
-  })
-
-  return (
-    <AppLayout>
-      <div className="mx-auto max-w-3xl space-y-6">
-        <h1 className="text-2xl font-bold">Pagamentos e programas</h1>
-        {patientQuery.isLoading && <LoadingSpinner />}
-        {patientQuery.data && <RecoveryPackagesPanel patientId={patientQuery.data.id} />}
       </div>
     </AppLayout>
   )

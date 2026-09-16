@@ -4,6 +4,10 @@ export type AppointmentModality = 'telehealth' | 'home_visit'
 export type ClinicalRecordType = 'initial_assessment' | 'evolution' | 'reassessment'
 export type NotificationType = 'appointment_reminder' | 'appointment_confirmed' | 'appointment_cancelled' | 'exercise_assigned' | 'general' | 'evaluation_due'
 export type AuditAction = 'LOGIN' | 'PATIENT_CREATED' | 'PHYSIOTHERAPIST_CREATED' | 'APPOINTMENT_CREATED' | 'APPOINTMENT_CANCELLED' | 'APPOINTMENT_COMPLETED' | 'CLINICAL_RECORD_CREATED' | 'CLINICAL_RECORD_UPDATED' | 'EXERCISE_ASSIGNED' | 'EXERCISE_COMPLETED'
+export type PatientClinicalStatus = 'awaiting_assessment' | 'in_treatment' | 'paused' | 'reassessment' | 'discharged'
+export type PatientAccountStatus = 'no_account' | 'invite_pending' | 'active'
+export type SaasSubscriptionStatus = 'trialing' | 'active' | 'inactive'
+export type PatientInviteStatus = 'pending' | 'accepted' | 'revoked' | 'expired'
 
 export interface Database {
   public: {
@@ -16,7 +20,6 @@ export interface Database {
           phone: string | null
           avatar_url: string | null
           timezone: string
-          organization_id: string | null
           created_at: string
           updated_at: string
         }
@@ -27,14 +30,17 @@ export interface Database {
           phone?: string | null
           avatar_url?: string | null
           timezone?: string
-          organization_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
       }
       patients: {
         Row: {
           id: string
-          profile_id: string
+          profile_id: string | null
+          physiotherapist_id: string
+          full_name: string
+          email: string | null
+          phone: string | null
           date_of_birth: string | null
           identity_document: string | null
           address_line1: string | null
@@ -42,12 +48,17 @@ export interface Database {
           city: string | null
           province: string | null
           postal_code: string | null
-          organization_id: string | null
+          clinical_status: PatientClinicalStatus
+          account_status: PatientAccountStatus
           created_at: string
           updated_at: string
         }
         Insert: {
-          profile_id: string
+          profile_id?: string | null
+          physiotherapist_id: string
+          full_name: string
+          email?: string | null
+          phone?: string | null
           date_of_birth?: string | null
           identity_document?: string | null
           address_line1?: string | null
@@ -55,7 +66,8 @@ export interface Database {
           city?: string | null
           province?: string | null
           postal_code?: string | null
-          organization_id?: string | null
+          clinical_status?: PatientClinicalStatus
+          account_status?: PatientAccountStatus
         }
         Update: Partial<Database['public']['Tables']['patients']['Insert']>
       }
@@ -70,7 +82,8 @@ export interface Database {
           modalities: AppointmentModality[]
           service_cities: string[]
           bio: string | null
-          organization_id: string | null
+          subscription_status: SaasSubscriptionStatus
+          trial_ends_at: string | null
           created_at: string
           updated_at: string
         }
@@ -83,9 +96,40 @@ export interface Database {
           modalities?: AppointmentModality[]
           service_cities?: string[]
           bio?: string | null
-          organization_id?: string | null
+          subscription_status?: SaasSubscriptionStatus
+          trial_ends_at?: string | null
         }
         Update: Partial<Database['public']['Tables']['physiotherapists']['Insert']>
+      }
+      patient_invites: {
+        Row: {
+          id: string
+          patient_id: string
+          physiotherapist_id: string
+          email: string
+          invite_token: string
+          status: PatientInviteStatus
+          invited_by: string | null
+          accepted_profile_id: string | null
+          expires_at: string
+          accepted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          patient_id: string
+          physiotherapist_id: string
+          email: string
+          invite_token?: string
+          status?: PatientInviteStatus
+          invited_by?: string | null
+          expires_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['patient_invites']['Insert']> & {
+          status?: PatientInviteStatus
+          accepted_profile_id?: string | null
+          accepted_at?: string | null
+        }
       }
       appointments: {
         Row: {
@@ -101,7 +145,6 @@ export interface Database {
           price_cents: number | null
           insurance_id: string | null
           recurrence_rule: string | null
-          organization_id: string | null
           created_at: string
           updated_at: string
         }
@@ -117,7 +160,6 @@ export interface Database {
           price_cents?: number | null
           insurance_id?: string | null
           recurrence_rule?: string | null
-          organization_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['appointments']['Insert']> & { status?: AppointmentStatus }
       }
@@ -272,6 +314,13 @@ export interface Database {
           created_at: string
           updated_at: string
         }
+        Insert: {
+          patient_id: string
+          physiotherapist_id: string
+          started_at?: string
+          ended_at?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['care_relationships']['Insert']>
       }
     }
     Functions: {
@@ -284,6 +333,18 @@ export interface Database {
         }
         Returns: string
       }
+      get_patient_invite_by_token: {
+        Args: { p_token: string }
+        Returns: Array<{
+          id: string
+          patient_id: string
+          email: string
+          status: PatientInviteStatus
+          expires_at: string
+          patient_full_name: string
+          physiotherapist_name: string
+        }>
+      }
     }
   }
 }
@@ -291,6 +352,7 @@ export interface Database {
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Patient = Database['public']['Tables']['patients']['Row']
 export type Physiotherapist = Database['public']['Tables']['physiotherapists']['Row']
+export type PatientInvite = Database['public']['Tables']['patient_invites']['Row']
 export type Appointment = Database['public']['Tables']['appointments']['Row']
 export type Availability = Database['public']['Tables']['availability']['Row']
 export type ClinicalRecord = Database['public']['Tables']['clinical_records']['Row']

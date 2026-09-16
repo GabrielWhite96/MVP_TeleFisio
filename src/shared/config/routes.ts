@@ -3,24 +3,26 @@ export const ROUTES = {
   login: '/auth/login',
   signup: '/auth/signup',
   forgotPassword: '/auth/forgot-password',
+  invite: (token: string) => `/auth/invite/${token}`,
   patient: {
     dashboard: '/patient/dashboard',
     profile: '/patient/profile',
-    book: '/patient/book',
     appointments: '/patient/appointments',
     appointment: (id: string) => `/patient/appointments/${id}`,
     exercises: '/patient/exercises',
     checkIn: '/patient/check-in',
     notifications: '/patient/notifications',
     caregivers: '/patient/caregivers',
-    billing: '/patient/billing',
   },
   physio: {
     dashboard: '/physio/dashboard',
     agenda: '/physio/agenda',
     patients: '/physio/patients',
     patient: (id: string) => `/physio/patients/${id}`,
+    patientNew: '/physio/patients/new',
     appointment: (id: string) => `/physio/appointments/${id}`,
+    appointmentNew: '/physio/appointments/new',
+    profile: '/physio/profile',
   },
   caregiver: {
     dashboard: '/caregiver/dashboard',
@@ -48,6 +50,20 @@ export const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
 export const MODALITY_LABELS: Record<string, string> = {
   telehealth: 'Tele-fisioterapia',
   home_visit: 'Atendimento domiciliar',
+}
+
+export const CLINICAL_STATUS_LABELS: Record<string, string> = {
+  awaiting_assessment: 'Aguardando avaliação',
+  in_treatment: 'Em tratamento',
+  paused: 'Pausado',
+  reassessment: 'Em reavaliação',
+  discharged: 'Alta',
+}
+
+export const ACCOUNT_STATUS_LABELS: Record<string, string> = {
+  no_account: 'Sem conta',
+  invite_pending: 'Convite pendente',
+  active: 'Conta ativa',
 }
 
 export const GOAL_METRIC_LABELS: Record<string, string> = {

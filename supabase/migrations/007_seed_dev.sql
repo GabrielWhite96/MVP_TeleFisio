@@ -1,9 +1,5 @@
 -- Dev seed data (run manually in dev environments)
 
-INSERT INTO organizations (name, slug, settings)
-VALUES ('TeleFisio Canada', 'telefisio-canada', '{"country": "CA"}'::jsonb)
-ON CONFLICT (slug) DO NOTHING;
-
 -- Default exercise library entries (global, no created_by)
 INSERT INTO exercise_library (title, description, instructions, difficulty, tags)
 VALUES

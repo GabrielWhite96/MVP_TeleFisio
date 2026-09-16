@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom'
-import { CalendarPlus, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Skeleton } from '@/shared/ui/states'
-import { MODALITY_LABELS, APPOINTMENT_STATUS_LABELS, ROUTES } from '@/shared/config/routes'
+import { MODALITY_LABELS, APPOINTMENT_STATUS_LABELS } from '@/shared/config/routes'
 import { formatDateTime, isUpcoming } from '@/shared/lib/dates'
 import { pt } from '@/shared/config/i18n/pt'
 
@@ -14,7 +13,10 @@ interface AppointmentItem {
   status: string
   scheduled_at: string
   physiotherapist?: { profiles?: { full_name: string } | null } | null
-  patient?: { profiles?: { full_name: string } | null } | null
+  patient?: {
+    full_name?: string | null
+    profiles?: { full_name: string } | null
+  } | null
 }
 
 export function AppointmentList({
@@ -59,7 +61,7 @@ export function AppointmentList({
             <p className="text-sm text-[var(--color-muted-foreground)]">
               {role === 'patient'
                 ? a.physiotherapist?.profiles?.full_name
-                : a.patient?.profiles?.full_name}
+                : (a.patient?.full_name ?? a.patient?.profiles?.full_name)}
             </p>
             <div className="mt-1 flex gap-2">
               <Badge variant="secondary">{MODALITY_LABELS[a.modality]}</Badge>
@@ -99,12 +101,6 @@ export function NextAppointmentCard({
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-[var(--color-muted-foreground)]">Nenhuma consulta agendada</p>
-            <Button asChild size="sm">
-              <Link to={ROUTES.patient.book}>
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                {pt.patient.bookAppointment}
-              </Link>
-            </Button>
           </div>
         )}
       </CardContent>

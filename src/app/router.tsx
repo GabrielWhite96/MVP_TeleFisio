@@ -1,24 +1,24 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, RoleGuard, GuestRoute } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
-import { LoginPage, SignupPage, ForgotPasswordPage } from '@/pages/auth/auth-pages'
+import { LoginPage, SignupPage, ForgotPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
 import {
   PatientDashboardPage,
   PatientProfilePage,
-  PatientBookPage,
   PatientAppointmentsPage,
   PatientAppointmentDetailPage,
   PatientExercisesPage,
   PatientCheckInPage,
   PatientNotificationsPage,
   PatientCaregiversPage,
-  PatientBillingPage,
 } from '@/pages/patient/patient-pages'
 import {
   PhysioDashboardPage,
   PhysioAgendaPage,
   PhysioPatientsPage,
+  PhysioPatientNewPage,
   PhysioPatientDetailPage,
+  PhysioAppointmentNewPage,
   PhysioAppointmentDetailPage,
   PhysioProfilePage,
 } from '@/pages/physio/physio-pages'
@@ -36,6 +36,8 @@ export const router = createBrowserRouter([
   { path: ROUTES.login, element: <GuestRoute><LoginPage /></GuestRoute> },
   { path: ROUTES.signup, element: <GuestRoute><SignupPage /></GuestRoute> },
   { path: ROUTES.forgotPassword, element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
+  { path: '/auth/invite/:token', element: <GuestRoute><InviteAcceptPage /></GuestRoute> },
+  { path: '/auth/caregiver-signup', element: <GuestRoute><CaregiverSignupPage /></GuestRoute> },
 
   {
     path: ROUTES.patient.dashboard,
@@ -44,10 +46,6 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.patient.profile,
     element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientProfilePage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.patient.book,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientBookPage /></RoleGuard></ProtectedRoute>,
   },
   {
     path: ROUTES.patient.appointments,
@@ -73,10 +71,6 @@ export const router = createBrowserRouter([
     path: ROUTES.patient.caregivers,
     element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientCaregiversPage /></RoleGuard></ProtectedRoute>,
   },
-  {
-    path: ROUTES.patient.billing,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientBillingPage /></RoleGuard></ProtectedRoute>,
-  },
 
   {
     path: ROUTES.physio.dashboard,
@@ -91,15 +85,23 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientsPage /></RoleGuard></ProtectedRoute>,
   },
   {
+    path: ROUTES.physio.patientNew,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientNewPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
     path: '/physio/patients/:id',
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientDetailPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: ROUTES.physio.appointmentNew,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentNewPage /></RoleGuard></ProtectedRoute>,
   },
   {
     path: '/physio/appointments/:id',
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentDetailPage /></RoleGuard></ProtectedRoute>,
   },
   {
-    path: '/physio/profile',
+    path: ROUTES.physio.profile,
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioProfilePage /></RoleGuard></ProtectedRoute>,
   },
 
