@@ -1,7 +1,8 @@
 export type UserRole = 'patient' | 'physiotherapist' | 'admin' | 'caregiver'
 export type AppointmentStatus = 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 export type AppointmentModality = 'telehealth' | 'home_visit'
-export type NotificationType = 'appointment_reminder' | 'appointment_confirmed' | 'appointment_cancelled' | 'exercise_assigned' | 'general'
+export type ClinicalRecordType = 'initial_assessment' | 'evolution' | 'reassessment'
+export type NotificationType = 'appointment_reminder' | 'appointment_confirmed' | 'appointment_cancelled' | 'exercise_assigned' | 'general' | 'evaluation_due'
 export type AuditAction = 'LOGIN' | 'PATIENT_CREATED' | 'PHYSIOTHERAPIST_CREATED' | 'APPOINTMENT_CREATED' | 'APPOINTMENT_CANCELLED' | 'APPOINTMENT_COMPLETED' | 'CLINICAL_RECORD_CREATED' | 'CLINICAL_RECORD_UPDATED' | 'EXERCISE_ASSIGNED' | 'EXERCISE_COMPLETED'
 
 export interface Database {
@@ -35,6 +36,7 @@ export interface Database {
           id: string
           profile_id: string
           date_of_birth: string | null
+          identity_document: string | null
           address_line1: string | null
           address_line2: string | null
           city: string | null
@@ -47,6 +49,7 @@ export interface Database {
         Insert: {
           profile_id: string
           date_of_birth?: string | null
+          identity_document?: string | null
           address_line1?: string | null
           address_line2?: string | null
           city?: string | null
@@ -146,6 +149,8 @@ export interface Database {
           appointment_id: string | null
           physiotherapist_id: string
           patient_id: string
+          record_type: ClinicalRecordType
+          structured_data: Record<string, unknown>
           assessment: string | null
           observations: string | null
           evolution: string | null
@@ -159,6 +164,8 @@ export interface Database {
           appointment_id?: string | null
           physiotherapist_id: string
           patient_id: string
+          record_type?: ClinicalRecordType
+          structured_data?: Record<string, unknown>
           assessment?: string | null
           observations?: string | null
           evolution?: string | null

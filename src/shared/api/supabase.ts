@@ -20,6 +20,8 @@ export function getSupabaseErrorMessage(error: { message?: string } | null): str
     'Invalid login credentials': 'E-mail ou senha inválidos.',
     'User already registered': 'Este e-mail já está cadastrado.',
     'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
+    'Failed to fetch':
+      'Não foi possível conectar ao servidor. Verifique sua conexão e as variáveis VITE_SUPABASE_* no .env.',
   }
   return map[error.message] ?? error.message
 }

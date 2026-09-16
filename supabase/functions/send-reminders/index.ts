@@ -11,9 +11,14 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
-  const { error } = await supabase.rpc("send_appointment_reminders");
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  const appointment = await supabase.rpc("send_appointment_reminders");
+  if (appointment.error) {
+    return new Response(JSON.stringify({ error: appointment.error.message }), { status: 500 });
+  }
+
+  const evaluation = await supabase.rpc("send_evaluation_reminders");
+  if (evaluation.error) {
+    return new Response(JSON.stringify({ error: evaluation.error.message }), { status: 500 });
   }
 
   return new Response(JSON.stringify({ ok: true }), {

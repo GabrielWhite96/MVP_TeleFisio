@@ -1,4 +1,13 @@
 import { supabase } from '@/shared/api/supabase'
+import type { ClinicalRecordType } from '@/shared/types/database'
+import type { AssessmentStructuredData } from '../model/assessment-schema'
+import type { EvolutionStructuredData } from '../model/evolution-schema'
+import {
+  summarizeAssessment,
+  summarizeEvolution,
+  summarizeTreatmentPlan,
+} from '../model/summaries'
+import { getPatientWithProfile, updatePatient, updateProfile } from '@/entities/patient/api/patient-api'
 
 export async function getClinicalRecords(patientId: string) {
   const { data, error } = await supabase
@@ -10,27 +19,129 @@ export async function getClinicalRecords(patientId: string) {
   return data
 }
 
+export async function hasInitialAssessment(patientId: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('clinical_records')
+    .select('id', { count: 'exact', head: true })
+    .eq('patient_id', patientId)
+    .eq('record_type', 'initial_assessment')
+  if (error) throw error
+  return (count ?? 0) > 0
+}
+
+export async function getLatestInitialOrReassessment(patientId: string) {
+  const { data, error } = await supabase
+    .from('clinical_records')
+    .select('*')
+    .eq('patient_id', patientId)
+    .in('record_type', ['initial_assessment', 'reassessment'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+export async function getAssessmentsForComparison(patientId: string) {
+  const { data, error } = await supabase
+    .from('clinical_records')
+    .select('*')
+    .eq('patient_id', patientId)
+    .in('record_type', ['initial_assessment', 'reassessment'])
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return data
+}
+
+async function syncPersonalDataFromAssessment(
+  patientId: string,
+  personal: AssessmentStructuredData['personalData']
+) {
+  const hasAnything =
+    Boolean(personal.fullName?.trim()) ||
+    Boolean(personal.phone?.trim()) ||
+    Boolean(personal.identityDocument?.trim()) ||
+    Boolean(personal.dateOfBirth) ||
+    Boolean(personal.addressLine1?.trim()) ||
+    Boolean(personal.addressLine2?.trim()) ||
+    Boolean(personal.city?.trim()) ||
+    Boolean(personal.province?.trim()) ||
+    Boolean(personal.postalCode?.trim())
+
+  if (!hasAnything) return
+
+  try {
+    const patient = await getPatientWithProfile(patientId)
+    if (!patient) return
+
+    // Physio often cannot UPDATE patient profile/patients (RLS). Never block clinical save.
+    if (personal.fullName?.trim() || personal.phone !== undefined) {
+      await updateProfile(patient.profile_id, {
+        ...(personal.fullName?.trim() ? { full_name: personal.fullName.trim() } : {}),
+        phone: personal.phone?.trim() ? personal.phone.trim() : null,
+      }).catch(() => undefined)
+    }
+
+    await updatePatient(patientId, {
+      date_of_birth: personal.dateOfBirth || null,
+      identity_document: personal.identityDocument?.trim() || null,
+      address_line1: personal.addressLine1?.trim() || null,
+      address_line2: personal.addressLine2?.trim() || null,
+      city: personal.city?.trim() || null,
+      province: personal.province?.trim() || null,
+      postal_code: personal.postalCode?.trim() || null,
+    }).catch(() => undefined)
+  } catch {
+    // Ignore sync failures — clinical record insert must still proceed.
+  }
+}
+
 export async function createClinicalRecord(input: {
   appointmentId?: string
   physiotherapistId: string
   patientId: string
+  recordType?: ClinicalRecordType
+  structuredData?: AssessmentStructuredData | EvolutionStructuredData | Record<string, unknown>
   assessment?: string
   observations?: string
   evolution?: string
   treatmentPlan?: string
   recommendations?: string
-  nextEvaluationAt?: string
+  nextEvaluationAt?: string | null
 }) {
+  const recordType = input.recordType ?? 'evolution'
+  let assessment = input.assessment ?? null
+  let evolution = input.evolution ?? null
+  let treatmentPlan = input.treatmentPlan ?? null
+  const structuredData = input.structuredData ?? {}
+
+  if (
+    (recordType === 'initial_assessment' || recordType === 'reassessment') &&
+    input.structuredData &&
+    'anamnese' in input.structuredData
+  ) {
+    const data = input.structuredData as AssessmentStructuredData
+    assessment = summarizeAssessment(data)
+    treatmentPlan = summarizeTreatmentPlan(data)
+    await syncPersonalDataFromAssessment(input.patientId, data.personalData)
+  }
+
+  if (recordType === 'evolution' && input.structuredData && 'performed' in input.structuredData) {
+    evolution = summarizeEvolution(input.structuredData as EvolutionStructuredData)
+  }
+
   const { data, error } = await supabase
     .from('clinical_records')
     .insert({
       appointment_id: input.appointmentId ?? null,
       physiotherapist_id: input.physiotherapistId,
       patient_id: input.patientId,
-      assessment: input.assessment ?? null,
+      record_type: recordType,
+      structured_data: structuredData as Record<string, unknown>,
+      assessment,
       observations: input.observations ?? null,
-      evolution: input.evolution ?? null,
-      treatment_plan: input.treatmentPlan ?? null,
+      evolution,
+      treatment_plan: treatmentPlan,
       recommendations: input.recommendations ?? null,
       next_evaluation_at: input.nextEvaluationAt ?? null,
     })
@@ -53,7 +164,9 @@ export async function updateClinicalRecord(id: string, updates: {
   evolution?: string
   treatment_plan?: string
   recommendations?: string
-  next_evaluation_at?: string
+  next_evaluation_at?: string | null
+  record_type?: ClinicalRecordType
+  structured_data?: Record<string, unknown>
 }) {
   const { data, error } = await supabase
     .from('clinical_records')

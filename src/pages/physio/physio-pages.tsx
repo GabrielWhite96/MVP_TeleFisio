@@ -8,10 +8,9 @@ import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId, getPhysioPatients, updatePhysiotherapist } from '@/entities/physiotherapist/api/physiotherapist-api'
 import { getPhysioPatientStats } from '@/entities/physiotherapist/api/physio-stats-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
-import { getClinicalRecords } from '@/entities/clinical-record/api/clinical-record-api'
 import { getAtRiskPatients } from '@/entities/notification/api/notification-api'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
-import { ClinicalRecordForm } from '@/features/clinical-record/ui/clinical-record-form'
+import { ClinicalRecordWorkspace } from '@/features/clinical-record/ui/clinical-record-workspace'
 import { AssignExerciseForm, PatientExerciseList } from '@/features/exercises/ui/exercise-components'
 import { ExerciseLibraryEditor } from '@/features/exercises/ui/exercise-library-editor'
 import { TreatmentPlanForm } from '@/features/treatment-plan/ui/treatment-plan-form'
@@ -30,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { LoadingSpinner, ErrorState, EmptyState } from '@/shared/ui/states'
 import { ROUTES, CANADIAN_PROVINCES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
-import { isToday, isUpcoming, formatDateTime } from '@/shared/lib/dates'
+import { isToday, isUpcoming } from '@/shared/lib/dates'
 import { ChevronRight, AlertTriangle } from 'lucide-react'
 
 export function PhysioDashboardPage() {
@@ -215,12 +214,6 @@ export function PhysioPatientDetailPage() {
     enabled: !!user?.id,
   })
 
-  const recordsQuery = useQuery({
-    queryKey: queryKeys.clinicalRecords(id!),
-    queryFn: () => getClinicalRecords(id!),
-    enabled: !!id,
-  })
-
   if (!physioQuery.data) return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
 
   return (
@@ -236,17 +229,7 @@ export function PhysioPatientDetailPage() {
             <TabsTrigger value="assign">{pt.physio.assignExercise}</TabsTrigger>
           </TabsList>
           <TabsContent value="records" className="space-y-4">
-            <ClinicalRecordForm physiotherapistId={physioQuery.data.id} patientId={id!} />
-            {recordsQuery.data?.map((r) => (
-              <Card key={r.id}>
-                <CardHeader><CardTitle className="text-sm">{formatDateTime(r.created_at)}</CardTitle></CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  {r.assessment && <p><strong>Avaliação:</strong> {r.assessment}</p>}
-                  {r.evolution && <p><strong>Evolução:</strong> {r.evolution}</p>}
-                  {r.treatment_plan && <p><strong>Plano:</strong> {r.treatment_plan}</p>}
-                </CardContent>
-              </Card>
-            ))}
+            <ClinicalRecordWorkspace physiotherapistId={physioQuery.data.id} patientId={id!} />
           </TabsContent>
           <TabsContent value="plan" className="space-y-4">
             <TreatmentPlanCard patientId={id!} />
@@ -291,7 +274,7 @@ export function PhysioAppointmentDetailPage() {
       <div className="space-y-6">
         <AppointmentSession appointment={query.data} role="physiotherapist" />
         {physioQuery.data && query.data.status === 'completed' && (
-          <ClinicalRecordForm
+          <ClinicalRecordWorkspace
             appointmentId={query.data.id}
             physiotherapistId={physioQuery.data.id}
             patientId={query.data.patient_id}
