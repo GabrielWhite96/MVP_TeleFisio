@@ -65,7 +65,8 @@ function asAssessment(raw: unknown): AssessmentStructuredData | null {
 function asEvolution(raw: unknown): EvolutionStructuredData | null {
   if (!raw || typeof raw !== 'object') return null
   const data = raw as EvolutionStructuredData
-  if (!('performed' in data) || !data.vitals) return null
+  if (!data.vitals) return null
+  if (!('sessionConducts' in data) && !('performed' in data)) return null
   return data
 }
 
@@ -205,6 +206,10 @@ function AssessmentView({ data }: { data: AssessmentStructuredData }) {
 }
 
 function EvolutionView({ data }: { data: EvolutionStructuredData }) {
+  const sessionConductsText =
+    data.sessionConducts?.trim() ||
+    null
+
   return (
     <div className="space-y-4">
       <Section title={pt.clinicalRecord.vitalSigns}>
@@ -212,22 +217,26 @@ function EvolutionView({ data }: { data: EvolutionStructuredData }) {
       </Section>
 
       <Section title={pt.clinicalRecord.sessionConducts}>
-        {ACTIVITY_LABELS.map(({ key, label }) => {
-          const act = data[key]
-          if (!act?.done && !act?.notes && !(act?.items?.length)) return null
-          return (
-            <div key={key} className="space-y-1 rounded-md bg-[var(--color-muted)]/30 p-2.5 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">{label}</span>
-                {act.done && <Badge variant="success">{pt.clinicalRecord.yes}</Badge>}
+        {sessionConductsText ? (
+          <p className="whitespace-pre-wrap text-sm">{sessionConductsText}</p>
+        ) : (
+          ACTIVITY_LABELS.map(({ key, label }) => {
+            const act = data[key]
+            if (!act?.done && !act?.notes && !(act?.items?.length)) return null
+            return (
+              <div key={key} className="space-y-1 rounded-md bg-[var(--color-muted)]/30 p-2.5 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{label}</span>
+                  {act.done && <Badge variant="success">{pt.clinicalRecord.yes}</Badge>}
+                </div>
+                {act.items?.length > 0 && (
+                  <p className="text-[var(--color-muted-foreground)]">{act.items.join(', ')}</p>
+                )}
+                {act.notes && <p className="whitespace-pre-wrap">{act.notes}</p>}
               </div>
-              {act.items?.length > 0 && (
-                <p className="text-[var(--color-muted-foreground)]">{act.items.join(', ')}</p>
-              )}
-              {act.notes && <p className="whitespace-pre-wrap">{act.notes}</p>}
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </Section>
 
       <Field label={pt.clinicalRecord.observations} value={data.observations} />

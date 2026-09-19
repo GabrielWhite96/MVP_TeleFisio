@@ -71,25 +71,43 @@ export function summarizeAssessment(data: AssessmentStructuredData): string {
   return lines.join('\n')
 }
 
+const LEGACY_ACTIVITY_LABELS: Array<[string, keyof Pick<
+  EvolutionStructuredData,
+  'performed' | 'exercises' | 'training' | 'strengthening' | 'changes' | 'conduct'
+>]> = [
+  ['Realizado', 'performed'],
+  ['Exercícios', 'exercises'],
+  ['Treinos', 'training'],
+  ['Fortalecimento', 'strengthening'],
+  ['Alterações', 'changes'],
+  ['Conduta', 'conduct'],
+]
+
+/** Plain text for session conducts — prefers free text, falls back to legacy activity blocks. */
+export function formatSessionConductsText(data: EvolutionStructuredData): string {
+  if (data.sessionConducts?.trim()) return data.sessionConducts.trim()
+
+  const lines: string[] = []
+  for (const [label, key] of LEGACY_ACTIVITY_LABELS) {
+    const act = data[key]
+    if (!act || (!act.done && !act.notes && !(act.items?.length))) continue
+    const extras = [act.items?.length ? act.items.join(', ') : '', act.notes]
+      .filter(Boolean)
+      .join(' — ')
+    lines.push(`${label}: ${extras || (act.done ? 'Sim' : '')}`.trim())
+  }
+  return lines.join('\n')
+}
+
 /** Build legacy TEXT `evolution` from structured evolution. */
 export function summarizeEvolution(data: EvolutionStructuredData): string {
   const lines: string[] = []
   const vitals = formatVitals(data.vitals)
   if (vitals) lines.push(`Sinais vitais: ${vitals}`)
 
-  const acts: Array<[string, { done: boolean; notes: string; items?: string[] }]> = [
-    ['Realizado', data.performed],
-    ['Exercícios', data.exercises],
-    ['Treinos', data.training],
-    ['Fortalecimento', data.strengthening],
-    ['Alterações', data.changes],
-    ['Conduta', data.conduct],
-  ]
-  for (const [label, act] of acts) {
-    if (!act.done && !act.notes && !(act.items?.length)) continue
-    const extras = [act.items?.length ? act.items.join(', ') : '', act.notes].filter(Boolean).join(' — ')
-    lines.push(`${label}: ${act.done ? 'Sim' : 'Não'}${extras ? ` — ${extras}` : ''}`)
-  }
+  const conducts = formatSessionConductsText(data)
+  if (conducts) lines.push(`Condutas da sessão:\n${conducts}`)
+
   if (data.observations) lines.push(`Observações: ${data.observations}`)
   return lines.join('\n')
 }

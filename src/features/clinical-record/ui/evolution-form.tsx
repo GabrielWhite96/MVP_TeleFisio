@@ -1,41 +1,21 @@
-import { useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createClinicalRecord } from '@/entities/clinical-record/api/clinical-record-api'
-import { getPatientExercises } from '@/entities/exercise/api/exercise-api'
+import {
+  createClinicalRecord,
+  getLatestEvolution,
+} from '@/entities/clinical-record/api/clinical-record-api'
 import type { AssessmentStructuredData } from '@/entities/clinical-record/model/assessment-schema'
 import type { EvolutionStructuredData } from '@/entities/clinical-record/model/evolution-schema'
 import { emptyEvolutionData } from '@/entities/clinical-record/model/defaults'
-import {
-  EVOLUTION_PERFORMED_OPTIONS,
-  EVOLUTION_EXERCISE_OPTIONS,
-  EVOLUTION_TRAINING_OPTIONS,
-  EVOLUTION_STRENGTHENING_OPTIONS,
-  EVOLUTION_CHANGES_OPTIONS,
-  EVOLUTION_CONDUCT_OPTIONS,
-} from '@/entities/clinical-record/model/clinical-options'
+import { formatSessionConductsText } from '@/entities/clinical-record/model/summaries'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Label, Textarea } from '@/shared/ui/input'
 import { pt } from '@/shared/config/i18n/pt'
 import { VitalSignsFields } from './fields/vital-signs-fields'
-import { ActivityMarkBlock } from './fields/activity-mark-block'
 import { AssessmentSummaryPanel } from './assessment-summary-panel'
-
-type ActivityKey = keyof Pick<
-  EvolutionStructuredData,
-  'performed' | 'exercises' | 'training' | 'strengthening' | 'changes' | 'conduct'
->
-
-const ACTIVITY_DEFS: Array<{ key: ActivityKey; label: string; catalog: string[] }> = [
-  { key: 'performed', label: pt.clinicalRecord.performed, catalog: EVOLUTION_PERFORMED_OPTIONS },
-  { key: 'exercises', label: pt.clinicalRecord.exercises, catalog: EVOLUTION_EXERCISE_OPTIONS },
-  { key: 'training', label: pt.clinicalRecord.training, catalog: EVOLUTION_TRAINING_OPTIONS },
-  { key: 'strengthening', label: pt.clinicalRecord.strengthening, catalog: EVOLUTION_STRENGTHENING_OPTIONS },
-  { key: 'changes', label: pt.clinicalRecord.changesObserved, catalog: EVOLUTION_CHANGES_OPTIONS },
-  { key: 'conduct', label: pt.clinicalRecord.conduct, catalog: EVOLUTION_CONDUCT_OPTIONS },
-]
 
 interface EvolutionFormProps {
   physiotherapistId: string
@@ -43,6 +23,14 @@ interface EvolutionFormProps {
   appointmentId?: string
   assessmentSummary: AssessmentStructuredData | null
   onSuccess?: () => void
+}
+
+function asEvolutionStructured(raw: unknown): EvolutionStructuredData | null {
+  if (!raw || typeof raw !== 'object') return null
+  const data = raw as EvolutionStructuredData
+  if (!data.vitals) return null
+  if (!('sessionConducts' in data) && !('performed' in data)) return null
+  return data
 }
 
 export function EvolutionForm({
@@ -53,30 +41,38 @@ export function EvolutionForm({
   onSuccess,
 }: EvolutionFormProps) {
   const queryClient = useQueryClient()
-  const { control, handleSubmit, watch, setValue } = useForm<EvolutionStructuredData>({
+  const prefilledRef = useRef(false)
+  const [wasPrefilled, setWasPrefilled] = useState(false)
+  const { control, handleSubmit, setValue, watch } = useForm<EvolutionStructuredData>({
     defaultValues: emptyEvolutionData(),
   })
 
-  const patientExercisesQuery = useQuery({
-    queryKey: queryKeys.patientExercises(patientId),
-    queryFn: () => getPatientExercises(patientId),
+  const sessionConducts = watch('sessionConducts') ?? ''
+
+  const lastEvolutionQuery = useQuery({
+    queryKey: [...queryKeys.clinicalRecords(patientId), 'latest-evolution'],
+    queryFn: () => getLatestEvolution(patientId),
   })
 
-  const exerciseOptions = useMemo(() => {
-    const fromPatient =
-      patientExercisesQuery.data
-        ?.map((row) => {
-          const ex = row.exercise as { title?: string } | { title?: string }[] | null
-          if (!ex) return null
-          const item = Array.isArray(ex) ? ex[0] : ex
-          return item?.title?.trim() || null
-        })
-        .filter((t): t is string => Boolean(t)) ?? []
-    return Array.from(new Set([...EVOLUTION_EXERCISE_OPTIONS, ...fromPatient]))
-  }, [patientExercisesQuery.data])
-
-  const optionsFor = (key: ActivityKey, catalog: string[]) =>
-    key === 'exercises' ? exerciseOptions : catalog
+  useEffect(() => {
+    if (prefilledRef.current || lastEvolutionQuery.isLoading) return
+    const record = lastEvolutionQuery.data
+    if (!record) {
+      prefilledRef.current = true
+      return
+    }
+    const structured = asEvolutionStructured(record.structured_data)
+    if (!structured) {
+      prefilledRef.current = true
+      return
+    }
+    const text = formatSessionConductsText(structured)
+    if (text) {
+      setValue('sessionConducts', text)
+      setWasPrefilled(true)
+    }
+    prefilledRef.current = true
+  }, [lastEvolutionQuery.data, lastEvolutionQuery.isLoading, setValue])
 
   const mutation = useMutation({
     mutationFn: (data: EvolutionStructuredData) =>
@@ -92,6 +88,11 @@ export function EvolutionForm({
       onSuccess?.()
     },
   })
+
+  const clearSessionConducts = () => {
+    setValue('sessionConducts', '', { shouldDirty: true })
+    setWasPrefilled(false)
+  }
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -113,20 +114,38 @@ export function EvolutionForm({
                 />
               </section>
 
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold">{pt.clinicalRecord.sessionConducts}</h3>
-                {ACTIVITY_DEFS.map(({ key, label, catalog }) => (
-                  <ActivityMarkBlock
-                    key={key}
-                    label={label}
-                    options={optionsFor(key, catalog)}
-                    items={watch(`${key}.items`) ?? []}
-                    notes={watch(`${key}.notes`) ?? ''}
-                    onItemsChange={(items) => setValue(`${key}.items`, items)}
-                    onNotesChange={(notes) => setValue(`${key}.notes`, notes)}
-                    onDoneChange={(done) => setValue(`${key}.done`, done)}
-                  />
-                ))}
+              <section className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label htmlFor="evo-session-conducts">{pt.clinicalRecord.sessionConducts}</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!sessionConducts.trim()}
+                    onClick={clearSessionConducts}
+                  >
+                    {pt.clinicalRecord.clearText}
+                  </Button>
+                </div>
+                {wasPrefilled && sessionConducts.trim() && (
+                  <p className="text-xs text-[var(--color-muted-foreground)]">
+                    {pt.clinicalRecord.sessionConductsPrefillHint}
+                  </p>
+                )}
+                <Controller
+                  name="sessionConducts"
+                  control={control}
+                  render={({ field }) => (
+                    <Textarea
+                      id="evo-session-conducts"
+                      rows={10}
+                      className="min-h-[200px] resize-y"
+                      placeholder={pt.clinicalRecord.sessionConductsPlaceholder}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
               </section>
 
               <details className="group rounded-md border border-[var(--color-border)] p-3">

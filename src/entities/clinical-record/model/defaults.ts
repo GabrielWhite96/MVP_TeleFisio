@@ -59,15 +59,9 @@ export function emptyAssessmentData(
 }
 
 export function emptyEvolutionData(): EvolutionStructuredData {
-  const emptyActivity = () => ({ done: false, notes: '', items: [] as string[] })
   return {
     vitals: { ...EMPTY_VITAL_SIGNS },
-    performed: emptyActivity(),
-    exercises: emptyActivity(),
-    training: emptyActivity(),
-    strengthening: emptyActivity(),
-    changes: emptyActivity(),
-    conduct: emptyActivity(),
+    sessionConducts: '',
     observations: '',
   }
 }

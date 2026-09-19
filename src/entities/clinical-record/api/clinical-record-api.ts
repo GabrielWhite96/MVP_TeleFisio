@@ -42,6 +42,19 @@ export async function getLatestInitialOrReassessment(patientId: string) {
   return data
 }
 
+export async function getLatestEvolution(patientId: string) {
+  const { data, error } = await supabase
+    .from('clinical_records')
+    .select('*')
+    .eq('patient_id', patientId)
+    .eq('record_type', 'evolution')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
 export async function getAssessmentsForComparison(patientId: string) {
   const { data, error } = await supabase
     .from('clinical_records')
@@ -126,7 +139,11 @@ export async function createClinicalRecord(input: {
     await syncPersonalDataFromAssessment(input.patientId, data.personalData)
   }
 
-  if (recordType === 'evolution' && input.structuredData && 'performed' in input.structuredData) {
+  if (
+    recordType === 'evolution' &&
+    input.structuredData &&
+    ('sessionConducts' in input.structuredData || 'performed' in input.structuredData)
+  ) {
     evolution = summarizeEvolution(input.structuredData as EvolutionStructuredData)
   }
 

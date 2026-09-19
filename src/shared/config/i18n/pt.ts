@@ -321,6 +321,10 @@ export const pt = {
     optionalObservation: 'Observação (opcional)',
     addObservation: '+ Observação',
     sessionConducts: 'Condutas da sessão',
+    sessionConductsPlaceholder:
+      'Descreva o que foi realizado nesta sessão (exercícios, treinos, orientações…)',
+    sessionConductsPrefillHint: 'Pré-preenchido com a última evolução — edite se precisar.',
+    clearText: 'Limpar texto',
     generalObservationsOptional: 'Observações gerais (opcional)',
     yes: 'Sim',
     emptyHistory: 'Nenhum registro clínico',
