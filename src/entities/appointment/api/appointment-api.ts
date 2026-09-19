@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/api/supabase'
 import type { AppointmentModality, AppointmentStatus } from '@/shared/types/database'
+import { syncAppointmentToGoogleCalendar } from '@/entities/google-calendar/api/google-calendar-api'
 
 export interface CreateAppointmentInput {
   patientId: string
@@ -98,6 +99,7 @@ export async function createAppointment(input: CreateAppointmentInput) {
     .select()
     .single()
   if (error) throw error
+  void syncAppointmentToGoogleCalendar(data.id)
   return data
 }
 
@@ -119,6 +121,12 @@ export async function updateAppointmentStatus(id: string, status: AppointmentSta
     } as Record<string, unknown>)
   }
 
+  if (status === 'cancelled' || status === 'no_show') {
+    void syncAppointmentToGoogleCalendar(id, { delete: true })
+  } else {
+    void syncAppointmentToGoogleCalendar(id)
+  }
+
   return data
 }
 
@@ -130,6 +138,7 @@ export async function rescheduleAppointment(id: string, scheduledAt: string) {
     .select()
     .single()
   if (error) throw error
+  void syncAppointmentToGoogleCalendar(id)
   return data
 }
 
@@ -151,6 +160,8 @@ export async function cancelAppointmentWithReason(id: string, reason: string) {
     p_entity_id: id,
     p_metadata: { reason },
   } as Record<string, unknown>)
+
+  void syncAppointmentToGoogleCalendar(id, { delete: true })
 
   return data
 }

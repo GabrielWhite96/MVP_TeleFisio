@@ -19,16 +19,20 @@ import { cn } from '@/shared/lib/utils'
 export function PhysioCreateAppointmentForm({
   physiotherapistId,
   preselectedPatientId,
+  preselectedDate,
+  preselectedTime,
 }: {
   physiotherapistId: string
   preselectedPatientId?: string
+  preselectedDate?: string
+  preselectedTime?: string
 }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [patientId, setPatientId] = useState(preselectedPatientId ?? '')
   const [modality, setModality] = useState<AppointmentModality>('telehealth')
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
+  const [date, setDate] = useState(preselectedDate ?? '')
+  const [time, setTime] = useState(preselectedTime ?? '')
   const [duration, setDuration] = useState(60)
   const [homeAddress, setHomeAddress] = useState('')
   const [notes, setNotes] = useState('')
@@ -62,6 +66,10 @@ export function PhysioCreateAppointmentForm({
   const availableSlots = dayAvailability.flatMap((a) =>
     generateTimeSlots(a.start_time, a.end_time, duration, bookedSlotsQuery.data ?? [])
   )
+
+  // Allow agenda-prefilled times even outside configured availability slots
+  const slotsWithPrefill =
+    time && !availableSlots.includes(time) ? [time, ...availableSlots] : availableSlots
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -132,10 +140,10 @@ export function PhysioCreateAppointmentForm({
           <div className="space-y-2">
             <Label>Horário</Label>
             <div className="flex flex-wrap gap-2">
-              {availableSlots.length === 0 && (
+              {slotsWithPrefill.length === 0 && (
                 <p className="text-sm text-[var(--color-muted-foreground)]">Sem horários disponíveis neste dia.</p>
               )}
-              {availableSlots.map((slot) => (
+              {slotsWithPrefill.map((slot) => (
                 <button
                   key={slot}
                   type="button"

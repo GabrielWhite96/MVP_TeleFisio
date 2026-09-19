@@ -322,6 +322,44 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['care_relationships']['Insert']>
       }
+      google_calendar_connections: {
+        Row: {
+          physiotherapist_id: string
+          google_account_email: string | null
+          calendar_id: string
+          sync_enabled: boolean
+          connected_at: string
+          updated_at: string
+        }
+        Insert: {
+          physiotherapist_id: string
+          google_account_email?: string | null
+          calendar_id?: string
+          sync_enabled?: boolean
+        }
+        Update: Partial<Database['public']['Tables']['google_calendar_connections']['Insert']>
+      }
+      appointment_google_events: {
+        Row: {
+          appointment_id: string
+          google_event_id: string | null
+          google_calendar_id: string
+          sync_status: 'synced' | 'pending' | 'error'
+          last_synced_at: string | null
+          last_error: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          google_event_id?: string | null
+          google_calendar_id?: string
+          sync_status?: 'synced' | 'pending' | 'error'
+          last_synced_at?: string | null
+          last_error?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['appointment_google_events']['Insert']>
+      }
     }
     Functions: {
       log_audit_event: {

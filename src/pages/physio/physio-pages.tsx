@@ -24,6 +24,7 @@ import { AvailabilityEditor } from '@/features/scheduling/ui/availability-editor
 import { CreatePatientForm } from '@/features/patients/ui/create-patient-form'
 import { PatientInvitePanel } from '@/features/patients/ui/patient-invite-panel'
 import { PhysioCreateAppointmentForm } from '@/features/appointments/ui/physio-create-appointment-form'
+import { PhysioAgenda } from '@/features/physio-agenda/ui/physio-agenda'
 import { queryKeys } from '@/shared/api/query-keys'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { AppointmentList, StatCard } from '@/widgets/dashboard/dashboard-widgets'
@@ -42,7 +43,7 @@ import {
 } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { isToday, isUpcoming } from '@/shared/lib/dates'
-import { ChevronRight, AlertTriangle, Plus, UserPlus, CalendarPlus } from 'lucide-react'
+import { ChevronRight, AlertTriangle, UserPlus, CalendarPlus } from 'lucide-react'
 import type { PatientAccountStatus, PatientClinicalStatus } from '@/shared/types/database'
 
 export function PhysioDashboardPage() {
@@ -206,22 +207,11 @@ export function PhysioAgendaPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">{pt.physio.agenda}</h1>
-          <Button asChild>
-            <Link to={ROUTES.physio.appointmentNew}>
-              <Plus className="mr-2 h-4 w-4" />
-              {pt.physio.newAppointment}
-            </Link>
-          </Button>
-        </div>
-        <AppointmentList
-          appointments={appointmentsQuery.data?.filter((a) => a.status !== 'cancelled') ?? []}
-          loading={appointmentsQuery.isLoading}
-          role="physiotherapist"
-        />
-      </div>
+      <PhysioAgenda
+        appointments={appointmentsQuery.data ?? []}
+        loading={appointmentsQuery.isLoading || physioQuery.isLoading}
+        physiotherapistId={physioQuery.data?.id ?? ''}
+      />
     </AppLayout>
   )
 }
@@ -527,6 +517,8 @@ export function PhysioAppointmentNewPage() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const preselectedPatientId = searchParams.get('patientId') ?? undefined
+  const preselectedDate = searchParams.get('date') ?? undefined
+  const preselectedTime = searchParams.get('time') ?? undefined
   const physioQuery = useQuery({
     queryKey: queryKeys.physiotherapist(user?.id ?? ''),
     queryFn: () => getPhysiotherapistByProfileId(user!.id),
@@ -544,6 +536,8 @@ export function PhysioAppointmentNewPage() {
         <PhysioCreateAppointmentForm
           physiotherapistId={physioQuery.data.id}
           preselectedPatientId={preselectedPatientId}
+          preselectedDate={preselectedDate}
+          preselectedTime={preselectedTime}
         />
       </div>
     </AppLayout>
