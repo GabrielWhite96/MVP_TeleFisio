@@ -14,6 +14,7 @@ import {
   Bell,
   ScrollText,
   HeartHandshake,
+  Wallet,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
@@ -47,6 +48,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: pt.physio.dashboard, href: ROUTES.physio.dashboard, icon: LayoutDashboard },
     { label: pt.physio.agenda, href: ROUTES.physio.agenda, icon: Calendar },
     { label: pt.physio.patients, href: ROUTES.physio.patients, icon: Users },
+    { label: pt.physio.billing, href: ROUTES.physio.billing, icon: Wallet },
     { label: pt.patient.profile, href: ROUTES.physio.profile, icon: User },
   ],
   caregiver: [

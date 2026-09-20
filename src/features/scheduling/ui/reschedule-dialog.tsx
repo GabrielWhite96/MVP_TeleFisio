@@ -54,6 +54,8 @@ export function RescheduleDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.appointment(appointmentId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.appointments() })
+      queryClient.invalidateQueries({ queryKey: ['patient-billing'] })
+      queryClient.invalidateQueries({ queryKey: ['physio-billing-overview'] })
       onOpenChange(false)
     },
   })

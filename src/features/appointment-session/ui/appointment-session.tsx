@@ -69,6 +69,9 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
     mutationFn: (status: AppointmentStatus) => updateAppointmentStatus(appointment.id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.appointment(appointment.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.patientBilling(appointment.patient_id) })
+      queryClient.invalidateQueries({ queryKey: ['physio-billing-overview'] })
       const base = role === 'patient' ? ROUTES.patient.dashboard : ROUTES.physio.dashboard
       navigate(base)
     },

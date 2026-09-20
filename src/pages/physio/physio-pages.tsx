@@ -25,6 +25,8 @@ import { CreatePatientForm } from '@/features/patients/ui/create-patient-form'
 import { PatientInvitePanel } from '@/features/patients/ui/patient-invite-panel'
 import { PhysioCreateAppointmentForm } from '@/features/appointments/ui/physio-create-appointment-form'
 import { PhysioAgenda } from '@/features/physio-agenda/ui/physio-agenda'
+import { PatientBillingPanel } from '@/features/billing/ui/patient-billing-panel'
+import { PhysioBillingOverview } from '@/features/billing/ui/physio-billing-overview'
 import { queryKeys } from '@/shared/api/query-keys'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { AppointmentList, StatCard } from '@/widgets/dashboard/dashboard-widgets'
@@ -102,6 +104,9 @@ export function PhysioDashboardPage() {
                 <UserPlus className="mr-2 h-4 w-4" />
                 {pt.physio.newPatient}
               </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to={ROUTES.physio.billing}>{pt.physio.billing}</Link>
             </Button>
             <Button asChild>
               <Link to={ROUTES.physio.appointmentNew}>
@@ -212,6 +217,31 @@ export function PhysioAgendaPage() {
         loading={appointmentsQuery.isLoading || physioQuery.isLoading}
         physiotherapistId={physioQuery.data?.id ?? ''}
       />
+    </AppLayout>
+  )
+}
+
+export function PhysioBillingPage() {
+  const { user } = useAuth()
+  const physioQuery = useQuery({
+    queryKey: queryKeys.physiotherapist(user?.id ?? ''),
+    queryFn: () => getPhysiotherapistByProfileId(user!.id),
+    enabled: !!user?.id,
+  })
+
+  if (!physioQuery.data) {
+    return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+  }
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">{pt.physio.billing}</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.billingTagline}</p>
+        </div>
+        <PhysioBillingOverview physiotherapistId={physioQuery.data.id} />
+      </div>
     </AppLayout>
   )
 }
@@ -423,6 +453,7 @@ export function PhysioPatientDetailPage() {
             <TabsTrigger value="records">{pt.physio.clinicalRecord}</TabsTrigger>
             <TabsTrigger value="plan">{pt.physio.treatmentPlan}</TabsTrigger>
             <TabsTrigger value="appointments">Consultas</TabsTrigger>
+            <TabsTrigger value="billing">{pt.physio.billing}</TabsTrigger>
             <TabsTrigger value="timeline">{pt.physio.timeline}</TabsTrigger>
             <TabsTrigger value="exercises">Exercícios</TabsTrigger>
             <TabsTrigger value="assign">{pt.physio.assignExercise}</TabsTrigger>
@@ -487,6 +518,9 @@ export function PhysioPatientDetailPage() {
               loading={appointmentsQuery.isLoading}
               role="physiotherapist"
             />
+          </TabsContent>
+          <TabsContent value="billing">
+            <PatientBillingPanel patientId={patient.id} physiotherapistId={physioQuery.data.id} />
           </TabsContent>
           <TabsContent value="timeline">
             <ClinicalTimeline patientId={patient.id} />

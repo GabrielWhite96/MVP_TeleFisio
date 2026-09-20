@@ -15,6 +15,7 @@ import {
 import {
   PhysioDashboardPage,
   PhysioAgendaPage,
+  PhysioBillingPage,
   PhysioPatientsPage,
   PhysioPatientNewPage,
   PhysioPatientDetailPage,
@@ -79,6 +80,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.physio.agenda,
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAgendaPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: ROUTES.physio.billing,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioBillingPage /></RoleGuard></ProtectedRoute>,
   },
   {
     path: ROUTES.physio.patients,

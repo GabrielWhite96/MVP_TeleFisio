@@ -22,6 +22,7 @@ export const ROUTES = {
     patientNew: '/physio/patients/new',
     appointment: (id: string) => `/physio/appointments/${id}`,
     appointmentNew: '/physio/appointments/new',
+    billing: '/physio/billing',
     profile: '/physio/profile',
   },
   caregiver: {
@@ -77,4 +78,22 @@ export const DIFFICULTY_LABELS: Record<string, string> = {
   easy: 'Fácil',
   moderate: 'Moderado',
   hard: 'Difícil',
+}
+
+export const BILLING_MODE_LABELS: Record<string, string> = {
+  per_session: 'Por sessão',
+  weekly: 'Semanal (paga o pacote da semana)',
+}
+
+export const BANKNOTE_METHOD_LABELS: Record<string, string> = {
+  pix: 'Pix',
+  cash: 'Dinheiro',
+  other: 'Outro',
+}
+
+export const CHARGE_STATUS_LABELS: Record<string, string> = {
+  open: 'Em aberto',
+  partial: 'Parcial',
+  paid: 'Pago',
+  waived: 'Dispensado',
 }

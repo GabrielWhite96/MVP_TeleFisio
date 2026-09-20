@@ -86,6 +86,8 @@ export function PhysioCreateAppointmentForm({
     },
     onSuccess: (appointment) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.appointments() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.patientBilling(patientId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.physioBillingOverview(physiotherapistId) })
       navigate(ROUTES.physio.appointment(appointment.id))
     },
   })

@@ -86,6 +86,8 @@ export const pt = {
     awaitingAssessment: 'Aguardando avaliação',
     whatToDoToday: 'O que preciso fazer hoje?',
     saasTagline: 'Sua plataforma para administrar pacientes e tratamentos',
+    billing: 'Financeiro',
+    billingTagline: 'Organize recebimentos por paciente, semana e sessão',
   },
   agenda: {
     subtitle: 'Organize seu dia, semana e mês. Clique em um horário vazio para agendar.',

@@ -39,4 +39,6 @@ export const queryKeys = {
   pendingCaregiverInvites: (email: string) => ['pending-caregiver-invites', email] as const,
   physioPatientStats: (physioId: string) => ['physio-patient-stats', physioId] as const,
   googleCalendar: (physioId: string) => ['google-calendar', physioId] as const,
+  patientBilling: (patientId: string) => ['patient-billing', patientId] as const,
+  physioBillingOverview: (physioId: string) => ['physio-billing-overview', physioId] as const,
 }
