@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/api/supabase'
+import { assertPracticeWritable } from '@/entities/physiotherapist/model/subscription-access'
 import type { Patient, PatientAccountStatus, PatientClinicalStatus } from '@/shared/types/database'
 
 export type PhysioPatient = Patient & {
@@ -65,6 +66,7 @@ export type CreatePatientInput = {
 }
 
 export async function createPatientForPhysio(input: CreatePatientInput) {
+  await assertPracticeWritable(input.physiotherapistId)
   const { data, error } = await supabase
     .from('patients')
     .insert({

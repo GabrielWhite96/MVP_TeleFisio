@@ -47,9 +47,9 @@ export function emptyAssessmentData(
       specialTests: emptyExamFinding(),
     },
     findings: {
-      shorteningsDeformities: { yes: null, detail: '' },
-      muscleStrengthLoss: { yes: null, detail: '' },
-      mobilityLoss: { yes: null, detail: '' },
+      shorteningsDeformities: { yes: null, detail: '', items: [] },
+      muscleStrengthLoss: { yes: null, detail: '', items: [] },
+      mobilityLoss: { yes: null, detail: '', items: [] },
     },
     therapeuticPlan: {
       shortTermGoal: '',

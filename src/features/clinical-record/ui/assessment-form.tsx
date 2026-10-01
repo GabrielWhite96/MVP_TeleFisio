@@ -18,6 +18,9 @@ import {
   STATIC_BALANCE_OPTIONS,
   DYNAMIC_BALANCE_OPTIONS,
   SPECIAL_TEST_OPTIONS,
+  SHORTENING_DEFORMITY_OPTIONS,
+  STRENGTH_LOSS_MUSCLE_GROUPS,
+  MOBILITY_LOSS_SEGMENTS,
 } from '@/entities/clinical-record/model/clinical-options'
 import { StatusToggle } from './fields/status-toggle'
 import { YesNoDetail } from './fields/yes-no-detail'
@@ -110,7 +113,7 @@ export function AssessmentForm({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="identity">{pt.clinicalRecord.identity}</Label>
-            <Input id="identity" {...register('personalData.identityDocument')} />
+            <Input id="identity" placeholder="000.000.000-00" {...register('personalData.identityDocument')} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="dob">{pt.clinicalRecord.dateOfBirth}</Label>
@@ -219,6 +222,13 @@ export function AssessmentForm({
             onYesChange={(v) => setValue('findings.shorteningsDeformities.yes', v)}
             onDetailChange={(v) => setValue('findings.shorteningsDeformities.detail', v)}
           />
+          {watch('findings.shorteningsDeformities.yes') && (
+            <OptionChecklist
+              options={SHORTENING_DEFORMITY_OPTIONS}
+              selected={watch('findings.shorteningsDeformities.items') ?? []}
+              onChange={(next) => setValue('findings.shorteningsDeformities.items', next)}
+            />
+          )}
           <YesNoDetail
             label={pt.clinicalRecord.strengthLoss}
             yes={watch('findings.muscleStrengthLoss.yes')}
@@ -227,6 +237,13 @@ export function AssessmentForm({
             onYesChange={(v) => setValue('findings.muscleStrengthLoss.yes', v)}
             onDetailChange={(v) => setValue('findings.muscleStrengthLoss.detail', v)}
           />
+          {watch('findings.muscleStrengthLoss.yes') && (
+            <OptionChecklist
+              options={STRENGTH_LOSS_MUSCLE_GROUPS}
+              selected={watch('findings.muscleStrengthLoss.items') ?? []}
+              onChange={(next) => setValue('findings.muscleStrengthLoss.items', next)}
+            />
+          )}
           <YesNoDetail
             label={pt.clinicalRecord.mobilityLoss}
             yes={watch('findings.mobilityLoss.yes')}
@@ -234,6 +251,13 @@ export function AssessmentForm({
             onYesChange={(v) => setValue('findings.mobilityLoss.yes', v)}
             onDetailChange={(v) => setValue('findings.mobilityLoss.detail', v)}
           />
+          {watch('findings.mobilityLoss.yes') && (
+            <OptionChecklist
+              options={MOBILITY_LOSS_SEGMENTS}
+              selected={watch('findings.mobilityLoss.items') ?? []}
+              onChange={(next) => setValue('findings.mobilityLoss.items', next)}
+            />
+          )}
         </div>
       </FormSection>
 

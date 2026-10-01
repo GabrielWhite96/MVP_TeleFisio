@@ -30,3 +30,9 @@ enable_confirmations = false
 
 [functions.google-calendar-oauth-callback]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.send-reminders]
+verify_jwt = false

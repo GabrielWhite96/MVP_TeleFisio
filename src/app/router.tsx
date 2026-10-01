@@ -22,6 +22,7 @@ import {
   PhysioAppointmentNewPage,
   PhysioAppointmentDetailPage,
   PhysioProfilePage,
+  PhysioNotificationsPage,
 } from '@/pages/physio/physio-pages'
 import {
   AdminDashboardPage,
@@ -108,6 +109,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.physio.profile,
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioProfilePage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: ROUTES.physio.notifications,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioNotificationsPage /></RoleGuard></ProtectedRoute>,
   },
 
   {

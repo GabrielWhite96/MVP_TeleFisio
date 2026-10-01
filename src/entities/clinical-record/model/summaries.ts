@@ -56,9 +56,11 @@ export function summarizeAssessment(data: AssessmentStructuredData): string {
     if (line) lines.push(line)
   }
 
-  const yesNo = (label: string, y: { yes: boolean | null; detail: string }) => {
+  const yesNo = (label: string, y: { yes: boolean | null; detail: string; items?: string[] }) => {
     if (y.yes === null) return
-    const ans = y.yes ? `Sim${y.detail ? ` — ${y.detail}` : ''}` : 'Não'
+    const picked = (y.items ?? []).filter(Boolean).join(', ')
+    const extra = [picked, y.detail].filter(Boolean).join(' — ')
+    const ans = y.yes ? `Sim${extra ? ` — ${extra}` : ''}` : 'Não'
     lines.push(`${label}: ${ans}`)
   }
   yesNo('Encurtamentos/deformidades', findings.shorteningsDeformities)

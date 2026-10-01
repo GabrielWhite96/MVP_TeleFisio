@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { getAdminStats, getAdminUsers, getAdminAppointments, getAuditLogs, promoteUserRole } from '@/entities/notification/api/notification-api'
+import { getAdminPhysioSubscriptions, setPhysioSubscriptionStatus } from '@/entities/physiotherapist/api/saas-checkout-api'
 import { Button } from '@/shared/ui/button'
 import { queryKeys } from '@/shared/api/query-keys'
 import { AppLayout } from '@/widgets/layout/app-layout'
@@ -70,6 +71,28 @@ export function AdminUsersPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.adminUsers }),
   })
 
+  const subscriptionsQuery = useQuery({
+    queryKey: ['admin-physio-subscriptions'],
+    queryFn: getAdminPhysioSubscriptions,
+  })
+
+  const setSubscription = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) =>
+      setPhysioSubscriptionStatus(id, status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-physio-subscriptions'] }),
+  })
+
+  const subscriptionLabel = {
+    trialing: pt.saas.trialing,
+    active: pt.saas.active,
+    inactive: pt.saas.inactive,
+  } as const
+
+  const physioName = (profiles: { full_name: string } | { full_name: string }[] | null) => {
+    if (!profiles) return '—'
+    return Array.isArray(profiles) ? profiles[0]?.full_name ?? '—' : profiles.full_name
+  }
+
   const roleLabels: Record<string, string> = {
     patient: 'Paciente',
     physiotherapist: 'Fisioterapeuta',
@@ -106,6 +129,47 @@ export function AdminUsersPage() {
                           Promover a admin
                         </Button>
                       )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base">{pt.saas.status}</CardTitle></CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>{pt.saas.status}</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptionsQuery.data?.map((physio) => (
+                  <TableRow key={physio.id}>
+                    <TableCell className="font-medium">{physioName(physio.profiles)}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{subscriptionLabel[physio.subscription_status]}</Badge>
+                    </TableCell>
+                    <TableCell className="space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={setSubscription.isPending || physio.subscription_status === 'inactive'}
+                        onClick={() => setSubscription.mutate({ id: physio.id, status: 'inactive' })}
+                      >
+                        {pt.saas.endSubscription}
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={setSubscription.isPending || physio.subscription_status === 'active'}
+                        onClick={() => setSubscription.mutate({ id: physio.id, status: 'active' })}
+                      >
+                        {pt.saas.reactivate}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

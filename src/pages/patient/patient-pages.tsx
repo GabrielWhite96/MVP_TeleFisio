@@ -12,7 +12,8 @@ import {
 } from '@/entities/patient/api/patient-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
 import { getPatientExercises, calculateExerciseProgress } from '@/entities/exercise/api/exercise-api'
-import { getNotifications, markNotificationRead, markAllNotificationsRead } from '@/entities/notification/api/notification-api'
+import { getNotifications } from '@/entities/notification/api/notification-api'
+import { NotificationInbox } from '@/features/notifications/ui/notification-inbox'
 import { getCaregiverLinks, revokeCaregiver } from '@/entities/caregiver/api/caregiver-api'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
 import { PatientExerciseList } from '@/features/exercises/ui/exercise-components'
@@ -29,8 +30,8 @@ import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Input, Label } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { LoadingSpinner, ErrorState, EmptyState } from '@/shared/ui/states'
-import { ROUTES, CANADIAN_PROVINCES, CLINICAL_STATUS_LABELS } from '@/shared/config/routes'
+import { LoadingSpinner, ErrorState } from '@/shared/ui/states'
+import { ROUTES, BRAZILIAN_UFS, CLINICAL_STATUS_LABELS } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { isUpcoming, formatDateTime } from '@/shared/lib/dates'
 import { Bell, HeartPulse } from 'lucide-react'
@@ -235,17 +236,19 @@ export function PatientProfilePage() {
                   <Input {...register('city')} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Província</Label>
+                  <Label>{pt.clinicalRecord.province}</Label>
                   <Select value={watch('province')} onValueChange={(v) => setValue('province', v)}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={pt.common.select} /></SelectTrigger>
                     <SelectContent>
-                      {CANADIAN_PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      {BRAZILIAN_UFS.map((uf) => (
+                        <SelectItem key={uf.code} value={uf.code}>{uf.code} — {uf.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Código postal</Label>
+                <Label>{pt.clinicalRecord.postalCode}</Label>
                 <Input {...register('postalCode')} />
               </div>
               {mutation.isSuccess && <p className="text-sm text-green-600">Perfil atualizado!</p>}
@@ -339,59 +342,10 @@ export function PatientCheckInPage() {
 
 export function PatientNotificationsPage() {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
-
-  const query = useQuery({
-    queryKey: queryKeys.notifications(user?.id ?? ''),
-    queryFn: () => getNotifications(user!.id),
-    enabled: !!user?.id,
-  })
-
-  const markOne = useMutation({
-    mutationFn: markNotificationRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications(user!.id) }),
-  })
-
-  const markAll = useMutation({
-    mutationFn: () => markAllNotificationsRead(user!.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications(user!.id) }),
-  })
-
-  const unread = query.data?.filter((n) => !n.read_at).length ?? 0
-
+  if (!user) return <AppLayout><LoadingSpinner /></AppLayout>
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">{pt.notifications.title}</h1>
-          {unread > 0 && (
-            <Button variant="outline" onClick={() => markAll.mutate()} disabled={markAll.isPending}>
-              {pt.notifications.markAllRead}
-            </Button>
-          )}
-        </div>
-        {query.isLoading && <LoadingSpinner />}
-        {!query.data?.length && !query.isLoading && (
-          <EmptyState title={pt.notifications.empty} />
-        )}
-        <div className="space-y-3">
-          {query.data?.map((n) => (
-            <button
-              key={n.id}
-              type="button"
-              className="w-full rounded-lg border p-4 text-left"
-              onClick={() => !n.read_at && markOne.mutate(n.id)}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-medium">{n.title}</p>
-                {!n.read_at && <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />}
-              </div>
-              <p className="text-sm text-[var(--color-muted-foreground)]">{n.body}</p>
-              <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">{formatDateTime(n.created_at)}</p>
-            </button>
-          ))}
-        </div>
-      </div>
+      <NotificationInbox userId={user.id} />
     </AppLayout>
   )
 }

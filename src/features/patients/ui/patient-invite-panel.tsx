@@ -6,6 +6,7 @@ import {
   getLatestPatientInvite,
   resendPatientInvite,
 } from '@/entities/patient/api/patient-invite-api'
+import { sendInviteEmail } from '@/entities/notification/api/invite-email-api'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
@@ -30,6 +31,7 @@ export function PatientInvitePanel({
   const queryClient = useQueryClient()
   const [inviteEmail, setInviteEmail] = useState(email ?? '')
   const [copied, setCopied] = useState(false)
+  const [emailNotice, setEmailNotice] = useState<'sent' | 'failed' | null>(null)
 
   const inviteQuery = useQuery({
     queryKey: queryKeys.patientInvites(patientId),
@@ -50,6 +52,8 @@ export function PatientInvitePanel({
       const url = buildPatientInviteUrl(invite.invite_token)
       await navigator.clipboard.writeText(url)
       setCopied(true)
+      const result = await sendInviteEmail({ to: invite.email, inviteUrl: url, kind: 'patient' })
+      setEmailNotice(result.sent ? 'sent' : 'failed')
     },
   })
 
@@ -100,6 +104,8 @@ export function PatientInvitePanel({
         )}
       </div>
       {copied && <p className="text-sm text-green-600">{pt.physio.inviteLinkCopied}</p>}
+      {emailNotice === 'sent' && <p className="text-sm text-green-600">{pt.physio.inviteEmailSent}</p>}
+      {emailNotice === 'failed' && <p className="text-sm text-amber-700">{pt.physio.inviteEmailNotSent}</p>}
       {mutation.error && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
     </div>
   )

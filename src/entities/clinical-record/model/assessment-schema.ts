@@ -1,7 +1,7 @@
 import type { ExamStatus } from './exam-status'
 import type { VitalSigns } from './vital-signs'
 
-/** Generic exam finding — catalogs live in clinical-options.ts (empty stubs for now). */
+/** Generic exam finding. Catalogs live in clinical-options.ts. */
 export interface ExamFinding {
   status: ExamStatus
   notes: string
@@ -14,6 +14,7 @@ export interface ExamFinding {
 export interface YesNoDetail {
   yes: boolean | null
   detail: string
+  items?: string[]
 }
 
 export interface PersonalData {

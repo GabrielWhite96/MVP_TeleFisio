@@ -58,3 +58,31 @@ export async function getPhysioPatientStats(physiotherapistId: string): Promise<
     total: list.length,
   }
 }
+
+export async function getPhysioOnboarding(physiotherapistId: string) {
+  const [availability, patients, assessments] = await Promise.all([
+    supabase
+      .from('availability')
+      .select('id', { count: 'exact', head: true })
+      .eq('physiotherapist_id', physiotherapistId),
+    supabase
+      .from('patients')
+      .select('id', { count: 'exact', head: true })
+      .eq('physiotherapist_id', physiotherapistId),
+    supabase
+      .from('clinical_records')
+      .select('id', { count: 'exact', head: true })
+      .eq('physiotherapist_id', physiotherapistId)
+      .eq('record_type', 'initial_assessment'),
+  ])
+
+  if (availability.error) throw availability.error
+  if (patients.error) throw patients.error
+  if (assessments.error) throw assessments.error
+
+  return {
+    hasAvailability: (availability.count ?? 0) > 0,
+    hasPatient: (patients.count ?? 0) > 0,
+    hasAssessment: (assessments.count ?? 0) > 0,
+  }
+}

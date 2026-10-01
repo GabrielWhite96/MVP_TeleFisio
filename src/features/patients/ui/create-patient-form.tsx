@@ -9,7 +9,7 @@ import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
-import { CANADIAN_PROVINCES, ROUTES } from '@/shared/config/routes'
+import { BRAZILIAN_UFS, ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 
 const schema = z.object({
@@ -71,34 +71,36 @@ export function CreatePatientForm({ physiotherapistId }: { physiotherapistId: st
               {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Telefone</Label>
+              <Label>{pt.clinicalRecord.phone}</Label>
               <Input {...register('phone')} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Data de nascimento</Label>
+            <Label>{pt.clinicalRecord.dateOfBirth}</Label>
             <Input type="date" {...register('dateOfBirth')} />
           </div>
           <div className="space-y-2">
-            <Label>Endereço</Label>
+            <Label>{pt.clinicalRecord.address}</Label>
             <Input {...register('addressLine1')} />
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label>Cidade</Label>
+              <Label>{pt.clinicalRecord.city}</Label>
               <Input {...register('city')} />
             </div>
             <div className="space-y-2">
-              <Label>Província</Label>
+              <Label>{pt.clinicalRecord.province}</Label>
               <Select value={watch('province') ?? ''} onValueChange={(v) => setValue('province', v)}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={pt.common.select} /></SelectTrigger>
                 <SelectContent>
-                  {CANADIAN_PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  {BRAZILIAN_UFS.map((uf) => (
+                    <SelectItem key={uf.code} value={uf.code}>{uf.code} — {uf.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Código postal</Label>
+              <Label>{pt.clinicalRecord.postalCode}</Label>
               <Input {...register('postalCode')} />
             </div>
           </div>

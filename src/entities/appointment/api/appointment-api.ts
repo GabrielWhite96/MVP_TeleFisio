@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/api/supabase'
+import { assertPracticeWritable } from '@/entities/physiotherapist/model/subscription-access'
 import type { AppointmentModality, AppointmentStatus } from '@/shared/types/database'
 import { syncAppointmentToGoogleCalendar } from '@/entities/google-calendar/api/google-calendar-api'
 
@@ -84,6 +85,7 @@ export async function getAppointmentById(id: string) {
 }
 
 export async function createAppointment(input: CreateAppointmentInput) {
+  await assertPracticeWritable(input.physiotherapistId)
   const { data, error } = await supabase
     .from('appointments')
     .insert({

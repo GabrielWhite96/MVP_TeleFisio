@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { signOut } from '@/features/auth/api/auth-api'
 import { ConsentModal } from '@/features/consent/ui/consent-modal'
+import { SubscriptionBanner } from '@/features/billing/ui/subscription-banner'
 import { useRealtimeNotifications } from '@/features/notifications/hooks/use-realtime-notifications'
 import { useTranslation } from '@/shared/config/i18n/use-translation'
 import { cn } from '@/shared/lib/utils'
@@ -49,6 +50,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: pt.physio.agenda, href: ROUTES.physio.agenda, icon: Calendar },
     { label: pt.physio.patients, href: ROUTES.physio.patients, icon: Users },
     { label: pt.physio.billing, href: ROUTES.physio.billing, icon: Wallet },
+    { label: pt.patient.notifications, href: ROUTES.physio.notifications, icon: Bell },
     { label: pt.patient.profile, href: ROUTES.physio.profile, icon: User },
   ],
   caregiver: [
@@ -177,7 +179,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+          <SubscriptionBanner />
+          {children}
+        </main>
 
         {/* Mobile bottom nav — larger touch targets for patients */}
         <nav className="flex border-t bg-[var(--color-card)] md:hidden">

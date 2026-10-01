@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createCaregiverInvite, getCaregiverInvites, revokeCaregiverInvite } from '@/entities/caregiver/api/caregiver-invite-api'
+import { sendInviteEmail } from '@/entities/notification/api/invite-email-api'
+import { pt } from '@/shared/config/i18n/pt'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
@@ -24,6 +27,10 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
     resolver: zodResolver(schema),
   })
 
+  const [emailNotice, setEmailNotice] = useState<'sent' | 'failed' | null>(null)
+  const [copied, setCopied] = useState(false)
+  const signupUrl = `${window.location.origin}/auth/caregiver-signup`
+
   const invitesQuery = useQuery({
     queryKey: queryKeys.caregiverInvites(patientId),
     queryFn: () => getCaregiverInvites(patientId),
@@ -36,9 +43,17 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
         email: data.email,
         invitedBy: user!.id,
       }),
-    onSuccess: () => {
+    onSuccess: async (invite) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.caregiverInvites(patientId) })
       reset()
+      await navigator.clipboard.writeText(signupUrl)
+      setCopied(true)
+      const result = await sendInviteEmail({
+        to: invite.email,
+        inviteUrl: signupUrl,
+        kind: 'caregiver',
+      })
+      setEmailNotice(result.sent ? 'sent' : 'failed')
     },
   })
 
@@ -70,9 +85,9 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
             <Button type="submit" disabled={createMutation.isPending}>Enviar convite</Button>
           </div>
         </form>
-        {createMutation.isSuccess && (
-          <p className="text-sm text-green-600">Convite criado. Peça para o familiar entrar como cuidador.</p>
-        )}
+        {copied && <p className="text-sm text-green-600">{pt.physio.inviteLinkCopied}</p>}
+        {emailNotice === 'sent' && <p className="text-sm text-green-600">{pt.physio.inviteEmailSent}</p>}
+        {emailNotice === 'failed' && <p className="text-sm text-amber-700">{pt.physio.inviteEmailNotSent}</p>}
         {createMutation.error && (
           <p className="text-sm text-red-600">{(createMutation.error as Error).message}</p>
         )}

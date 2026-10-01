@@ -7,10 +7,12 @@ import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId, updatePhysiotherapist } from '@/entities/physiotherapist/api/physiotherapist-api'
-import { getPhysioPatientStats } from '@/entities/physiotherapist/api/physio-stats-api'
+import { canManagePractice } from '@/entities/physiotherapist/model/subscription-access'
+import { getPhysioOnboarding, getPhysioPatientStats } from '@/entities/physiotherapist/api/physio-stats-api'
 import { getPhysioOwnedPatients, getPatientById } from '@/entities/patient/api/patient-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
-import { getAtRiskPatients } from '@/entities/notification/api/notification-api'
+import { getAtRiskPatients, getNotifications } from '@/entities/notification/api/notification-api'
+import { NotificationInbox } from '@/features/notifications/ui/notification-inbox'
 import { hasInitialAssessment } from '@/entities/clinical-record/api/clinical-record-api'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
 import { ClinicalRecordWorkspace } from '@/features/clinical-record/ui/clinical-record-workspace'
@@ -22,6 +24,7 @@ import { DischargePlanButton } from '@/features/treatment-plan/ui/discharge-plan
 import { ClinicalTimeline } from '@/features/clinical-timeline/ui/clinical-timeline'
 import { AvailabilityEditor } from '@/features/scheduling/ui/availability-editor'
 import { CreatePatientForm } from '@/features/patients/ui/create-patient-form'
+import { ClinicalStatusActions } from '@/features/patients/ui/clinical-status-actions'
 import { PatientInvitePanel } from '@/features/patients/ui/patient-invite-panel'
 import { PhysioCreateAppointmentForm } from '@/features/appointments/ui/physio-create-appointment-form'
 import { PhysioAgenda } from '@/features/physio-agenda/ui/physio-agenda'
@@ -39,7 +42,7 @@ import { Badge } from '@/shared/ui/badge'
 import { LoadingSpinner, ErrorState, EmptyState } from '@/shared/ui/states'
 import {
   ROUTES,
-  CANADIAN_PROVINCES,
+  BRAZILIAN_UFS,
   CLINICAL_STATUS_LABELS,
   ACCOUNT_STATUS_LABELS,
 } from '@/shared/config/routes'
@@ -74,15 +77,35 @@ export function PhysioDashboardPage() {
     enabled: !!physioQuery.data?.id,
   })
 
+  const onboardingQuery = useQuery({
+    queryKey: queryKeys.physioOnboarding(physioQuery.data?.id ?? ''),
+    queryFn: () => getPhysioOnboarding(physioQuery.data!.id),
+    enabled: !!physioQuery.data?.id,
+  })
+
   const atRiskQuery = useQuery({
     queryKey: queryKeys.atRiskPatients(physioQuery.data?.id),
     queryFn: () => getAtRiskPatients(physioQuery.data!.id),
     enabled: !!physioQuery.data?.id,
   })
 
+  const notificationsQuery = useQuery({
+    queryKey: queryKeys.notifications(user?.id ?? ''),
+    queryFn: () => getNotifications(user!.id),
+    enabled: !!user?.id,
+  })
+
   const today = appointmentsQuery.data?.filter((a) => isToday(a.scheduled_at) && a.status !== 'cancelled') ?? []
   const upcoming = appointmentsQuery.data?.filter((a) => isUpcoming(a.scheduled_at) && !['cancelled', 'completed'].includes(a.status)) ?? []
   const awaitingPatients = patientsQuery.data?.filter((p) => p.clinical_status === 'awaiting_assessment') ?? []
+  const pausedPatients = patientsQuery.data?.filter((p) => p.clinical_status === 'paused') ?? []
+  const reassessmentPatients = patientsQuery.data?.filter((p) => p.clinical_status === 'reassessment') ?? []
+
+  const unreadReminders = notificationsQuery.data?.filter(
+    (n) => !n.read_at && (n.type === 'appointment_reminder' || n.type === 'evaluation_due')
+  ) ?? []
+
+  const practiceOpen = !physioQuery.data || canManagePractice(physioQuery.data)
 
   const reasonLabels: Record<string, string> = {
     high_pain: 'Dor alta',
@@ -99,33 +122,98 @@ export function PhysioDashboardPage() {
             <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.saasTagline}</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <Link to={ROUTES.physio.patientNew}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                {pt.physio.newPatient}
-              </Link>
+            <Button asChild={practiceOpen} variant="outline" disabled={!practiceOpen}>
+              {practiceOpen ? (
+                <Link to={ROUTES.physio.patientNew}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {pt.physio.newPatient}
+                </Link>
+              ) : (
+                <span>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {pt.physio.newPatient}
+                </span>
+              )}
             </Button>
             <Button asChild variant="outline">
               <Link to={ROUTES.physio.billing}>{pt.physio.billing}</Link>
             </Button>
-            <Button asChild>
-              <Link to={ROUTES.physio.appointmentNew}>
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                {pt.physio.newAppointment}
-              </Link>
+            <Button asChild={practiceOpen} disabled={!practiceOpen}>
+              {practiceOpen ? (
+                <Link to={ROUTES.physio.appointmentNew}>
+                  <CalendarPlus className="mr-2 h-4 w-4" />
+                  {pt.physio.newAppointment}
+                </Link>
+              ) : (
+                <span>
+                  <CalendarPlus className="mr-2 h-4 w-4" />
+                  {pt.physio.newAppointment}
+                </span>
+              )}
             </Button>
           </div>
         </div>
 
+        {onboardingQuery.data &&
+          !(onboardingQuery.data.hasAvailability && onboardingQuery.data.hasPatient && onboardingQuery.data.hasAssessment) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{pt.physio.onboardingTitle}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {!onboardingQuery.data.hasAvailability && (
+                <Link to={ROUTES.physio.profile} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                  {pt.physio.onboardingAvailability}
+                </Link>
+              )}
+              {!onboardingQuery.data.hasPatient && (
+                <Link to={ROUTES.physio.patientNew} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                  {pt.physio.onboardingPatient}
+                </Link>
+              )}
+              {!onboardingQuery.data.hasAssessment && (
+                <Link to={ROUTES.physio.patients} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                  {pt.physio.onboardingAssessment}
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <div>
           <h2 className="mb-3 text-lg font-semibold">{pt.physio.whatToDoToday}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard title={pt.physio.todayAppointments} value={today.length} loading={appointmentsQuery.isLoading} />
             <StatCard title={pt.physio.awaitingAssessment} value={statsQuery.data?.awaiting ?? 0} loading={statsQuery.isLoading} />
-            <StatCard title="Em risco" value={statsQuery.data?.atRisk ?? 0} loading={statsQuery.isLoading} />
-            <StatCard title="Ativos" value={statsQuery.data?.active ?? 0} loading={statsQuery.isLoading} />
+            <StatCard title={pt.physio.atRisk} value={statsQuery.data?.atRisk ?? 0} loading={statsQuery.isLoading} />
+            <StatCard title={pt.physio.activePatients} value={statsQuery.data?.active ?? 0} loading={statsQuery.isLoading} />
+            <StatCard title={pt.physio.pausedPatients} value={statsQuery.data?.paused ?? 0} loading={statsQuery.isLoading} />
+            <StatCard title={pt.physio.reassessmentPatients} value={statsQuery.data?.reassessment ?? 0} loading={statsQuery.isLoading} />
           </div>
         </div>
+
+        {unreadReminders.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{pt.notifications.unreadReminders}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {unreadReminders.slice(0, 5).map((n) => (
+                <Link
+                  key={n.id}
+                  to={ROUTES.physio.notifications}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                >
+                  <div>
+                    <p className="font-medium">{n.title}</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">{n.body}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {awaitingPatients.length > 0 && (
           <Card>
@@ -142,6 +230,52 @@ export function PhysioDashboardPage() {
                   <div>
                     <p className="font-medium">{p.full_name}</p>
                     <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.startAssessment}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {pausedPatients.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{pt.physio.pausedPatients}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {pausedPatients.slice(0, 5).map((p) => (
+                <Link
+                  key={p.id}
+                  to={ROUTES.physio.patient(p.id)}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                >
+                  <div>
+                    <p className="font-medium">{p.full_name}</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.resumeTreatment}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5" />
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {reassessmentPatients.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{pt.physio.reassessmentPatients}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {reassessmentPatients.slice(0, 5).map((p) => (
+                <Link
+                  key={p.id}
+                  to={ROUTES.physio.patient(p.id)}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                >
+                  <div>
+                    <p className="font-medium">{p.full_name}</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">{CLINICAL_STATUS_LABELS.reassessment}</p>
                   </div>
                   <ChevronRight className="h-5 w-5" />
                 </Link>
@@ -277,16 +411,25 @@ export function PhysioPatientsPage() {
     })
   }, [patientsQuery.data, search, clinicalFilter, accountFilter])
 
+  const practiceOpen = !physioQuery.data || canManagePractice(physioQuery.data)
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">{pt.physio.patients}</h1>
-          <Button asChild>
-            <Link to={ROUTES.physio.patientNew}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              {pt.physio.newPatient}
-            </Link>
+          <Button asChild={practiceOpen} disabled={!practiceOpen}>
+            {practiceOpen ? (
+              <Link to={ROUTES.physio.patientNew}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                {pt.physio.newPatient}
+              </Link>
+            ) : (
+              <span>
+                <UserPlus className="mr-2 h-4 w-4" />
+                {pt.physio.newPatient}
+              </span>
+            )}
           </Button>
         </div>
 
@@ -361,6 +504,10 @@ export function PhysioPatientNewPage() {
 
   if (!physioQuery.data) {
     return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+  }
+
+  if (!canManagePractice(physioQuery.data)) {
+    return <AppLayout><p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p></AppLayout>
   }
 
   return (
@@ -439,11 +586,15 @@ export function PhysioPatientDetailPage() {
                 </Link>
               </Button>
             )}
-            <Button asChild variant="outline">
-              <Link to={`${ROUTES.physio.appointmentNew}?patientId=${patient.id}`}>
-                {pt.physio.newAppointment}
-              </Link>
-            </Button>
+            {canManagePractice(physioQuery.data) ? (
+              <Button asChild variant="outline">
+                <Link to={`${ROUTES.physio.appointmentNew}?patientId=${patient.id}`}>
+                  {pt.physio.newAppointment}
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" disabled>{pt.physio.newAppointment}</Button>
+            )}
           </div>
         </div>
 
@@ -463,12 +614,17 @@ export function PhysioPatientDetailPage() {
           <TabsContent value="summary" className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Card>
-                <CardHeader><CardTitle className="text-base">Status do tratamento</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">{pt.physio.treatmentStatus}</CardTitle></CardHeader>
                 <CardContent>
                   <p className="text-lg font-semibold">{CLINICAL_STATUS_LABELS[patient.clinical_status]}</p>
                   <p className="text-sm text-[var(--color-muted-foreground)]">
-                    Conta: {ACCOUNT_STATUS_LABELS[patient.account_status]}
+                    {pt.physio.accountLabel}: {ACCOUNT_STATUS_LABELS[patient.account_status]}
                   </p>
+                  <ClinicalStatusActions
+                    patientId={patient.id}
+                    physiotherapistId={physioQuery.data.id}
+                    status={patient.clinical_status}
+                  />
                 </CardContent>
               </Card>
               <Card>
@@ -479,7 +635,7 @@ export function PhysioPatientDetailPage() {
                       {new Date(nextAppointment.scheduled_at).toLocaleString('pt-BR')}
                     </Link>
                   ) : (
-                    <p className="text-sm text-[var(--color-muted-foreground)]">Nenhuma consulta agendada</p>
+                    <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.noAppointment}</p>
                   )}
                 </CardContent>
               </Card>
@@ -561,6 +717,10 @@ export function PhysioAppointmentNewPage() {
 
   if (!physioQuery.data) {
     return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+  }
+
+  if (!canManagePractice(physioQuery.data)) {
+    return <AppLayout><p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p></AppLayout>
   }
 
   return (
@@ -651,29 +811,31 @@ export function PhysioProfilePage() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-bold">Perfil profissional</h1>
+        <h1 className="text-2xl font-bold">{pt.physio.professionalProfile}</h1>
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
               <div className="space-y-2">
-                <Label>Registro profissional</Label>
+                <Label>{pt.physio.licenseNumber}</Label>
                 <Input {...register('licenseNumber')} />
               </div>
               <div className="space-y-2">
-                <Label>Província</Label>
+                <Label>{pt.clinicalRecord.province}</Label>
                 <Select value={watch('province')} onValueChange={(v) => setValue('province', v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={pt.common.select} /></SelectTrigger>
                   <SelectContent>
-                    {CANADIAN_PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    {BRAZILIAN_UFS.map((uf) => (
+                      <SelectItem key={uf.code} value={uf.code}>{uf.code} — {uf.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Anos de experiência</Label>
+                <Label>{pt.physio.experienceYears}</Label>
                 <Input type="number" {...register('experienceYears')} />
               </div>
               <div className="space-y-2">
-                <Label>Bio</Label>
+                <Label>{pt.physio.bio}</Label>
                 <Textarea {...register('bio')} />
               </div>
               <Button type="submit" disabled={mutation.isPending}>{pt.common.save}</Button>
@@ -682,6 +844,16 @@ export function PhysioProfilePage() {
         </Card>
         {physioQuery.data && <AvailabilityEditor physiotherapistId={physioQuery.data.id} />}
       </div>
+    </AppLayout>
+  )
+}
+
+export function PhysioNotificationsPage() {
+  const { user } = useAuth()
+  if (!user) return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+  return (
+    <AppLayout>
+      <NotificationInbox userId={user.id} />
     </AppLayout>
   )
 }

@@ -100,7 +100,7 @@ export function NextAppointmentCard({
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--color-muted-foreground)]">Nenhuma consulta agendada</p>
+            <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.noAppointment}</p>
           </div>
         )}
       </CardContent>

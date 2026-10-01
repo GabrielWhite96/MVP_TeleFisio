@@ -31,6 +31,19 @@ Deno.serve(async (req) => {
   );
 
   const obj = event.data?.object;
+  if (obj?.metadata?.kind === "saas" && obj.metadata.physiotherapist_id) {
+    const status = event.type === "customer.subscription.deleted" ? "inactive" : "active";
+    if (event.type === "checkout.session.completed" || event.type === "customer.subscription.deleted") {
+      await supabase
+        .from("physiotherapists")
+        .update({ subscription_status: status })
+        .eq("id", obj.metadata.physiotherapist_id);
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
   const paymentId = obj?.metadata?.payment_id;
   const purchaseId = obj?.metadata?.package_purchase_id;
   const sessionId = obj?.id;

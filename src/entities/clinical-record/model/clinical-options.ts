@@ -1,77 +1,183 @@
 /**
- * Clinical option catalogs — intentionally empty.
- * Fill after clinical research; UI already maps over these arrays.
- *
- * Research checklist for the product owner:
- * 1. Ausculta (pulmonar/cardíaca) — findings list
- * 2. MRC — scale values + muscle groups
- * 3. Goniometria — joints, movements, side (D/E)
- * 4. Alterações posturais
- * 5. Alterações da marcha
- * 6. Reflexos superficiais e profundos
- * 7. Equilíbrio estático e dinâmico — tests/scales
- * 8. Testes especiais por região
- * 9. Grupos musculares (perda de força)
- * 10. Segmentos para perda de mobilidade / encurtamentos
- * 11. Catálogos de exercícios / treinos / fortalecimento (evolução)
- * 12. Formato de identidade (RG, CPF, outro) + validação
- * 13. Faixas de referência / alertas de sinais vitais
- * 14. Intervalos padrão extras além de 30/60/90
+ * Short outpatient catalogs for Brazilian physiotherapy.
+ * Findings and body regions only — not treatment protocols.
+ * Free-text "Outro" is added in the checklist UI.
  */
 
-// TODO: preencher após pesquisa clínica
-export const AUSCULTA_OPTIONS: string[] = []
+export const AUSCULTA_OPTIONS = [
+  'Murmúrio vesicular presente',
+  'Murmúrio vesicular diminuído',
+  'Roncos',
+  'Sibilos',
+  'Estertores',
+  'Crepitações',
+  'Bulhas rítmicas',
+  'Sopro',
+]
 
-// TODO: preencher após pesquisa clínica
-export const MRC_MUSCLE_GROUPS: string[] = []
+export const MRC_MUSCLE_GROUPS = [
+  'Cervical',
+  'Ombro',
+  'Cotovelo',
+  'Punho',
+  'Tronco',
+  'Quadril',
+  'Joelho',
+  'Tornozelo',
+]
 
-// TODO: preencher após pesquisa clínica
-export const GONIOMETRY_JOINTS: string[] = []
+export const GONIOMETRY_JOINTS = [
+  'Cervical',
+  'Ombro',
+  'Cotovelo',
+  'Punho',
+  'Coluna toracolombar',
+  'Quadril',
+  'Joelho',
+  'Tornozelo',
+]
 
-// TODO: preencher após pesquisa clínica
-export const POSTURAL_CHANGE_OPTIONS: string[] = []
+export const POSTURAL_CHANGE_OPTIONS = [
+  'Anteriorização de cabeça',
+  'Protração de ombros',
+  'Hipercifose',
+  'Hiperlordose lombar',
+  'Escoliose',
+  'Inclinação pélvica',
+  'Geno valgo',
+  'Geno varo',
+  'Pé plano',
+  'Pé cavo',
+]
 
-// TODO: preencher após pesquisa clínica
-export const GAIT_CHANGE_OPTIONS: string[] = []
+export const GAIT_CHANGE_OPTIONS = [
+  'Claudicação',
+  'Passada curta',
+  'Base alargada',
+  'Trendelenburg',
+  'Pé caído',
+  'Circundução',
+  'Apoio em calcâneo',
+  'Apoio em antepé',
+]
 
-// TODO: preencher após pesquisa clínica
-export const SUPERFICIAL_REFLEX_OPTIONS: string[] = []
+export const SUPERFICIAL_REFLEX_OPTIONS = [
+  'Abdominal',
+  'Cremastérico',
+  'Plantar em flexão',
+  'Plantar em extensão',
+]
 
-// TODO: preencher após pesquisa clínica
-export const DEEP_REFLEX_OPTIONS: string[] = []
+export const DEEP_REFLEX_OPTIONS = [
+  'Bicipital',
+  'Tricipital',
+  'Estilorradial',
+  'Patelar',
+  'Aquileu',
+]
 
-// TODO: preencher após pesquisa clínica
-export const STATIC_BALANCE_OPTIONS: string[] = []
+export const STATIC_BALANCE_OPTIONS = [
+  'Romberg',
+  'Pés juntos',
+  'Semitandem',
+  'Apoio unipodal',
+]
 
-// TODO: preencher após pesquisa clínica
-export const DYNAMIC_BALANCE_OPTIONS: string[] = []
+export const DYNAMIC_BALANCE_OPTIONS = [
+  'Marcha habitual',
+  'Marcha tandem',
+  'Timed up and go',
+  'Alcance funcional',
+]
 
-// TODO: preencher após pesquisa clínica
-export const SPECIAL_TEST_OPTIONS: string[] = []
+export const SPECIAL_TEST_OPTIONS = [
+  'Lasègue',
+  'Thomas',
+  'Patrick (FABER)',
+  'Neer',
+  'Hawkins',
+  'Phalen',
+  'Tinel',
+  'Gaveta anterior',
+  'McMurray',
+]
 
-// TODO: preencher após pesquisa clínica
-export const STRENGTH_LOSS_MUSCLE_GROUPS: string[] = []
+export const STRENGTH_LOSS_MUSCLE_GROUPS = [
+  'Cervical',
+  'Ombro',
+  'Cotovelo',
+  'Punho',
+  'Tronco',
+  'Quadril',
+  'Joelho',
+  'Tornozelo',
+]
 
-// TODO: preencher após pesquisa clínica
-export const MOBILITY_LOSS_SEGMENTS: string[] = []
+export const MOBILITY_LOSS_SEGMENTS = [
+  'Cervical',
+  'Ombro',
+  'Cotovelo',
+  'Punho',
+  'Toracolombar',
+  'Quadril',
+  'Joelho',
+  'Tornozelo',
+]
 
-// TODO: preencher após pesquisa clínica
-export const SHORTENING_DEFORMITY_OPTIONS: string[] = []
+export const SHORTENING_DEFORMITY_OPTIONS = [
+  'Isquiotibiais',
+  'Iliopsoas',
+  'Reto femoral',
+  'Tríceps sural',
+  'Peitoral',
+  'Trapézio superior',
+  'Piriforme',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_PERFORMED_OPTIONS: string[] = []
+export const EVOLUTION_PERFORMED_OPTIONS = [
+  'Cinesioterapia',
+  'Mobilização articular',
+  'Alongamento',
+  'Fortalecimento',
+  'Treino de marcha',
+  'Treino de equilíbrio',
+  'Exercícios respiratórios',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_EXERCISE_OPTIONS: string[] = []
+export const EVOLUTION_EXERCISE_OPTIONS = [
+  'Ativo livre',
+  'Ativo assistido',
+  'Resistido',
+  'Alongamento',
+  'Funcional',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_TRAINING_OPTIONS: string[] = []
+export const EVOLUTION_TRAINING_OPTIONS = [
+  'Marcha',
+  'Escadas',
+  'Transferências',
+  'Equilíbrio',
+  'AVD',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_STRENGTHENING_OPTIONS: string[] = []
+export const EVOLUTION_STRENGTHENING_OPTIONS = [
+  'Membros superiores',
+  'Core',
+  'Membros inferiores',
+  'Respiratório',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_CHANGES_OPTIONS: string[] = []
+export const EVOLUTION_CHANGES_OPTIONS = [
+  'Dor',
+  'Amplitude',
+  'Força',
+  'Marcha',
+  'Equilíbrio',
+]
 
-// TODO: preencher após pesquisa clínica
-export const EVOLUTION_CONDUCT_OPTIONS: string[] = []
+export const EVOLUTION_CONDUCT_OPTIONS = [
+  'Manter conduta',
+  'Progredir carga',
+  'Reavaliar',
+  'Orientação domiciliar',
+]
