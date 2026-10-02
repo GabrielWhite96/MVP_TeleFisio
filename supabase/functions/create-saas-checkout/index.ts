@@ -18,7 +18,11 @@ Deno.serve(async (req) => {
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   const priceId = Deno.env.get("STRIPE_SAAS_PRICE_ID");
-  if (!stripeKey || !priceId) return json({ error: "Checkout indisponível" }, 501);
+  if (!stripeKey || !priceId) {
+    return json({
+      error: "Checkout ainda não está configurado. A assinatura será liberada quando o Stripe estiver ativo.",
+    });
+  }
 
   const { data: physio, error: physioError } = await supabase
     .from("physiotherapists")

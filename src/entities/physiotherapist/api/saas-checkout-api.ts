@@ -5,7 +5,14 @@ export async function startSaasCheckout() {
   const { data, error } = await supabase.functions.invoke('create-saas-checkout', {
     body: { origin: window.location.origin },
   })
-  if (error) throw error
+  if (error) {
+    const context = (error as { context?: Response }).context
+    if (context && typeof context.json === 'function') {
+      const body = await context.json().catch(() => null) as { error?: string } | null
+      if (body?.error) throw new Error(body.error)
+    }
+    throw new Error('Não foi possível abrir o checkout.')
+  }
   const payload = (data ?? {}) as { url?: string; error?: string }
   if (!payload.url) throw new Error(payload.error ?? 'Checkout indisponível')
   window.location.assign(payload.url)
