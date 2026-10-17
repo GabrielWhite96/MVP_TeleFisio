@@ -52,7 +52,7 @@ export function PatientInvitePanel({
       const url = buildPatientInviteUrl(invite.invite_token)
       await navigator.clipboard.writeText(url)
       setCopied(true)
-      const result = await sendInviteEmail({ to: invite.email, inviteUrl: url, kind: 'patient' })
+      const result = await sendInviteEmail({ inviteId: invite.id, kind: 'patient' })
       setEmailNotice(result.sent ? 'sent' : 'failed')
     },
   })

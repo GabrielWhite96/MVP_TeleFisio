@@ -49,8 +49,7 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
       await navigator.clipboard.writeText(signupUrl)
       setCopied(true)
       const result = await sendInviteEmail({
-        to: invite.email,
-        inviteUrl: signupUrl,
+        inviteId: invite.id,
         kind: 'caregiver',
       })
       setEmailNotice(result.sent ? 'sent' : 'failed')
