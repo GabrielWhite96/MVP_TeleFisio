@@ -21,6 +21,10 @@ export function SubscriptionBanner() {
 
   if (profile?.role !== 'physiotherapist' || !physioQuery.data) return null
   if (physioQuery.data.subscription_status === 'active') return null
+  if (physioQuery.data.subscription_status === 'trialing') {
+    const days = trialDaysLeft(physioQuery.data.trial_ends_at)
+    if (days === null || days <= 0) return null
+  }
 
   const days = trialDaysLeft(physioQuery.data.trial_ends_at)
   const locked = !canManagePractice(physioQuery.data)
