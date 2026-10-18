@@ -17,15 +17,16 @@ import {
   type ReportRecordInput,
 } from '@/features/patient-report/model/build-patient-report'
 import { PatientReportDocument } from '@/features/patient-report/ui/patient-report-document'
+import { downloadPatientReportPdf } from '@/features/patient-report/pdf/patient-report-pdf'
 import { queryKeys } from '@/shared/api/query-keys'
 import { pt } from '@/shared/config/i18n/pt'
 import { CLINICAL_STATUS_LABELS, ROUTES } from '@/shared/config/routes'
 import { formatDateTime } from '@/shared/lib/dates'
+import { cn } from '@/shared/lib/utils'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { EmptyState, ErrorState, LoadingSpinner } from '@/shared/ui/states'
 
 const copy = pt.report
@@ -117,11 +118,19 @@ export function PhysioReportsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">{copy.title}</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)]">{copy.subtitle}</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>
+            <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{copy.subtitle}</p>
+          </div>
+          {!patientsQuery.isLoading && patientsQuery.data && (
+            <p className="text-sm text-[var(--color-muted-foreground)]">
+              <span className="tabular-nums">{filtered.length}</span> {copy.resultCount}
+            </p>
+          )}
         </div>
         <Input
+          aria-label={copy.search}
           placeholder={copy.search}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -130,21 +139,24 @@ export function PhysioReportsPage() {
         {!filtered.length && !patientsQuery.isLoading && !physioQuery.isLoading && (
           <EmptyState title={copy.empty} description={copy.emptyHint} />
         )}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filtered.map((patient) => (
             <Link
               key={patient.id}
               to={ROUTES.physio.patientReport(patient.id)}
-              className="flex items-center justify-between rounded-lg border p-4 hover:bg-[var(--color-accent)]"
+              className="flex items-center gap-4 rounded-xl border bg-[var(--color-card)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-accent)]"
             >
-              <div className="space-y-1">
-                <p className="font-medium">{patient.full_name}</p>
-                <p className="text-sm text-[var(--color-muted-foreground)]">
-                  {[patient.email, patient.city].filter(Boolean).join(' · ')}
+              <div className="min-w-0 flex-1 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-semibold">{patient.full_name}</p>
+                  <Badge variant="secondary">{CLINICAL_STATUS_LABELS[patient.clinical_status]}</Badge>
+                </div>
+                <p className="truncate text-sm text-[var(--color-muted-foreground)]">
+                  {[patient.email, patient.city].filter(Boolean).join(' · ') || '—'}
                 </p>
-                <Badge variant="secondary">{CLINICAL_STATUS_LABELS[patient.clinical_status]}</Badge>
               </div>
-              <ChevronRight className="h-5 w-5" />
+              <span className="hidden text-sm font-medium text-[var(--color-primary)] sm:inline">{copy.open}</span>
+              <ChevronRight className="h-5 w-5 shrink-0 text-[var(--color-muted-foreground)]" />
             </Link>
           ))}
         </div>
@@ -159,6 +171,8 @@ export function PhysioPatientReportPage() {
   const [period, setPeriod] = useState<ReportPeriod>('all')
   const [conclusion, setConclusion] = useState('')
   const [issuedAt] = useState(() => formatDateTime(new Date()))
+  const [generatingPdf, setGeneratingPdf] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
 
   const patientQuery = useQuery({
     queryKey: queryKeys.patientDetail(id ?? ''),
@@ -272,48 +286,67 @@ export function PhysioPatientReportPage() {
     exercisesQuery.isError ||
     planQuery.isError
 
-  const handlePrint = () => {
-    const previous = document.title
-    const name = patientQuery.data?.full_name ?? 'paciente'
-    document.title = `Relatorio ${name}`
-    const restore = () => {
-      document.title = previous
-      window.removeEventListener('afterprint', restore)
+  const handleDownload = async () => {
+    if (!patientQuery.data || !report || generatingPdf) return
+    setGeneratingPdf(true)
+    setPdfError(null)
+    try {
+      await downloadPatientReportPdf({
+        patientName: patientQuery.data.full_name,
+        dateOfBirth: patientQuery.data.date_of_birth,
+        clinicalStatus: patientQuery.data.clinical_status,
+        physioName: profile?.full_name ?? '',
+        periodLabel,
+        issuedAt,
+        report,
+        conclusion,
+      })
+    } catch {
+      setPdfError(copy.pdfError)
+    } finally {
+      setGeneratingPdf(false)
     }
-    window.addEventListener('afterprint', restore)
-    window.print()
   }
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="no-print flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" asChild>
+        <div className="no-print sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b bg-[var(--color-background)]/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
+          <div className="flex flex-wrap gap-1">
+            <Button variant="ghost" size="sm" asChild>
               <Link to={ROUTES.physio.reports}>{copy.backToList}</Link>
             </Button>
             {id && (
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" size="sm" asChild>
                 <Link to={ROUTES.physio.patient(id)}>{copy.backToPatient}</Link>
               </Button>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={period} onValueChange={(value) => setPeriod(value as ReportPeriod)}>
-              <SelectTrigger className="w-52" aria-label={copy.period}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PERIODS.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={handlePrint}>
+            <div role="group" aria-label={copy.period} className="flex flex-wrap gap-1 rounded-lg bg-[var(--color-muted)] p-1">
+              {PERIODS.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  aria-pressed={period === item.value}
+                  onClick={() => setPeriod(item.value)}
+                  className={cn(
+                    'rounded-md px-3 py-2 text-sm font-medium',
+                    period === item.value
+                      ? 'bg-[var(--color-card)] text-[var(--color-foreground)] shadow-sm'
+                      : 'text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <Button onClick={handleDownload} disabled={generatingPdf || loading || !report}>
               <FileDown className="h-4 w-4" />
-              {copy.print}
+              {generatingPdf ? copy.generatingPdf : copy.print}
             </Button>
           </div>
+          {pdfError ? <p className="w-full text-sm text-[var(--color-destructive)]">{pdfError}</p> : null}
         </div>
 
         {loading && <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />}
