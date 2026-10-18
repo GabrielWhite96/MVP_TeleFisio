@@ -15,6 +15,7 @@ import {
   ScrollText,
   HeartHandshake,
   Wallet,
+  BarChart3,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
@@ -51,6 +52,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: pt.physio.agenda, href: ROUTES.physio.agenda, icon: Calendar },
     { label: pt.physio.patients, href: ROUTES.physio.patients, icon: Users },
     { label: pt.physio.billing, href: ROUTES.physio.billing, icon: Wallet },
+    { label: pt.physio.reports, href: ROUTES.physio.reports, icon: BarChart3 },
     { label: pt.patient.notifications, href: ROUTES.physio.notifications, icon: Bell },
     { label: pt.patient.profile, href: ROUTES.physio.profile, icon: User },
   ],
@@ -96,7 +98,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       {navItems.map((item) => {
         const Icon = item.icon
-        const active = location.pathname.startsWith(item.href)
+        const onPatientReport = location.pathname.endsWith('/relatorio')
+        const active = item.href === ROUTES.physio.reports
+          ? location.pathname.startsWith(item.href) || onPatientReport
+          : item.href === ROUTES.physio.patients
+            ? location.pathname.startsWith(item.href) && !onPatientReport
+            : location.pathname.startsWith(item.href)
         return (
           <Link
             key={item.href}
@@ -190,7 +197,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex border-t bg-[var(--color-card)] md:hidden">
           {mobileNavItems.map((item) => {
             const Icon = item.icon
-            const active = location.pathname.startsWith(item.href)
+            const onPatientReport = location.pathname.endsWith('/relatorio')
+            const active = item.href === ROUTES.physio.reports
+              ? location.pathname.startsWith(item.href) || onPatientReport
+              : item.href === ROUTES.physio.patients
+                ? location.pathname.startsWith(item.href) && !onPatientReport
+                : location.pathname.startsWith(item.href)
             return (
               <Link
                 key={item.href}

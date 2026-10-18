@@ -48,7 +48,7 @@ import {
 } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { isToday, isUpcoming } from '@/shared/lib/dates'
-import { ChevronRight, AlertTriangle, UserPlus, CalendarPlus } from 'lucide-react'
+import { ChevronRight, AlertTriangle, UserPlus, CalendarPlus, BarChart3 } from 'lucide-react'
 import type { PatientAccountStatus, PatientClinicalStatus } from '@/shared/types/database'
 
 export function PhysioDashboardPage() {
@@ -598,6 +598,12 @@ export function PhysioPatientDetailPage() {
                 </Link>
               </Button>
             )}
+            <Button asChild variant="outline">
+              <Link to={ROUTES.physio.patientReport(patient.id)}>
+                <BarChart3 className="mr-2 h-4 w-4" />
+                {pt.report.open}
+              </Link>
+            </Button>
             {canManagePractice(physioQuery.data) ? (
               <Button asChild variant="outline">
                 <Link to={`${ROUTES.physio.appointmentNew}?patientId=${patient.id}`}>

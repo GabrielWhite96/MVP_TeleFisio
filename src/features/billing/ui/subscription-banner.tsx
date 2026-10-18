@@ -33,7 +33,7 @@ export function SubscriptionBanner() {
     : pt.saas.trialDays.replace('{days}', String(Math.max(days ?? 0, 0)))
 
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+    <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
       <p>{message}</p>
       <Button size="sm" onClick={() => checkout.mutate()} disabled={checkout.isPending}>
         {checkout.isPending ? pt.common.loading : pt.saas.subscribe}

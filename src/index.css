@@ -68,6 +68,64 @@ input[type='button'] {
   }
 }
 
+@media print {
+  aside,
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  main {
+    overflow: visible !important;
+    height: auto !important;
+    background: white !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .print-page-header {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+    background: white;
+    font-size: 11px;
+  }
+
+  .report-document {
+    padding-top: 28px;
+  }
+
+  .report-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-chart,
+  .recharts-responsive-container {
+    width: 100% !important;
+    height: 280px !important;
+    min-height: 280px !important;
+  }
+
+  .report-conclusion-print {
+    display: block !important;
+  }
+}
+
+.report-conclusion-print {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
