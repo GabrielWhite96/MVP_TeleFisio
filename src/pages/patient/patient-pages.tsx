@@ -12,12 +12,13 @@ import {
 } from '@/entities/patient/api/patient-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
 import { getPatientExercises, calculateExerciseProgress } from '@/entities/exercise/api/exercise-api'
-import { getNotifications } from '@/entities/notification/api/notification-api'
-import { NotificationInbox } from '@/features/notifications/ui/notification-inbox'
+import { getAdherenceScore, getLatestCheckIn } from '@/entities/check-in/api/check-in-api'
+import { getNotifications, markNotificationRead } from '@/entities/notification/api/notification-api'
+import { NotificationInbox, notificationHref } from '@/features/notifications/ui/notification-inbox'
 import { getCaregiverLinks, revokeCaregiver } from '@/entities/caregiver/api/caregiver-api'
 import { AppointmentSession } from '@/features/appointment-session/ui/appointment-session'
-import { PatientExerciseList } from '@/features/exercises/ui/exercise-components'
-import { CheckInForm } from '@/features/patient-checkin/ui/check-in-form'
+import { countsAsDueToday, PatientExerciseList, wasCompletedToday } from '@/features/exercises/ui/exercise-components'
+import { CheckInForm, CheckInTodaySummary } from '@/features/patient-checkin/ui/check-in-form'
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
 import { CaregiverAuthorizeForm } from '@/features/caregiver/ui/caregiver-authorize-form'
 import { CaregiverInviteForm } from '@/features/caregiver/ui/caregiver-invite-form'
@@ -33,7 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner, ErrorState } from '@/shared/ui/states'
 import { ROUTES, BRAZILIAN_UFS, CLINICAL_STATUS_LABELS } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
-import { isUpcoming, formatDateTime } from '@/shared/lib/dates'
+import { isUpcoming, isSameCalendarDay, formatDateTime } from '@/shared/lib/dates'
 import { Bell, HeartPulse } from 'lucide-react'
 
 const profileSchema = z.object({
@@ -48,6 +49,7 @@ const profileSchema = z.object({
 
 export function PatientDashboardPage() {
   const { user, profile } = useAuth()
+  const queryClient = useQueryClient()
 
   const patientQuery = useQuery({
     queryKey: queryKeys.patient(user?.id ?? ''),
@@ -79,12 +81,31 @@ export function PatientDashboardPage() {
     enabled: !!user?.id,
   })
 
+  const checkInQuery = useQuery({
+    queryKey: queryKeys.latestCheckIn(patientQuery.data?.id ?? ''),
+    queryFn: () => getLatestCheckIn(patientQuery.data!.id),
+    enabled: !!patientQuery.data?.id,
+  })
+
+  const adherenceQuery = useQuery({
+    queryKey: queryKeys.adherence(patientQuery.data?.id ?? ''),
+    queryFn: () => getAdherenceScore(patientQuery.data!.id, 7),
+    enabled: !!patientQuery.data?.id,
+  })
+
   const upcoming = appointmentsQuery.data?.filter(
     (a) => isUpcoming(a.scheduled_at) && !['cancelled', 'completed', 'no_show'].includes(a.status)
   ) ?? []
   const history = appointmentsQuery.data?.filter((a) => ['completed', 'cancelled'].includes(a.status)).slice(0, 5) ?? []
   const progress = calculateExerciseProgress(exercisesQuery.data ?? [])
   const unread = notificationsQuery.data?.filter((n) => !n.read_at).length ?? 0
+  const dueExercises = (exercisesQuery.data ?? []).filter((exercise) =>
+    countsAsDueToday(exercise.frequency)
+    && !wasCompletedToday(exercise.completions as Array<{ completed_at: string }> | null)
+  )
+  const todayCheckIn = checkInQuery.data && isSameCalendarDay(checkInQuery.data.created_at)
+    ? checkInQuery.data
+    : null
   const firstName = profile?.full_name?.split(' ')[0] ?? ''
   const physioName = (physioQuery.data as { profiles?: { full_name?: string } | null } | undefined)?.profiles?.full_name
 
@@ -107,7 +128,61 @@ export function PatientDashboardPage() {
         </div>
 
         {patientQuery.data && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold">{pt.patient.today}</h2>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{pt.patient.exercisesDue}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {exercisesQuery.isLoading && <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.loading}</p>}
+                  {!exercisesQuery.isLoading && dueExercises.length === 0 && (
+                    <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.noExercisesToday}</p>
+                  )}
+                  <ul className="space-y-2">
+                    {dueExercises.slice(0, 4).map((exercise) => {
+                      const title = (exercise.exercise as { title?: string } | null)?.title ?? pt.patient.exercises
+                      return <li key={exercise.id} className="text-sm font-medium">{title}</li>
+                    })}
+                  </ul>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to={ROUTES.patient.exercises}>{pt.patient.seeExercises}</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{pt.patient.howAmI}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {todayCheckIn ? (
+                    <>
+                      <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.checkInSent}</p>
+                      <p className="text-lg font-semibold">{pt.checkIn.pain}: {todayCheckIn.pain_level ?? '—'}</p>
+                      <p className="text-sm">{pt.recovery.adherence}: {adherenceQuery.data ?? 0}%</p>
+                    </>
+                  ) : (
+                    <Button asChild className="w-full">
+                      <Link to={ROUTES.patient.checkIn}>
+                        <HeartPulse className="mr-2 h-4 w-4" />
+                        {pt.patient.howAmI}
+                      </Link>
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+              <NextAppointmentCard
+                appointment={upcoming[0]}
+                loading={appointmentsQuery.isLoading}
+                href={upcoming[0] ? ROUTES.patient.appointment(upcoming[0].id) : undefined}
+              />
+            </div>
+          </section>
+        )}
+
+        {patientQuery.data && (
+          <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">{pt.patient.treatmentSummary}</CardTitle>
@@ -123,7 +198,6 @@ export function PatientDashboardPage() {
                 )}
               </CardContent>
             </Card>
-            <NextAppointmentCard appointment={upcoming[0]} loading={appointmentsQuery.isLoading} />
             <StatCard title={pt.patient.progress} value={`${progress}%`} loading={exercisesQuery.isLoading} />
           </div>
         )}
@@ -148,12 +222,26 @@ export function PatientDashboardPage() {
               {unread > 0 && <span className="flex items-center gap-1 text-sm text-[var(--color-primary)]"><Bell className="h-4 w-4" /> {unread}</span>}
             </CardHeader>
             <CardContent className="space-y-2">
-              {notificationsQuery.data?.slice(0, 5).map((n) => (
-                <div key={n.id} className="rounded-lg border p-3 text-sm">
-                  <p className="font-medium">{n.title}</p>
-                  <p className="text-[var(--color-muted-foreground)]">{n.body}</p>
-                </div>
-              )) ?? <p className="text-sm text-[var(--color-muted-foreground)]">{pt.notifications.empty}</p>}
+              {notificationsQuery.data?.slice(0, 5).map((n) => {
+                const href = notificationHref('patient', n.metadata) ?? ROUTES.patient.notifications
+                return (
+                  <Link
+                    key={n.id}
+                    to={href}
+                    onClick={() => {
+                      if (!n.read_at) {
+                        void markNotificationRead(n.id).then(() => {
+                          queryClient.invalidateQueries({ queryKey: queryKeys.notifications(user!.id) })
+                        })
+                      }
+                    }}
+                    className="block rounded-lg border p-3 text-sm hover:bg-[var(--color-accent)]"
+                  >
+                    <p className="font-medium">{n.title}</p>
+                    <p className="text-[var(--color-muted-foreground)]">{n.body}</p>
+                  </Link>
+                )
+              }) ?? <p className="text-sm text-[var(--color-muted-foreground)]">{pt.notifications.empty}</p>}
               <Button asChild variant="link" className="px-0">
                 <Link to={ROUTES.patient.notifications}>{pt.common.viewAll}</Link>
               </Button>
@@ -275,11 +363,34 @@ export function PatientAppointmentsPage() {
     enabled: !!patientQuery.data?.id,
   })
 
+  const appointments = appointmentsQuery.data ?? []
+  const upcoming = appointments.filter(
+    (appointment) => isUpcoming(appointment.scheduled_at) && !['cancelled', 'completed', 'no_show'].includes(appointment.status)
+  )
+  const past = appointments.filter((appointment) => !upcoming.some((item) => item.id === appointment.id))
+
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <h1 className="text-2xl font-bold">Minhas consultas</h1>
-        <AppointmentList appointments={appointmentsQuery.data ?? []} loading={appointmentsQuery.isLoading} role="patient" />
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">{pt.patient.upcoming}</h2>
+          <AppointmentList
+            appointments={upcoming}
+            loading={appointmentsQuery.isLoading}
+            role="patient"
+            emptyMessage={pt.common.noAppointment}
+          />
+        </section>
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">{pt.patient.past}</h2>
+          <AppointmentList
+            appointments={past}
+            loading={appointmentsQuery.isLoading}
+            role="patient"
+            emptyMessage="Nenhuma consulta no histórico"
+          />
+        </section>
       </div>
     </AppLayout>
   )
@@ -328,13 +439,24 @@ export function PatientCheckInPage() {
     queryFn: () => getPatientByProfileId(user!.id),
     enabled: !!user?.id,
   })
+  const checkInQuery = useQuery({
+    queryKey: queryKeys.latestCheckIn(patientQuery.data?.id ?? ''),
+    queryFn: () => getLatestCheckIn(patientQuery.data!.id),
+    enabled: !!patientQuery.data?.id,
+  })
+  const todayCheckIn = checkInQuery.data && isSameCalendarDay(checkInQuery.data.created_at)
+    ? checkInQuery.data
+    : null
 
   return (
     <AppLayout>
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-2xl font-bold">{pt.checkIn.title}</h1>
-        {patientQuery.isLoading && <LoadingSpinner />}
-        {patientQuery.data && <CheckInForm patientId={patientQuery.data.id} />}
+        {(patientQuery.isLoading || checkInQuery.isLoading) && <LoadingSpinner />}
+        {patientQuery.data && todayCheckIn && <CheckInTodaySummary checkIn={todayCheckIn} />}
+        {patientQuery.data && !checkInQuery.isLoading && !todayCheckIn && (
+          <CheckInForm patientId={patientQuery.data.id} />
+        )}
       </div>
     </AppLayout>
   )

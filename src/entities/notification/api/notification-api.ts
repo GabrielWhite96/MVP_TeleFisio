@@ -23,6 +23,12 @@ const HIGH_PAIN_THRESHOLD = 7
 const LOW_ADHERENCE_THRESHOLD = 50
 const MISSING_CHECK_IN_DAYS = 7
 
+export function appointmentIdFromNotification(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== 'object') return null
+  const value = (metadata as Record<string, unknown>).appointment_id
+  return typeof value === 'string' && value.trim() ? value : null
+}
+
 export async function getNotifications(userId: string) {
   const { data, error } = await supabase
     .from('notifications')

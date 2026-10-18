@@ -78,11 +78,26 @@ export function AppointmentList({
 export function NextAppointmentCard({
   appointment,
   loading,
+  href,
 }: {
   appointment: AppointmentItem | null | undefined
   loading?: boolean
+  href?: string
 }) {
   if (loading) return <Skeleton className="h-32 w-full" />
+
+  const upcoming = appointment && isUpcoming(appointment.scheduled_at) ? appointment : null
+  const body = upcoming ? (
+    <div>
+      <p className="text-lg font-semibold">{formatDateTime(upcoming.scheduled_at)}</p>
+      <p className="text-sm text-[var(--color-muted-foreground)]">
+        {upcoming.physiotherapist?.profiles?.full_name}
+      </p>
+      <Badge className="mt-2">{MODALITY_LABELS[upcoming.modality]}</Badge>
+    </div>
+  ) : (
+    <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.noAppointment}</p>
+  )
 
   return (
     <Card>
@@ -90,19 +105,11 @@ export function NextAppointmentCard({
         <CardTitle className="text-base">{pt.patient.nextAppointment}</CardTitle>
       </CardHeader>
       <CardContent>
-        {appointment && isUpcoming(appointment.scheduled_at) ? (
-          <div>
-            <p className="text-lg font-semibold">{formatDateTime(appointment.scheduled_at)}</p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">
-              {appointment.physiotherapist?.profiles?.full_name}
-            </p>
-            <Badge className="mt-2">{MODALITY_LABELS[appointment.modality]}</Badge>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.noAppointment}</p>
-          </div>
-        )}
+        {href && upcoming ? (
+          <Link to={href} className="block rounded-md hover:bg-[var(--color-accent)]">
+            {body}
+          </Link>
+        ) : body}
       </CardContent>
     </Card>
   )

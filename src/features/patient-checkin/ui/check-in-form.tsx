@@ -2,7 +2,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createCheckIn } from '@/entities/check-in/api/check-in-api'
+import { createCheckIn, type CheckIn } from '@/entities/check-in/api/check-in-api'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -63,6 +63,37 @@ function ScaleSlider({
         <span>10</span>
       </div>
     </div>
+  )
+}
+
+export function CheckInTodaySummary({ checkIn }: { checkIn: CheckIn }) {
+  const metrics = [
+    { label: pt.checkIn.pain, value: checkIn.pain_level },
+    { label: pt.checkIn.mobility, value: checkIn.mobility_level },
+    { label: pt.checkIn.confidence, value: checkIn.confidence_level },
+    { label: pt.checkIn.exerciseDifficulty, value: checkIn.exercise_difficulty },
+  ]
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{pt.checkIn.title}</CardTitle>
+        <CardDescription>{pt.checkIn.alreadySent}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          {metrics.map((metric) => (
+            <div key={metric.label} className="rounded-lg border p-3 text-center">
+              <p className="text-xs text-[var(--color-muted-foreground)]">{metric.label}</p>
+              <p className="text-2xl font-bold tabular-nums">{metric.value ?? '—'}</p>
+            </div>
+          ))}
+        </div>
+        {checkIn.general_notes && (
+          <p className="text-sm text-[var(--color-muted-foreground)]">{checkIn.general_notes}</p>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 

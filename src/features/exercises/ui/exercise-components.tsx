@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getExerciseLibrary,
@@ -17,6 +17,7 @@ import { EmptyState, LoadingSpinner } from '@/shared/ui/states'
 import { CheckCircle2 } from 'lucide-react'
 import { DIFFICULTY_LABELS } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { isSameCalendarDay } from '@/shared/lib/dates'
 
 interface AssignExerciseFormProps {
   patientId: string
@@ -87,6 +88,19 @@ export function AssignExerciseForm({ patientId, physiotherapistId }: AssignExerc
 
 const DIFFICULTY_OPTIONS: ExerciseDifficultyRating[] = ['easy', 'moderate', 'hard']
 
+type ExerciseCompletionRow = { completed_at: string }
+
+export function wasCompletedToday(completions: ExerciseCompletionRow[] | null | undefined) {
+  return (completions ?? []).some((completion) => isSameCalendarDay(completion.completed_at))
+}
+
+/** Daily, blank, and any frequency we cannot schedule still appear today. */
+export function countsAsDueToday(frequency: string | null | undefined) {
+  const value = (frequency ?? '').trim().toLowerCase()
+  if (!value || value === 'daily' || value === 'diario' || value === 'diário') return true
+  return value.length > 0
+}
+
 export function PatientExerciseList({ patientId, canComplete = false }: { patientId: string; canComplete?: boolean }) {
   const queryClient = useQueryClient()
   const [pendingId, setPendingId] = useState<string | null>(null)
@@ -112,102 +126,166 @@ export function PatientExerciseList({ patientId, canComplete = false }: { patien
     return <EmptyState title="Nenhum exercício prescrito" description="Seu fisioterapeuta ainda não atribuiu exercícios." />
   }
 
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {query.data.map((pe) => {
-        const exercise = pe.exercise as {
-          title: string
-          description: string | null
-          instructions: string | null
-          video_url?: string | null
-          category?: string | null
-          level?: string | null
-        } | null
-        const completions = pe.completions as Array<{ id: string; completed_at: string }> | null
-        const doneToday = completions?.some((c) => {
-          const d = new Date(c.completed_at)
-          const today = new Date()
-          return d.toDateString() === today.toDateString()
-        })
-        const isPending = pendingId === pe.id
+  const due = query.data.filter((pe) => countsAsDueToday(pe.frequency))
+  const todo = due.filter((pe) => !wasCompletedToday(pe.completions as ExerciseCompletionRow[] | null))
+  const done = due.filter((pe) => wasCompletedToday(pe.completions as ExerciseCompletionRow[] | null))
 
-        return (
-          <Card key={pe.id}>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between">
-                <CardTitle className="text-base">{exercise?.title}</CardTitle>
-                {doneToday && <Badge variant="success">{pt.exercise.doneToday}</Badge>}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {exercise?.video_url && (
-                <video
-                  className="aspect-video w-full rounded-md bg-black"
-                  src={exercise.video_url}
-                  controls
-                  preload="metadata"
-                />
-              )}
-              {(exercise?.category || exercise?.level) && (
-                <div className="flex gap-2">
-                  {exercise.category && <Badge variant="outline">{exercise.category}</Badge>}
-                  {exercise.level && <Badge variant="secondary">{exercise.level}</Badge>}
-                </div>
-              )}
-              {exercise?.description && (
-                <p className="text-sm text-[var(--color-muted-foreground)]">{exercise.description}</p>
-              )}
-              <p className="text-sm">
-                {pe.sets}x{pe.reps} · {pe.frequency}
-              </p>
-              {exercise?.instructions && (
-                <p className="text-xs text-[var(--color-muted-foreground)]">{exercise.instructions}</p>
-              )}
-              {canComplete && !doneToday && !isPending && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => { setPendingId(pe.id); setDifficulty(null) }}
-                >
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  {pt.exercise.markDone}
-                </Button>
-              )}
-              {canComplete && !doneToday && isPending && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">{pt.exercise.difficulty}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {DIFFICULTY_OPTIONS.map((option) => (
-                      <Button
-                        key={option}
-                        type="button"
-                        size="sm"
-                        variant={difficulty === option ? 'default' : 'outline'}
-                        onClick={() => setDifficulty(option)}
-                      >
-                        {DIFFICULTY_LABELS[option]}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button
-                    className="w-full"
-                    disabled={!difficulty || completeMutation.isPending}
-                    onClick={() => difficulty && completeMutation.mutate({ id: pe.id, rating: difficulty })}
-                  >
-                    {completeMutation.isPending ? pt.common.loading : pt.common.confirm}
-                  </Button>
-                </div>
-              )}
-              {(completions?.length ?? 0) > 0 && (
-                <p className="text-xs text-[var(--color-muted-foreground)]">
-                  {completions!.length} conclusão(ões)
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )
-      })}
+  return (
+    <div className="space-y-8">
+      <ExerciseSection title={pt.exercise.dueToday}>
+        {todo.length === 0 ? (
+          <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.noExercisesToday}</p>
+        ) : todo.map((pe) => (
+          <ExerciseTaskCard
+            key={pe.id}
+            exerciseRow={pe}
+            doneToday={false}
+            canComplete={canComplete}
+            pending={pendingId === pe.id}
+            difficulty={difficulty}
+            confirming={completeMutation.isPending}
+            onStart={() => { setPendingId(pe.id); setDifficulty(null) }}
+            onDifficulty={setDifficulty}
+            onConfirm={() => difficulty && completeMutation.mutate({ id: pe.id, rating: difficulty })}
+          />
+        ))}
+      </ExerciseSection>
+      {done.length > 0 && (
+        <ExerciseSection title={pt.exercise.doneSection}>
+          {done.map((pe) => (
+            <ExerciseTaskCard
+              key={pe.id}
+              exerciseRow={pe}
+              doneToday
+              canComplete={false}
+              pending={false}
+              difficulty={null}
+              confirming={false}
+              onStart={() => undefined}
+              onDifficulty={() => undefined}
+              onConfirm={() => undefined}
+            />
+          ))}
+        </ExerciseSection>
+      )}
     </div>
+  )
+}
+
+function ExerciseSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+    </section>
+  )
+}
+
+function ExerciseTaskCard({
+  exerciseRow,
+  doneToday,
+  canComplete,
+  pending,
+  difficulty,
+  confirming,
+  onStart,
+  onDifficulty,
+  onConfirm,
+}: {
+  exerciseRow: {
+    id: string
+    sets: number | null
+    reps: number | null
+    frequency: string | null
+    exercise: unknown
+    completions: unknown
+  }
+  doneToday: boolean
+  canComplete: boolean
+  pending: boolean
+  difficulty: ExerciseDifficultyRating | null
+  confirming: boolean
+  onStart: () => void
+  onDifficulty: (value: ExerciseDifficultyRating) => void
+  onConfirm: () => void
+}) {
+  const exercise = exerciseRow.exercise as {
+    title: string
+    description: string | null
+    instructions: string | null
+    video_url?: string | null
+    category?: string | null
+    level?: string | null
+  } | null
+  const completions = exerciseRow.completions as ExerciseCompletionRow[] | null
+  const prescription = pt.exercise.setsReps
+    .replace('{sets}', String(exerciseRow.sets ?? 0))
+    .replace('{reps}', String(exerciseRow.reps ?? 0))
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base">{exercise?.title}</CardTitle>
+          {doneToday && <Badge variant="success">{pt.exercise.doneToday}</Badge>}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-base font-medium">{prescription}</p>
+        {exercise?.instructions && <p className="text-sm">{exercise.instructions}</p>}
+        {exerciseRow.frequency && (
+          <p className="text-xs text-[var(--color-muted-foreground)]">{exerciseRow.frequency}</p>
+        )}
+        {exercise?.description && (
+          <p className="text-sm text-[var(--color-muted-foreground)]">{exercise.description}</p>
+        )}
+        {(exercise?.category || exercise?.level) && (
+          <div className="flex gap-2">
+            {exercise.category && <Badge variant="outline">{exercise.category}</Badge>}
+            {exercise.level && <Badge variant="secondary">{exercise.level}</Badge>}
+          </div>
+        )}
+        {exercise?.video_url && (
+          <video
+            className="aspect-video w-full rounded-md bg-black"
+            src={exercise.video_url}
+            controls
+            preload="metadata"
+          />
+        )}
+        {canComplete && !doneToday && !pending && (
+          <Button size="sm" variant="outline" className="w-full" onClick={onStart}>
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            {pt.exercise.markDone}
+          </Button>
+        )}
+        {canComplete && !doneToday && pending && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{pt.exercise.difficulty}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {DIFFICULTY_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  type="button"
+                  size="sm"
+                  variant={difficulty === option ? 'default' : 'outline'}
+                  onClick={() => onDifficulty(option)}
+                >
+                  {DIFFICULTY_LABELS[option]}
+                </Button>
+              ))}
+            </div>
+            <Button className="w-full" disabled={!difficulty || confirming} onClick={onConfirm}>
+              {confirming ? pt.common.loading : pt.common.confirm}
+            </Button>
+          </div>
+        )}
+        {(completions?.length ?? 0) > 0 && (
+          <p className="text-xs text-[var(--color-muted-foreground)]">
+            {completions!.length} conclusão(ões)
+          </p>
+        )}
+      </CardContent>
+    </Card>
   )
 }

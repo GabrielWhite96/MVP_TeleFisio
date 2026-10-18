@@ -31,16 +31,17 @@ import type { UserRole } from '@/shared/types/database'
 
 interface NavItem {
   label: string
+  shortLabel?: string
   href: string
   icon: React.ComponentType<{ className?: string }>
 }
 
 const navByRole: Record<UserRole, NavItem[]> = {
   patient: [
-    { label: pt.patient.dashboard, href: ROUTES.patient.dashboard, icon: LayoutDashboard },
-    { label: 'Consultas', href: ROUTES.patient.appointments, icon: Calendar },
-    { label: pt.patient.exercises, href: ROUTES.patient.exercises, icon: Dumbbell },
-    { label: pt.patient.howAmI, href: ROUTES.patient.checkIn, icon: HeartPulse },
+    { label: pt.patient.home, shortLabel: pt.patient.home, href: ROUTES.patient.dashboard, icon: LayoutDashboard },
+    { label: pt.patient.appointments, shortLabel: pt.patient.appointments, href: ROUTES.patient.appointments, icon: Calendar },
+    { label: pt.patient.exercises, shortLabel: 'Exercícios', href: ROUTES.patient.exercises, icon: Dumbbell },
+    { label: pt.patient.howAmI, shortLabel: pt.patient.howAmI, href: ROUTES.patient.checkIn, icon: HeartPulse },
     { label: pt.patient.notifications, href: ROUTES.patient.notifications, icon: Bell },
     { label: pt.patient.caregivers, href: ROUTES.patient.caregivers, icon: Users },
     { label: pt.patient.profile, href: ROUTES.patient.profile, icon: User },
@@ -77,6 +78,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = navByRole[profile.role]
   const isPatient = profile.role === 'patient'
   const patientMobileHrefs: string[] = [
+    ROUTES.patient.dashboard,
     ROUTES.patient.appointments,
     ROUTES.patient.exercises,
     ROUTES.patient.checkIn,
@@ -200,7 +202,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon className={cn('h-5 w-5', isPatient && 'h-6 w-6')} />
-                <span className="truncate px-1">{item.label.split(' ')[0]}</span>
+                <span className="truncate px-1">{item.shortLabel ?? item.label.split(' ')[0]}</span>
               </Link>
             )
           })}

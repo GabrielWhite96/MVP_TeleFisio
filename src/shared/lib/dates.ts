@@ -83,6 +83,11 @@ export function isToday(date: string) {
   return isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now))
 }
 
+export function isSameCalendarDay(date: string | Date, now = new Date()) {
+  const value = typeof date === 'string' ? parseISO(date) : date
+  return value.toDateString() === now.toDateString()
+}
+
 export function getDayName(dayOfWeek: number): string {
   const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
   return days[dayOfWeek] ?? ''

@@ -15,11 +15,11 @@ import type { AppointmentModality, AppointmentStatus } from '@/shared/types/data
 import { useNavigate } from 'react-router-dom'
 import { RescheduleDialog } from '@/features/scheduling/ui/reschedule-dialog'
 import { CancelDialog } from '@/features/scheduling/ui/cancel-dialog'
-import { CheckoutButton } from '@/features/payment/ui/checkout-button'
 
 interface AppointmentSessionProps {
   appointment: {
     id: string
+    patient_id?: string
     modality: AppointmentModality
     status: AppointmentStatus
     scheduled_at: string
@@ -42,6 +42,9 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
   const [cancelOpen, setCancelOpen] = useState(false)
   const [roomUrl, setRoomUrl] = useState<string | null>(null)
   const [provider, setProvider] = useState<'daily' | 'mock' | null>(null)
+  const [joining, setJoining] = useState(false)
+  const canJoin = appointment.modality === 'telehealth'
+    && ['scheduled', 'confirmed'].includes(appointment.status)
 
   const sessionQuery = useQuery({
     queryKey: queryKeys.telehealthSession(appointment.id),
@@ -50,7 +53,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
   })
 
   useEffect(() => {
-    if (appointment.modality !== 'telehealth') return
+    if (appointment.modality !== 'telehealth' || role === 'patient') return
     let cancelled = false
     videoProvider.joinRoom(appointment.id).then((result) => {
       if (cancelled) return
@@ -63,14 +66,36 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
       cancelled = true
       void videoProvider.leaveRoom()
     }
-  }, [appointment.id, appointment.modality, queryClient])
+  }, [appointment.id, appointment.modality, queryClient, role])
+
+  useEffect(() => {
+    if (role !== 'patient' || !connected) return
+    return () => {
+      void videoProvider.leaveRoom()
+    }
+  }, [connected, role])
+
+  const enterRoom = async () => {
+    setJoining(true)
+    try {
+      const result = await videoProvider.joinRoom(appointment.id)
+      setConnected(true)
+      setProvider(result.provider)
+      setRoomUrl(result.roomUrl)
+      queryClient.invalidateQueries({ queryKey: queryKeys.telehealthSession(appointment.id) })
+    } finally {
+      setJoining(false)
+    }
+  }
 
   const statusMutation = useMutation({
     mutationFn: (status: AppointmentStatus) => updateAppointmentStatus(appointment.id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.appointment(appointment.id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.appointments() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.patientBilling(appointment.patient_id) })
+      if (appointment.patient_id) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.patientBilling(appointment.patient_id) })
+      }
       queryClient.invalidateQueries({ queryKey: ['physio-billing-overview'] })
       const base = role === 'patient' ? ROUTES.patient.dashboard : ROUTES.physio.dashboard
       navigate(base)
@@ -127,7 +152,18 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-slate-900 text-white">
-              {roomUrl ? (
+              {role === 'patient' && !connected ? (
+                <div className="space-y-3 px-6 text-center">
+                  <p className="text-sm opacity-80">{physioName}</p>
+                  {canJoin ? (
+                    <Button onClick={() => void enterRoom()} disabled={joining}>
+                      {joining ? pt.common.loading : pt.appointment.join}
+                    </Button>
+                  ) : (
+                    <p className="text-sm opacity-75">{APPOINTMENT_STATUS_LABELS[appointment.status]}</p>
+                  )}
+                </div>
+              ) : roomUrl ? (
                 <iframe
                   key={roomUrl}
                   title="Teleconsulta Daily"
@@ -139,30 +175,36 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
                 <div className="text-center">
                   <Video className="mx-auto h-12 w-12 opacity-50" />
                   <p className="mt-2 text-sm opacity-75">
-                    Sala de vídeo pronta. Configure DAILY_API_KEY para ativar Daily.
+                    {role === 'patient'
+                      ? pt.appointment.roomUnavailable
+                      : 'Sala de vídeo pronta. Configure DAILY_API_KEY para ativar Daily.'}
                   </p>
-                  <p className="mt-1 text-xs opacity-50">
-                    Mic: {micOn ? 'ligado' : 'desligado'} · Câmera: {camOn ? 'ligada' : 'desligada'}
-                  </p>
+                  {role === 'physiotherapist' && (
+                    <p className="mt-1 text-xs opacity-50">
+                      Mic: {micOn ? 'ligado' : 'desligado'} · Câmera: {camOn ? 'ligada' : 'desligada'}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p>Conectando...</p>
               )}
             </div>
-            <div className="flex justify-center gap-2">
-              <Button variant={micOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleMic}>
-                {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-              </Button>
-              <Button variant={camOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleCam}>
-                {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-              </Button>
-              <Button variant="destructive" size="icon" onClick={() => void hangUp()}>
-                <PhoneOff className="h-4 w-4" />
-              </Button>
-            </div>
+            {(role !== 'patient' || connected) && (
+              <div className="flex justify-center gap-2">
+                <Button variant={micOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleMic}>
+                  {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                </Button>
+                <Button variant={camOn ? 'secondary' : 'destructive'} size="icon" onClick={toggleCam}>
+                  {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+                </Button>
+                <Button variant="destructive" size="icon" onClick={() => void hangUp()}>
+                  <PhoneOff className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <p className="text-center text-sm text-[var(--color-muted-foreground)]">
               {role === 'patient' ? physioName : patientName}
-              {provider === 'daily' ? ' · Daily' : provider === 'mock' ? ' · Mock' : ''}
+              {role !== 'patient' && (provider === 'daily' ? ' · Daily' : provider === 'mock' ? ' · Mock' : '')}
             </p>
           </CardContent>
         </Card>
@@ -172,12 +214,19 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
             <CardTitle>{pt.appointment.homeVisit}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {role === 'patient' ? (
+              <div>
+                <p className="text-sm font-medium">{pt.appointment.yourPhysioComes}</p>
+                <p>{physioName}</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-medium">Paciente</p>
+                <p>{patientName}</p>
+              </div>
+            )}
             <div>
-              <p className="text-sm font-medium">Paciente</p>
-              <p>{patientName}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Endereço</p>
+              <p className="text-sm font-medium">{pt.appointment.address}</p>
               <p>
                 {appointment.home_address ??
                   [appointment.patient?.address_line1, appointment.patient?.city, appointment.patient?.province]
@@ -187,7 +236,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium">Horário</p>
+              <p className="text-sm font-medium">{pt.appointment.when}</p>
               <p>{formatDateTime(appointment.scheduled_at)}</p>
             </div>
             {appointment.notes && (
@@ -226,12 +275,6 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
           >
             {pt.appointment.cancel}
           </Button>
-          {!!appointment.price_cents && (
-            <CheckoutButton
-              amountCents={appointment.price_cents}
-              appointmentId={appointment.id}
-            />
-          )}
         </div>
       )}
 
