@@ -19,6 +19,8 @@ export const ROUTES = {
     agenda: '/physio/agenda',
     patients: '/physio/patients',
     reports: '/physio/reports',
+    tools: '/physio/ferramentas',
+    tool: (slug: string) => `/physio/ferramentas/${slug}`,
     patient: (id: string) => `/physio/patients/${id}`,
     patientReport: (id: string) => `/physio/patients/${id}/relatorio`,
     patientNew: '/physio/patients/new',

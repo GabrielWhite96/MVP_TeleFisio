@@ -16,6 +16,7 @@ import {
   HeartHandshake,
   Wallet,
   BarChart3,
+  Library,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
@@ -51,6 +52,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: pt.physio.dashboard, href: ROUTES.physio.dashboard, icon: LayoutDashboard },
     { label: pt.physio.agenda, href: ROUTES.physio.agenda, icon: Calendar },
     { label: pt.physio.patients, href: ROUTES.physio.patients, icon: Users },
+    { label: pt.tools.nav, shortLabel: pt.tools.nav, href: ROUTES.physio.tools, icon: Library },
     { label: pt.physio.billing, href: ROUTES.physio.billing, icon: Wallet },
     { label: pt.physio.reports, href: ROUTES.physio.reports, icon: BarChart3 },
     { label: pt.patient.notifications, href: ROUTES.physio.notifications, icon: Bell },
@@ -85,9 +87,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ROUTES.patient.exercises,
     ROUTES.patient.checkIn,
   ]
+  const physioMobileHrefs: string[] = [
+    ROUTES.physio.dashboard,
+    ROUTES.physio.agenda,
+    ROUTES.physio.patients,
+    ROUTES.physio.tools,
+  ]
   const mobileNavItems = isPatient
     ? navItems.filter((item) => patientMobileHrefs.includes(item.href))
-    : navItems.slice(0, 4)
+    : profile.role === 'physiotherapist'
+      ? navItems.filter((item) => physioMobileHrefs.includes(item.href))
+      : navItems.slice(0, 4)
 
   const handleLogout = async () => {
     await signOut()

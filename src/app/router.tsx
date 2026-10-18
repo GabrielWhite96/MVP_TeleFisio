@@ -25,6 +25,8 @@ import {
   PhysioNotificationsPage,
 } from '@/pages/physio/physio-pages'
 import { PhysioPatientReportPage, PhysioReportsPage } from '@/features/patient-report/ui/patient-report-page'
+import { PhysioToolDetailPage } from '@/features/clinical-tools/ui/tool-detail-page'
+import { PhysioToolsPage } from '@/features/clinical-tools/ui/tools-page'
 import {
   AdminDashboardPage,
   AdminUsersPage,
@@ -90,6 +92,14 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.physio.reports,
     element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioReportsPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: ROUTES.physio.tools,
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolsPage /></RoleGuard></ProtectedRoute>,
+  },
+  {
+    path: '/physio/ferramentas/:slug',
+    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolDetailPage /></RoleGuard></ProtectedRoute>,
   },
   {
     path: ROUTES.physio.patients,
