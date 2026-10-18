@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -522,6 +522,8 @@ export function PhysioPatientNewPage() {
 
 export function PhysioPatientDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const location = useLocation()
+  const inviteSent = (location.state as { inviteSent?: boolean } | null)?.inviteSent
   const [searchParams] = useSearchParams()
   const defaultTab = searchParams.get('tab') ?? 'summary'
   const { user } = useAuth()
@@ -565,6 +567,16 @@ export function PhysioPatientDetailPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {inviteSent === true && (
+          <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+            {pt.physio.inviteSentOnCreate}
+          </p>
+        )}
+        {inviteSent === false && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {pt.physio.inviteNotSentOnCreate}
+          </p>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">{patient.full_name}</h1>

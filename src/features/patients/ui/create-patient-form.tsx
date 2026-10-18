@@ -4,6 +4,9 @@ import { z } from 'zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { createPatientForPhysio } from '@/entities/patient/api/patient-api'
+import { createPatientInvite } from '@/entities/patient/api/patient-invite-api'
+import { sendInviteEmail } from '@/entities/notification/api/invite-email-api'
+import { useAuth } from '@/features/auth/hooks/use-auth'
 import { queryKeys } from '@/shared/api/query-keys'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
@@ -28,13 +31,14 @@ type FormData = z.infer<typeof schema>
 export function CreatePatientForm({ physiotherapistId }: { physiotherapistId: string }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      createPatientForPhysio({
+    mutationFn: async (data: FormData) => {
+      const patient = await createPatientForPhysio({
         physiotherapistId,
         fullName: data.fullName,
         email: data.email || null,
@@ -44,11 +48,27 @@ export function CreatePatientForm({ physiotherapistId }: { physiotherapistId: st
         city: data.city || null,
         province: data.province || null,
         postalCode: data.postalCode || null,
-      }),
-    onSuccess: (patient) => {
+      })
+      const email = data.email?.trim()
+      if (!email || !user) return { patient, inviteSent: undefined as boolean | undefined }
+      try {
+        const invite = await createPatientInvite({
+          patientId: patient.id,
+          physiotherapistId,
+          email,
+          invitedBy: user.id,
+        })
+        const sent = await sendInviteEmail({ inviteId: invite.id, kind: 'patient' })
+        return { patient, inviteSent: sent.sent }
+      } catch {
+        return { patient, inviteSent: false }
+      }
+    },
+    onSuccess: ({ patient, inviteSent }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.physioPatients(physiotherapistId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.physioPatientStats(physiotherapistId) })
-      navigate(ROUTES.physio.patient(patient.id))
+      queryClient.invalidateQueries({ queryKey: queryKeys.patientInvites(patient.id) })
+      navigate(ROUTES.physio.patient(patient.id), { state: { inviteSent } })
     },
   })
 
@@ -68,6 +88,7 @@ export function CreatePatientForm({ physiotherapistId }: { physiotherapistId: st
             <div className="space-y-2">
               <Label>E-mail</Label>
               <Input type="email" {...register('email')} />
+              <p className="text-xs text-[var(--color-muted-foreground)]">{pt.physio.emailCreatesInvite}</p>
               {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
