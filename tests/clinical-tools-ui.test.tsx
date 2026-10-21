@@ -53,13 +53,21 @@ describe('clinical tools screens', () => {
 
     expect(screen.getByRole('heading', { name: 'Biblioteca de ferramentas' })).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Ferramentas' }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Geriatria' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Testes e avaliações clínicas' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Geriatria' }))
+    expect(screen.getByRole('heading', { name: 'Timed Up and Go' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'DASH' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpar filtros' }))
 
     await user.type(screen.getByLabelText('Buscar'), 'queda')
     expect(screen.getByRole('heading', { name: 'Timed Up and Go' })).toBeInTheDocument()
 
     await user.clear(screen.getByLabelText('Buscar'))
     await user.type(screen.getByLabelText('Buscar'), 'joelho')
-    expect(screen.getByRole('heading', { name: 'Agachamento parcial' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'WOMAC' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Agachamento parcial' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Timed Up and Go' })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Limpar filtros' }))

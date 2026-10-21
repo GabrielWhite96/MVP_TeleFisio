@@ -94,7 +94,22 @@ export function PhysioToolsPage() {
           />
         </div>
 
+        <div className="space-y-2">
+          <p className="text-sm font-medium">{pt.tools.specialty}</p>
+          <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={pt.tools.specialty}>
+            <Chip active={!specialtyId} onClick={() => setSpecialtyId('')}>
+              {pt.tools.allSpecialties}
+            </Chip>
+            {TOOL_SPECIALTIES.map((item) => (
+              <Chip key={item.id} active={specialtyId === item.id} onClick={() => setSpecialtyId(item.id)}>
+                {item.label}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-3">
+          <p className="text-sm font-medium">{pt.tools.category}</p>
           <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={pt.tools.category}>
             <Chip active={!categoryId} onClick={() => { setCategoryId(''); setSubcategoryId('') }}>
               {pt.tools.allCategories}
@@ -126,14 +141,7 @@ export function PhysioToolsPage() {
           )}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="tool-specialty">{pt.tools.specialty}</Label>
-            <select id="tool-specialty" className={selectClass} value={specialtyId} onChange={(event) => setSpecialtyId(event.target.value)}>
-              <option value="">{pt.tools.allSpecialties}</option>
-              {TOOL_SPECIALTIES.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-            </select>
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="tool-purpose">{pt.tools.purpose}</Label>
             <select id="tool-purpose" className={selectClass} value={purposeId} onChange={(event) => setPurposeId(event.target.value)}>

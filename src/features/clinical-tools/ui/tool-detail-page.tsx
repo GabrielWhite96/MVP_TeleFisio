@@ -54,7 +54,6 @@ function Notes({ notes, tool }: { notes: SourcedNote[]; tool: ClinicalTool }) {
 
 function stepsTitle(tool: ClinicalTool): string {
   if (tool.kind === 'rehab_protocol') return pt.tools.principles
-  if (tool.kind === 'exercise') return pt.tools.execution
   return pt.tools.steps
 }
 
@@ -122,18 +121,6 @@ export function PhysioToolDetailPage() {
         <Section title={pt.tools.purposeLabel}>
           <p className="text-sm">{tool.purpose}</p>
         </Section>
-
-        {tool.muscleGroups && tool.muscleGroups.length > 0 && (
-          <Section title={pt.tools.muscles}><ItemList items={tool.muscleGroups} /></Section>
-        )}
-        {tool.equipment && tool.equipment.length > 0 && (
-          <Section title={pt.tools.equipment}><ItemList items={tool.equipment} /></Section>
-        )}
-        {(tool.difficultyLabel || tool.phaseLabel) && (
-          <Section title={pt.tools.difficulty}>
-            <p className="text-sm">{[tool.difficultyLabel, tool.phaseLabel].filter(Boolean).join(' · ')}</p>
-          </Section>
-        )}
 
         <CalculatorPanel tool={tool} />
 

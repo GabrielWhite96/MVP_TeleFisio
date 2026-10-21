@@ -195,7 +195,7 @@ export const scaleTools: ClinicalTool[] = [
       notes: 'O Institute for Work & Health disponibiliza o DASH para uso clínico e de pesquisa, no formulário oficial e com a citação pedida. Esta ficha não copia os 30 itens.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['elevacao-lateral-ombro', 'remada-elastico', 'goniometria'],
+    relatedToolIds: ['goniometria'],
     sources: [
       {
         type: 'original_article',
@@ -235,7 +235,7 @@ export const scaleTools: ClinicalTool[] = [
       notes: 'O WOMAC é licenciado. Solicite o formulário em womac.com. Não reproduza os itens a partir desta ficha.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['osteoartrite-joelho', 'agachamento-parcial'],
+    relatedToolIds: ['osteoartrite-joelho'],
     sources: [
       {
         type: 'original_article',

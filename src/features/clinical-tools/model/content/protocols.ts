@@ -25,7 +25,7 @@ export const protocolTools: ClinicalTool[] = [
       notes: 'Princípios resumidos do editorial de 2012. Não é reprodução do texto.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['crioterapia', 'elevacao-panturrilha'],
+    relatedToolIds: ['crioterapia'],
     sources: [
       {
         type: 'original_article',
@@ -69,7 +69,7 @@ export const protocolTools: ClinicalTool[] = [
       notes: 'Resumo dos eixos da NG226. O texto oficial está no site da NICE.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['womac', 'agachamento-parcial', 'extensao-terminal-joelho', 'caminhada-6-minutos'],
+    relatedToolIds: ['womac', 'caminhada-6-minutos'],
     sources: [
       {
         type: 'guideline',
@@ -111,7 +111,7 @@ export const protocolTools: ClinicalTool[] = [
       notes: 'Resumo de princípios da NG59, com link para o texto oficial.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['red-flags-lombar', 'oswestry', 'nprs', 'ponte'],
+    relatedToolIds: ['red-flags-lombar', 'oswestry', 'nprs'],
     sources: [
       {
         type: 'guideline',

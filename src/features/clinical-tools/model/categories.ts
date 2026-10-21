@@ -82,19 +82,6 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     ],
   },
   {
-    id: 'exercises',
-    label: 'Exercícios e reabilitação',
-    description: 'Orientações de execução por região. Não são protocolos validados.',
-    subcategories: [
-      { id: 'coluna', label: 'Coluna' },
-      { id: 'ombro', label: 'Ombro' },
-      { id: 'joelho', label: 'Joelho' },
-      { id: 'quadril', label: 'Quadril' },
-      { id: 'tornozelo', label: 'Tornozelo' },
-      { id: 'tronco', label: 'Tronco' },
-    ],
-  },
-  {
     id: 'rehab_protocols',
     label: 'Protocolos de reabilitação',
     description: 'Princípios publicados. Sem calendário de semanas inventado.',

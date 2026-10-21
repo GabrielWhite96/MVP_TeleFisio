@@ -159,7 +159,7 @@ export const calculatorTools: ClinicalTool[] = [
       notes: 'A equação foi publicada por Brzycki em 1993. Esta ficha aplica a forma carga × 36 ÷ (37 − repetições).',
     },
     professionalJudgment: true,
-    relatedToolIds: ['forca-muscular-mrc', 'agachamento-parcial'],
+    relatedToolIds: ['forca-muscular-mrc'],
     sources: [
       {
         type: 'original_article',

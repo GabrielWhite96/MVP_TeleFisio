@@ -563,7 +563,6 @@ export const pt = {
     positioning: 'Posicionamento',
     steps: 'Passo a passo',
     principles: 'Princípios',
-    execution: 'Execução',
     interpretation: 'Interpretação',
     referenceValues: 'Valores na fonte citada',
     psychometrics: 'O que a fonte diz sobre o desempenho do teste',
@@ -579,9 +578,6 @@ export const pt = {
     removeFavorite: 'Remover {name} dos favoritos',
     notFound: 'Ferramenta não encontrada',
     notFoundDescription: 'O endereço não corresponde a nenhuma ficha desta biblioteca.',
-    equipment: 'Equipamento',
-    difficulty: 'Dificuldade e fase',
-    muscles: 'Grupo muscular',
     parameterTitle: 'Parâmetros',
   },
 } as const

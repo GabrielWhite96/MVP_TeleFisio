@@ -5,7 +5,6 @@ export const TOOL_KIND_LABELS: Record<ToolKind, string> = {
   scale: 'Escala',
   calculator: 'Calculadora',
   physical_assessment: 'Avaliação física',
-  exercise: 'Exercício',
   rehab_protocol: 'Protocolo de reabilitação',
   therapeutic_modality: 'Recurso terapêutico',
   clinical_reference: 'Referência clínica',

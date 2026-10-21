@@ -1,7 +1,6 @@
 import { getCategory, getPurpose, getSpecialty, TOOL_CATEGORIES } from './categories'
 import { assessmentTools } from './content/assessment'
 import { calculatorTools } from './content/calculators'
-import { exerciseTools } from './content/exercises'
 import { modalityTools } from './content/modalities'
 import { protocolTools } from './content/protocols'
 import { referenceTools } from './content/references'
@@ -15,7 +14,6 @@ export const CLINICAL_TOOLS: ClinicalTool[] = [
   ...scaleTools,
   ...calculatorTools,
   ...assessmentTools,
-  ...exerciseTools,
   ...protocolTools,
   ...modalityTools,
   ...referenceTools,

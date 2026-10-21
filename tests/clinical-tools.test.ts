@@ -26,7 +26,8 @@ describe('clinical tools catalog', () => {
     expect(calculators.map((tool) => tool.id)).toContain('imc')
 
     const knee = filterTools(CLINICAL_TOOLS, { text: 'joelho' }).map((tool) => tool.id)
-    expect(knee).toEqual(expect.arrayContaining(['agachamento-parcial', 'womac', 'osteoartrite-joelho']))
+    expect(knee).toEqual(expect.arrayContaining(['womac', 'osteoartrite-joelho']))
+    expect(knee).not.toContain('agachamento-parcial')
   })
 
   it('lists application protocols only for tests that have steps', () => {

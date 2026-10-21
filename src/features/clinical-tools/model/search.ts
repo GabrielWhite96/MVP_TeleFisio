@@ -37,8 +37,6 @@ function haystack(tool: ClinicalTool): string {
     ...tool.bodyRegions,
     ...tool.clinicalPurposes.flatMap((id) => [id, getPurpose(id)?.label ?? '']),
     ...tool.specialties.flatMap((id) => [id, getSpecialty(id)?.label ?? '']),
-    ...(tool.muscleGroups ?? []),
-    ...(tool.equipment ?? []),
   ]
   return normalizeSearch(parts.join(' '))
 }

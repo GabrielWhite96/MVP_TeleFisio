@@ -70,7 +70,7 @@ export const modalityTools: ClinicalTool[] = [
       notes: 'Resumo da mesma revisão citada na crioterapia.',
     },
     professionalJudgment: true,
-    relatedToolIds: ['crioterapia', 'alongamento-isquiotibiais'],
+    relatedToolIds: ['crioterapia'],
     sources: [
       {
         type: 'original_article',

@@ -3,7 +3,6 @@ export const TOOL_KINDS = [
   'scale',
   'calculator',
   'physical_assessment',
-  'exercise',
   'rehab_protocol',
   'therapeutic_modality',
   'clinical_reference',
@@ -93,10 +92,6 @@ export interface ToolBase {
   referenceValues?: SourcedNote[]
   psychometrics?: SourcedNote[]
   parameterNote?: string
-  equipment?: string[]
-  difficultyLabel?: string
-  phaseLabel?: string
-  muscleGroups?: string[]
 }
 
 interface InteractiveFields {
