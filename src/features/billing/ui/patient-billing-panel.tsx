@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -8,99 +8,209 @@ import {
   createManualCharge,
   deleteReceipt,
   getPatientBillingSummary,
+  groupOpenChargesByWeek,
   markChargesPaid,
   markWeekPaid,
-  openChargesForWeek,
   registerPayment,
   upsertBillingAgreement,
-  weekBalanceCents,
   weekEndOf,
-  weekStartOf,
   type BillingAgreement,
   type BillingCharge,
   type BillingMode,
   type PaymentMethodKind,
+  type PaymentReceipt,
 } from '@/entities/billing/api/billing-api'
 import { queryKeys } from '@/shared/api/query-keys'
+import { formatDate, formatDateTime } from '@/shared/lib/dates'
 import { formatMoney } from '@/shared/lib/money'
+import { cn } from '@/shared/lib/utils'
+import { BANKNOTE_METHOD_LABELS } from '@/shared/config/routes'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/dialog'
 import { Input, Label, Textarea } from '@/shared/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { EmptyState, ErrorState, LoadingSpinner } from '@/shared/ui/states'
-import { BANKNOTE_METHOD_LABELS, BILLING_MODE_LABELS, CHARGE_STATUS_LABELS } from '@/shared/config/routes'
 
 const agreementSchema = z.object({
   billingMode: z.enum(['per_session', 'weekly']),
   sessionPrice: z.coerce.number().min(0, 'Informe o valor da sessão'),
-  preferredMethod: z.enum(['pix', 'cash', 'other']).optional(),
+  preferredMethod: z.enum(['pix', 'cash', 'other']),
   notes: z.string().optional(),
 })
 
 const paymentSchema = z.object({
   amount: z.coerce.number().positive('Informe um valor maior que zero'),
   method: z.enum(['pix', 'cash', 'other']),
-  paidAt: z.string().min(1),
+  paidAt: z.string().min(1, 'Informe quando recebeu'),
   note: z.string().optional(),
+})
+
+const extraChargeSchema = z.object({
+  amount: z.coerce.number().positive('Informe um valor maior que zero'),
+  description: z.string().optional(),
 })
 
 type AgreementForm = z.infer<typeof agreementSchema>
 type PaymentForm = z.infer<typeof paymentSchema>
+type ExtraChargeForm = z.infer<typeof extraChargeSchema>
+
+const METHOD_OPTIONS: Array<{ value: PaymentMethodKind; label: string }> = [
+  { value: 'pix', label: 'Pix' },
+  { value: 'cash', label: 'Dinheiro' },
+  { value: 'other', label: 'Outro' },
+]
+
+const BILLING_MODE_OPTIONS: Array<{ value: BillingMode; label: string; hint: string }> = [
+  { value: 'per_session', label: 'Cada sessão', hint: 'Marca o pagamento depois de cada consulta' },
+  { value: 'weekly', label: 'A semana', hint: 'Recebe as sessões da semana de uma vez' },
+]
 
 function money(cents: number, currency = 'BRL') {
   return formatMoney(cents, currency, 'pt-BR')
 }
 
-function statusVariant(status: BillingCharge['status']): 'default' | 'secondary' | 'success' | 'outline' | 'destructive' {
-  if (status === 'paid') return 'success'
-  if (status === 'partial') return 'secondary'
-  if (status === 'waived') return 'outline'
-  return 'destructive'
+function localDateTimeValue(date = new Date()) {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function AgreementReadOnly({
-  agreement,
-  currency,
-  onEdit,
+function formatWeekLabel(weekOf: string) {
+  return `${formatDate(`${weekOf}T12:00:00`, 'd MMM')} – ${formatDate(`${weekEndOf(weekOf)}T12:00:00`, 'd MMM')}`
+}
+
+function chargeLabel(charge: BillingCharge) {
+  if (charge.kind === 'manual') {
+    const description = charge.description?.trim()
+    if (description && !['Cobrança avulsa', 'Cobrança manual'].includes(description)) {
+      return description
+    }
+    return 'Cobrança extra'
+  }
+  if (charge.appointment?.scheduled_at) {
+    return `Sessão · ${formatDateTime(charge.appointment.scheduled_at)}`
+  }
+  return charge.description?.trim() || 'Sessão'
+}
+
+function agreementSummary(agreement: BillingAgreement, currency: string) {
+  const method = agreement.preferred_method
+    ? BANKNOTE_METHOD_LABELS[agreement.preferred_method]
+    : null
+  const parts = [
+    `${money(agreement.session_price_cents, currency)} por sessão`,
+    agreement.billing_mode === 'weekly' ? 'Paga a semana' : 'Paga cada sessão',
+  ]
+  if (method) parts.splice(1, 0, method)
+  return parts.join(' · ')
+}
+
+function OptionButtons<T extends string>({
+  legend,
+  value,
+  onChange,
+  options,
+  columns,
 }: {
-  agreement: BillingAgreement
-  currency: string
-  onEdit: () => void
+  legend: string
+  value: T
+  onChange: (value: T) => void
+  options: Array<{ value: T; label: string; hint?: string }>
+  columns: 2 | 3
 }) {
   return (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">Acordo padrão</CardTitle>
-        <Button type="button" size="sm" variant="outline" onClick={onEdit}>
-          Atualizar acordo
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <div>
-          <p className="text-[var(--color-muted-foreground)]">Como paga</p>
-          <p className="font-medium">{BILLING_MODE_LABELS[agreement.billing_mode]}</p>
-        </div>
-        <div>
-          <p className="text-[var(--color-muted-foreground)]">Valor por sessão</p>
-          <p className="font-medium">{money(agreement.session_price_cents, currency)}</p>
-        </div>
-        <div>
-          <p className="text-[var(--color-muted-foreground)]">Método preferido</p>
-          <p className="font-medium">
-            {agreement.preferred_method
-              ? BANKNOTE_METHOD_LABELS[agreement.preferred_method]
-              : 'Não definido'}
+    <fieldset className="flex min-w-0 flex-col gap-2">
+      <legend className="text-sm font-medium">{legend}</legend>
+      <div className={cn('grid gap-2', columns === 2 ? 'grid-cols-2' : 'grid-cols-3')}>
+        {options.map((option) => {
+          const selected = value === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(option.value)}
+              className={cn(
+                'min-w-0 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-[var(--color-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]',
+                selected && 'border-[var(--color-primary)] bg-[var(--color-accent)]'
+              )}
+            >
+              <span className="block truncate text-sm font-medium">{option.label}</span>
+              {option.hint && (
+                <span className="mt-0.5 block text-pretty text-xs text-[var(--color-muted-foreground)]">
+                  {option.hint}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+function AgreementFields({
+  form,
+}: {
+  form: ReturnType<typeof useForm<AgreementForm>>
+}) {
+  const priceId = useId()
+  const notesId = useId()
+  const billingMode = form.watch('billingMode')
+  const preferredMethod = form.watch('preferredMethod')
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={priceId}>Quanto cobra por sessão?</Label>
+        <Input
+          id={priceId}
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          min="0"
+          autoComplete="off"
+          spellCheck={false}
+          {...form.register('sessionPrice')}
+        />
+        {form.formState.errors.sessionPrice && (
+          <p className="text-sm text-[var(--color-destructive)]">
+            {form.formState.errors.sessionPrice.message}
           </p>
-        </div>
-        {agreement.notes && (
-          <div>
-            <p className="text-[var(--color-muted-foreground)]">Observações</p>
-            <p className="font-medium whitespace-pre-wrap">{agreement.notes}</p>
-          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      <OptionButtons
+        legend="Como o paciente paga"
+        value={billingMode}
+        onChange={(value) => form.setValue('billingMode', value)}
+        options={BILLING_MODE_OPTIONS}
+        columns={2}
+      />
+      <OptionButtons
+        legend="Forma mais comum"
+        value={preferredMethod}
+        onChange={(value) => form.setValue('preferredMethod', value)}
+        options={METHOD_OPTIONS}
+        columns={3}
+      />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={notesId}>Observação (opcional)</Label>
+        <Textarea
+          id={notesId}
+          rows={2}
+          autoComplete="off"
+          placeholder="Ex.: paga toda sexta no Pix…"
+          {...form.register('notes')}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -111,9 +221,10 @@ interface PatientBillingPanelProps {
 
 export function PatientBillingPanel({ patientId, physiotherapistId }: PatientBillingPanelProps) {
   const queryClient = useQueryClient()
-  const [weekOf, setWeekOf] = useState(() => weekStartOf(new Date().toISOString()))
-  const [weekMethod, setWeekMethod] = useState<PaymentMethodKind>('pix')
-  const [editingAgreement, setEditingAgreement] = useState(false)
+  const [agreementOpen, setAgreementOpen] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [extraChargeOpen, setExtraChargeOpen] = useState(false)
+  const [receiptToUndo, setReceiptToUndo] = useState<PaymentReceipt | null>(null)
 
   const summaryQuery = useQuery({
     queryKey: queryKeys.patientBilling(patientId),
@@ -127,14 +238,6 @@ export function PatientBillingPanel({ patientId, physiotherapistId }: PatientBil
 
   const agreementForm = useForm<AgreementForm>({
     resolver: zodResolver(agreementSchema),
-    values: summaryQuery.data?.agreement
-      ? {
-          billingMode: summaryQuery.data.agreement.billing_mode,
-          sessionPrice: summaryQuery.data.agreement.session_price_cents / 100,
-          preferredMethod: summaryQuery.data.agreement.preferred_method ?? undefined,
-          notes: summaryQuery.data.agreement.notes ?? '',
-        }
-      : undefined,
     defaultValues: {
       billingMode: 'weekly',
       sessionPrice: 150,
@@ -148,8 +251,16 @@ export function PatientBillingPanel({ patientId, physiotherapistId }: PatientBil
     defaultValues: {
       amount: undefined as unknown as number,
       method: 'pix',
-      paidAt: new Date().toISOString().slice(0, 16),
+      paidAt: localDateTimeValue(),
       note: '',
+    },
+  })
+
+  const extraChargeForm = useForm<ExtraChargeForm>({
+    resolver: zodResolver(extraChargeSchema),
+    defaultValues: {
+      amount: undefined as unknown as number,
+      description: '',
     },
   })
 
@@ -158,25 +269,35 @@ export function PatientBillingPanel({ patientId, physiotherapistId }: PatientBil
       upsertBillingAgreement({
         patientId,
         physiotherapistId,
-        billingMode: data.billingMode as BillingMode,
+        billingMode: data.billingMode,
         sessionPriceCents: Math.round(data.sessionPrice * 100),
-        preferredMethod: (data.preferredMethod as PaymentMethodKind | undefined) ?? null,
+        preferredMethod: data.preferredMethod,
         notes: data.notes || null,
       }),
     onSuccess: () => {
-      setEditingAgreement(false)
-      // Trigger backfills charges; refresh after a tick so DB work is visible
+      setAgreementOpen(false)
       invalidate()
     },
   })
 
   const weekPayMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (weekOf: string) =>
       markWeekPaid({
         patientId,
         physiotherapistId,
         weekOf,
-        method: weekMethod,
+        method: summaryQuery.data?.agreement?.preferred_method ?? 'pix',
+      }),
+    onSuccess: invalidate,
+  })
+
+  const payChargeMutation = useMutation({
+    mutationFn: (chargeId: string) =>
+      markChargesPaid({
+        patientId,
+        physiotherapistId,
+        chargeIds: [chargeId],
+        method: summaryQuery.data?.agreement?.preferred_method ?? 'pix',
       }),
     onSuccess: invalidate,
   })
@@ -192,393 +313,511 @@ export function PatientBillingPanel({ patientId, physiotherapistId }: PatientBil
         note: data.note || undefined,
       }),
     onSuccess: () => {
-      paymentForm.reset({
-        amount: undefined as unknown as number,
-        method: 'pix',
-        paidAt: new Date().toISOString().slice(0, 16),
-        note: '',
-      })
+      setPaymentOpen(false)
       invalidate()
     },
   })
 
-  const payChargeMutation = useMutation({
-    mutationFn: (chargeId: string) =>
-      markChargesPaid({
-        patientId,
-        physiotherapistId,
-        chargeIds: [chargeId],
-        method: summaryQuery.data?.agreement?.preferred_method ?? 'pix',
-      }),
-    onSuccess: invalidate,
-  })
-
   const manualChargeMutation = useMutation({
-    mutationFn: (amount: number) =>
+    mutationFn: (data: ExtraChargeForm) =>
       createManualCharge({
         patientId,
         physiotherapistId,
-        amountCents: Math.round(amount * 100),
-        description: 'Cobrança avulsa',
+        amountCents: Math.round(data.amount * 100),
+        description: data.description?.trim() || 'Cobrança extra',
       }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      setExtraChargeOpen(false)
+      extraChargeForm.reset({ amount: undefined as unknown as number, description: '' })
+      invalidate()
+    },
   })
 
   const deleteReceiptMutation = useMutation({
     mutationFn: deleteReceipt,
-    onSuccess: invalidate,
+    onSuccess: () => {
+      setReceiptToUndo(null)
+      invalidate()
+    },
   })
 
   const currency = summaryQuery.data?.agreement?.currency ?? 'BRL'
-  const weekOpen = useMemo(
-    () => openChargesForWeek(summaryQuery.data?.charges ?? [], weekOf),
-    [summaryQuery.data?.charges, weekOf]
+  const weekGroups = useMemo(
+    () => groupOpenChargesByWeek(summaryQuery.data?.charges ?? []),
+    [summaryQuery.data?.charges]
   )
-  const weekDue = weekBalanceCents(summaryQuery.data?.charges ?? [], weekOf)
 
-  if (summaryQuery.isLoading) return <LoadingSpinner />
-  if (summaryQuery.error) return <ErrorState message="Não foi possível carregar o financeiro." />
+  if (summaryQuery.isLoading) {
+    return (
+      <div role="status" aria-label="Carregando financeiro" className="flex justify-center py-10">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  if (summaryQuery.error) {
+    return (
+      <ErrorState
+        message="Não foi possível carregar o financeiro."
+        onRetry={() => summaryQuery.refetch()}
+      />
+    )
+  }
 
   const summary = summaryQuery.data!
-  const showAgreementForm = !summary.agreement || editingAgreement
+  const agreement = summary.agreement
+  const paying = payChargeMutation.isPending || weekPayMutation.isPending
 
-  const agreementFormCard = (
-    <Card className="h-full">
-      <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">
-          {summary.agreement ? 'Atualizar acordo' : 'Acordo padrão'}
-        </CardTitle>
-        {summary.agreement && editingAgreement && (
-          <Button type="button" size="sm" variant="ghost" onClick={() => setEditingAgreement(false)}>
-            Cancelar
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        <form
-          className="grid gap-3"
-          onSubmit={agreementForm.handleSubmit((data) => saveAgreement.mutate(data))}
-        >
-          <div className="space-y-2">
-            <Label>Como o paciente paga</Label>
-            <Select
-              value={agreementForm.watch('billingMode')}
-              onValueChange={(v) => agreementForm.setValue('billingMode', v as BillingMode)}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(Object.keys(BILLING_MODE_LABELS) as BillingMode[]).map((mode) => (
-                  <SelectItem key={mode} value={mode}>{BILLING_MODE_LABELS[mode]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Valor por sessão (R$)</Label>
-            <Input type="number" step="0.01" min="0" {...agreementForm.register('sessionPrice')} />
-            {agreementForm.formState.errors.sessionPrice && (
-              <p className="text-sm text-[var(--color-destructive)]">
-                {agreementForm.formState.errors.sessionPrice.message}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Método preferido</Label>
-            <Select
-              value={agreementForm.watch('preferredMethod') ?? 'pix'}
-              onValueChange={(v) => agreementForm.setValue('preferredMethod', v as PaymentMethodKind)}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(Object.keys(BANKNOTE_METHOD_LABELS) as PaymentMethodKind[]).map((m) => (
-                  <SelectItem key={m} value={m}>{BANKNOTE_METHOD_LABELS[m]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Observações</Label>
-            <Textarea placeholder="Ex.: paga toda sexta no Pix" rows={2} {...agreementForm.register('notes')} />
-          </div>
-          <div>
-            <Button type="submit" disabled={saveAgreement.isPending}>
-              {saveAgreement.isPending ? 'Salvando...' : 'Salvar acordo'}
-            </Button>
+  function fillAgreementForm(current?: BillingAgreement | null) {
+    agreementForm.reset(
+      current
+        ? {
+            billingMode: current.billing_mode,
+            sessionPrice: current.session_price_cents / 100,
+            preferredMethod: current.preferred_method ?? 'pix',
+            notes: current.notes ?? '',
+          }
+        : {
+            billingMode: 'weekly',
+            sessionPrice: 150,
+            preferredMethod: 'pix',
+            notes: '',
+          }
+    )
+  }
+
+  function openPaymentDialog() {
+    paymentForm.reset({
+      amount: summary.balanceCents / 100,
+      method: agreement?.preferred_method ?? 'pix',
+      paidAt: localDateTimeValue(),
+      note: '',
+    })
+    setPaymentOpen(true)
+  }
+
+  if (!agreement) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-pretty">Valor da sessão</CardTitle>
+          <CardDescription>
+            Defina quanto este paciente paga. Depois, é só marcar quando receber.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={agreementForm.handleSubmit((data) => saveAgreement.mutate(data))}
+          >
+            <AgreementFields form={agreementForm} />
             {saveAgreement.isError && (
-              <p className="mt-2 text-sm text-[var(--color-destructive)]">
+              <p className="text-sm text-[var(--color-destructive)]">
                 {(saveAgreement.error as Error).message}
               </p>
             )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  )
-
-  const quickActionsCard = summary.agreement ? (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-base">Ações rápidas</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          As cobranças são atualizadas automaticamente ao agendar, remarcar ou cancelar consultas.
-        </p>
-
-        {(summary.agreement.billing_mode === 'weekly' || weekOpen.length > 0) && (
-          <div className="rounded-lg border p-3 space-y-3">
-            <p className="font-medium text-sm">Marcar semana como paga</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Semana de</Label>
-                <Input type="date" value={weekOf} onChange={(e) => setWeekOf(weekStartOf(e.target.value))} />
-              </div>
-              <div className="space-y-2">
-                <Label>Método</Label>
-                <Select value={weekMethod} onValueChange={(v) => setWeekMethod(v as PaymentMethodKind)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(BANKNOTE_METHOD_LABELS) as PaymentMethodKind[]).map((m) => (
-                      <SelectItem key={m} value={m}>{BANKNOTE_METHOD_LABELS[m]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-semibold">{money(weekDue, currency)}</p>
-                <p className="text-xs text-[var(--color-muted-foreground)]">
-                  {weekStartOf(weekOf)} a {weekEndOf(weekOf)} · {weekOpen.length} em aberto
-                </p>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                disabled={weekDue <= 0 || weekPayMutation.isPending}
-                onClick={() => weekPayMutation.mutate()}
-              >
-                {weekPayMutation.isPending ? 'Registrando...' : 'Confirmar semana paga'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  ) : null
+            <Button type="submit" disabled={saveAgreement.isPending}>
+              {saveAgreement.isPending ? 'Salvando…' : 'Salvar valor da sessão'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Esperado</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{money(summary.expectedCents, currency)}</p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">Total das sessões/cobranças</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Recebido</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{money(summary.paidCents, currency)}</p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">Já debitado no saldo</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Em aberto</CardTitle></CardHeader>
-          <CardContent>
-            <p className={`text-2xl font-semibold ${summary.balanceCents > 0 ? 'text-[var(--color-destructive)]' : ''}`}>
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm text-[var(--color-muted-foreground)]">
+              {summary.balanceCents > 0 ? 'Falta receber' : 'Tudo em dia'}
+            </p>
+            <p
+              className={cn(
+                'text-3xl font-semibold tabular-nums tracking-tight',
+                summary.balanceCents > 0 && 'text-[var(--color-destructive)]'
+              )}
+              aria-live="polite"
+            >
               {money(summary.balanceCents, currency)}
             </p>
-            <p className="text-sm text-[var(--color-muted-foreground)]">
-              {summary.openChargesCount} cobrança(s) pendente(s)
+            <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+              {summary.balanceCents > 0
+                ? `${summary.openChargesCount} ${summary.openChargesCount === 1 ? 'item em aberto' : 'itens em aberto'}`
+                : 'Nenhuma sessão em aberto'}
+              {summary.paidCents > 0 && ` · já recebeu ${money(summary.paidCents, currency)}`}
             </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {!summary.agreement ? (
-        <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-            {agreementFormCard}
           </div>
-          <EmptyState
-            title="Configure o acordo"
-            description="Defina se o paciente paga por sessão ou semanalmente e o valor de cada sessão."
-          />
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-            {showAgreementForm ? (
-              agreementFormCard
-            ) : (
-              <AgreementReadOnly
-                agreement={summary.agreement}
-                currency={currency}
-                onEdit={() => setEditingAgreement(true)}
-              />
-            )}
-            {quickActionsCard}
-          </div>
+          {summary.balanceCents > 0 && (
+            <Button type="button" onClick={openPaymentDialog}>
+              Registrar pagamento
+            </Button>
+          )}
+        </CardHeader>
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+          <p className="min-w-0 text-sm text-[var(--color-muted-foreground)]">
+            {agreementSummary(agreement, currency)}
+            {agreement.notes ? ` · ${agreement.notes}` : ''}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              fillAgreementForm(agreement)
+              setAgreementOpen(true)
+            }}
+          >
+            Alterar valor
+          </Button>
+        </CardFooter>
+      </Card>
 
-          <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-base">Pagamento picado / fora de hora</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form
-                  className="grid gap-3"
-                  onSubmit={paymentForm.handleSubmit((data) => partialPayMutation.mutate(data))}
-                >
-                  <div className="space-y-2">
-                    <Label>Valor recebido (R$)</Label>
-                    <Input type="number" step="0.01" min="0.01" {...paymentForm.register('amount')} />
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+          <div>
+            <CardTitle className="text-base">A receber</CardTitle>
+            <CardDescription>Toque em Recebi quando o paciente pagar aquela sessão.</CardDescription>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              extraChargeForm.reset({ amount: undefined as unknown as number, description: '' })
+              setExtraChargeOpen(true)
+            }}
+          >
+            Cobrança extra
+          </Button>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {!weekGroups.length ? (
+            <EmptyState
+              title="Nada em aberto"
+              description="Ao agendar uma sessão, o valor aparece aqui para você marcar como pago."
+            />
+          ) : (
+            weekGroups.map((group) => (
+              <div key={group.weekOf} className="flex flex-col gap-2 rounded-lg border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{formatWeekLabel(group.weekOf)}</p>
+                    <p className="text-xs tabular-nums text-[var(--color-muted-foreground)]">
+                      {money(group.dueCents, currency)} nesta semana
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Método</Label>
-                    <Select
-                      value={paymentForm.watch('method')}
-                      onValueChange={(v) => paymentForm.setValue('method', v as PaymentMethodKind)}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {(Object.keys(BANKNOTE_METHOD_LABELS) as PaymentMethodKind[]).map((m) => (
-                          <SelectItem key={m} value={m}>{BANKNOTE_METHOD_LABELS[m]}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Quando recebeu</Label>
-                    <Input type="datetime-local" {...paymentForm.register('paidAt')} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Observação</Label>
-                    <Input placeholder="Ex.: pagou metade atrasado" {...paymentForm.register('note')} />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="submit" disabled={partialPayMutation.isPending}>
-                      {partialPayMutation.isPending ? 'Registrando...' : 'Registrar e debitar'}
-                    </Button>
+                  {agreement.billing_mode === 'weekly' && group.charges.length > 1 && (
                     <Button
                       type="button"
+                      size="sm"
                       variant="outline"
-                      disabled={manualChargeMutation.isPending}
-                      onClick={() => {
-                        const raw = window.prompt('Valor da cobrança avulsa (R$):')
-                        if (!raw) return
-                        const value = Number(raw.replace(',', '.'))
-                        if (!Number.isFinite(value) || value <= 0) return
-                        manualChargeMutation.mutate(value)
-                      }}
+                      disabled={paying || group.dueCents <= 0}
+                      onClick={() => weekPayMutation.mutate(group.weekOf)}
                     >
-                      Cobrança avulsa
+                      {weekPayMutation.isPending ? 'Registrando…' : 'Recebi a semana'}
                     </Button>
-                  </div>
-                  <p className="text-sm text-[var(--color-muted-foreground)]">
-                    Debita automaticamente nas cobranças mais antigas em aberto.
-                  </p>
-                  {partialPayMutation.isError && (
-                    <p className="text-sm text-[var(--color-destructive)]">
-                      {(partialPayMutation.error as Error).message}
-                    </p>
                   )}
-                </form>
-              </CardContent>
-            </Card>
-
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-base">Cobranças (esperado)</CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[28rem] space-y-3 overflow-y-auto">
-                {!summary.charges.length ? (
-                  <EmptyState
-                    title="Nenhuma cobrança"
-                    description="As cobranças aparecem automaticamente quando houver consultas agendadas."
-                  />
-                ) : (
-                  summary.charges.map((charge) => (
+                </div>
+                {group.charges.map((charge) => {
+                  const remaining = chargeRemainingCents(charge)
+                  return (
                     <div
                       key={charge.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-[var(--color-accent)]/40 px-3 py-2"
                     >
-                      <div className="space-y-1 min-w-0">
-                        <p className="font-medium text-sm">{charge.description ?? 'Cobrança'}</p>
-                        <p className="text-xs text-[var(--color-muted-foreground)]">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{chargeLabel(charge)}</p>
+                        <p className="text-xs tabular-nums text-[var(--color-muted-foreground)]">
                           {money(charge.amount_cents, currency)}
                           {charge.amount_paid_cents > 0 && (
-                            <> · pago {money(charge.amount_paid_cents, currency)}</>
-                          )}
-                          {chargeRemainingCents(charge) > 0 && charge.status !== 'waived' && (
-                            <> · falta {money(chargeRemainingCents(charge), currency)}</>
+                            <> · pago {money(charge.amount_paid_cents, currency)} · falta {money(remaining, currency)}</>
                           )}
                         </p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={statusVariant(charge.status)}>
-                          {CHARGE_STATUS_LABELS[charge.status]}
-                        </Badge>
-                        {(charge.status === 'open' || charge.status === 'partial') && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={payChargeMutation.isPending}
-                            onClick={() => payChargeMutation.mutate(charge.id)}
-                          >
-                            Marcar paga
-                          </Button>
-                        )}
+                      <div className="flex items-center gap-2">
+                        {charge.status === 'partial' && <Badge variant="secondary">Pago em parte</Badge>}
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={paying || remaining <= 0}
+                          aria-label={`Recebi ${chargeLabel(charge)}`}
+                          onClick={() => payChargeMutation.mutate(charge.id)}
+                        >
+                          {payChargeMutation.isPending ? 'Registrando…' : 'Recebi'}
+                        </Button>
                       </div>
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  )
+                })}
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Histórico de recebimentos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {!summary.receipts.length ? (
-                <EmptyState title="Nenhum recebimento" description="Registre um pagamento quando o paciente pagar." />
-              ) : (
-                summary.receipts.map((receipt) => (
-                  <div
-                    key={receipt.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
-                  >
-                    <div>
-                      <p className="font-medium">{money(receipt.amount_cents, currency)}</p>
-                      <p className="text-sm text-[var(--color-muted-foreground)]">
-                        {BANKNOTE_METHOD_LABELS[receipt.method]} ·{' '}
-                        {new Date(receipt.paid_at).toLocaleString('pt-BR')}
-                        {receipt.note ? ` · ${receipt.note}` : ''}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={deleteReceiptMutation.isPending}
-                      onClick={() => {
-                        if (window.confirm('Remover este recebimento? O saldo será recalculado.')) {
-                          deleteReceiptMutation.mutate(receipt.id)
-                        }
-                      }}
-                    >
-                      Desfazer
-                    </Button>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Pagamentos</CardTitle>
+          <CardDescription>O que você já registrou. Dá para desfazer se marcou por engano.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {!summary.receipts.length ? (
+            <EmptyState
+              title="Nenhum pagamento ainda"
+              description="Quando o paciente pagar, o registro aparece aqui."
+            />
+          ) : (
+            summary.receipts.map((receipt) => (
+              <div
+                key={receipt.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium tabular-nums">{money(receipt.amount_cents, currency)}</p>
+                  <p className="truncate text-sm text-[var(--color-muted-foreground)]">
+                    {BANKNOTE_METHOD_LABELS[receipt.method]} · {formatDateTime(receipt.paid_at)}
+                    {receipt.note ? ` · ${receipt.note}` : ''}
+                  </p>
+                </div>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setReceiptToUndo(receipt)}>
+                  Desfazer
+                </Button>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={agreementOpen} onOpenChange={setAgreementOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Valor da sessão</DialogTitle>
+            <DialogDescription>Isso vale para as próximas sessões deste paciente.</DialogDescription>
+          </DialogHeader>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={agreementForm.handleSubmit((data) => saveAgreement.mutate(data))}
+          >
+            <AgreementFields form={agreementForm} />
+            {saveAgreement.isError && (
+              <p className="text-sm text-[var(--color-destructive)]">
+                {(saveAgreement.error as Error).message}
+              </p>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setAgreementOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={saveAgreement.isPending}>
+                {saveAgreement.isPending ? 'Salvando…' : 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <PaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        form={paymentForm}
+        balanceLabel={money(summary.balanceCents, currency)}
+        isPending={partialPayMutation.isPending}
+        error={partialPayMutation.error as Error | null}
+        onSubmit={(data) => partialPayMutation.mutate(data)}
+      />
+
+      <ExtraChargeDialog
+        open={extraChargeOpen}
+        onOpenChange={setExtraChargeOpen}
+        form={extraChargeForm}
+        isPending={manualChargeMutation.isPending}
+        error={manualChargeMutation.error as Error | null}
+        onSubmit={(data) => manualChargeMutation.mutate(data)}
+      />
+
+      <Dialog open={!!receiptToUndo} onOpenChange={(open) => !open && setReceiptToUndo(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desfazer este pagamento?</DialogTitle>
+            <DialogDescription>
+              {receiptToUndo
+                ? `${money(receiptToUndo.amount_cents, currency)} volta para o que falta receber.`
+                : 'O valor volta para o que falta receber.'}
+            </DialogDescription>
+          </DialogHeader>
+          {deleteReceiptMutation.isError && (
+            <p className="text-sm text-[var(--color-destructive)]">
+              {(deleteReceiptMutation.error as Error).message}
+            </p>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setReceiptToUndo(null)}>
+              Manter pagamento
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={!receiptToUndo || deleteReceiptMutation.isPending}
+              onClick={() => receiptToUndo && deleteReceiptMutation.mutate(receiptToUndo.id)}
+            >
+              {deleteReceiptMutation.isPending ? 'Desfazendo…' : 'Desfazer pagamento'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  )
+}
+
+function PaymentDialog({
+  open,
+  onOpenChange,
+  form,
+  balanceLabel,
+  isPending,
+  error,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  form: ReturnType<typeof useForm<PaymentForm>>
+  balanceLabel: string
+  isPending: boolean
+  error: Error | null
+  onSubmit: (data: PaymentForm) => void
+}) {
+  const amountId = useId()
+  const paidAtId = useId()
+  const noteId = useId()
+  const method = form.watch('method')
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Registrar pagamento</DialogTitle>
+          <DialogDescription>
+            O valor é abatido das sessões mais antigas em aberto. Em aberto agora: {balanceLabel}.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={amountId}>Quanto recebeu</Label>
+            <Input
+              id={amountId}
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              autoComplete="off"
+              spellCheck={false}
+              {...form.register('amount')}
+            />
+            {form.formState.errors.amount && (
+              <p className="text-sm text-[var(--color-destructive)]">{form.formState.errors.amount.message}</p>
+            )}
+          </div>
+          <OptionButtons
+            legend="Como pagou"
+            value={method}
+            onChange={(value) => form.setValue('method', value)}
+            options={METHOD_OPTIONS}
+            columns={3}
+          />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={paidAtId}>Quando recebeu</Label>
+            <Input id={paidAtId} type="datetime-local" autoComplete="off" {...form.register('paidAt')} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={noteId}>Observação (opcional)</Label>
+            <Input
+              id={noteId}
+              autoComplete="off"
+              placeholder="Ex.: pagou metade hoje…"
+              {...form.register('note')}
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--color-destructive)]">{error.message}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Registrando…' : 'Registrar pagamento'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ExtraChargeDialog({
+  open,
+  onOpenChange,
+  form,
+  isPending,
+  error,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  form: ReturnType<typeof useForm<ExtraChargeForm>>
+  isPending: boolean
+  error: Error | null
+  onSubmit: (data: ExtraChargeForm) => void
+}) {
+  const amountId = useId()
+  const descriptionId = useId()
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Cobrança extra</DialogTitle>
+          <DialogDescription>
+            Use para um valor que não veio de uma sessão, como material ou deslocamento.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={amountId}>Valor</Label>
+            <Input
+              id={amountId}
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              autoComplete="off"
+              spellCheck={false}
+              {...form.register('amount')}
+            />
+            {form.formState.errors.amount && (
+              <p className="text-sm text-[var(--color-destructive)]">{form.formState.errors.amount.message}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={descriptionId}>O que é (opcional)</Label>
+            <Input
+              id={descriptionId}
+              autoComplete="off"
+              placeholder="Ex.: deslocamento…"
+              {...form.register('description')}
+            />
+          </div>
+          {error && <p className="text-sm text-[var(--color-destructive)]">{error.message}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Adicionando…' : 'Adicionar cobrança'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -112,7 +112,7 @@ export const pt = {
     saasTagline: 'Sua plataforma para administrar pacientes e tratamentos',
     billing: 'Financeiro',
     reports: 'Relatórios',
-    billingTagline: 'Organize recebimentos por paciente, semana e sessão',
+    billingTagline: 'Veja o que cada paciente deve e registre quando pagar',
     professionalProfile: 'Perfil profissional',
     licenseNumber: 'Registro profissional',
     experienceYears: 'Anos de experiência',

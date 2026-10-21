@@ -113,7 +113,7 @@ export const DIFFICULTY_LABELS: Record<string, string> = {
 
 export const BILLING_MODE_LABELS: Record<string, string> = {
   per_session: 'Por sessão',
-  weekly: 'Semanal (paga o pacote da semana)',
+  weekly: 'Por semana',
 }
 
 export const BANKNOTE_METHOD_LABELS: Record<string, string> = {
@@ -123,8 +123,8 @@ export const BANKNOTE_METHOD_LABELS: Record<string, string> = {
 }
 
 export const CHARGE_STATUS_LABELS: Record<string, string> = {
-  open: 'Em aberto',
-  partial: 'Parcial',
+  open: 'A pagar',
+  partial: 'Pago em parte',
   paid: 'Pago',
   waived: 'Dispensado',
 }

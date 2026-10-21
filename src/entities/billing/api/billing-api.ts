@@ -521,3 +521,29 @@ export function openChargesForWeek(charges: BillingCharge[], weekOf: string): Bi
 export function weekBalanceCents(charges: BillingCharge[], weekOf: string): number {
   return openChargesForWeek(charges, weekOf).reduce((sum, c) => sum + chargeRemainingCents(c), 0)
 }
+
+export interface BillingWeekGroup {
+  weekOf: string
+  charges: BillingCharge[]
+  dueCents: number
+}
+
+export function groupOpenChargesByWeek(charges: BillingCharge[]): BillingWeekGroup[] {
+  const groups = new Map<string, BillingCharge[]>()
+  for (const charge of charges) {
+    if (!(charge.status === 'open' || charge.status === 'partial')) continue
+    const weekOf = weekStartOf(charge.due_date ?? charge.period_start ?? charge.created_at)
+    const list = groups.get(weekOf) ?? []
+    list.push(charge)
+    groups.set(weekOf, list)
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([weekOf, items]) => ({
+      weekOf,
+      charges: [...items].sort((a, b) =>
+        (a.due_date ?? a.created_at).localeCompare(b.due_date ?? b.created_at)
+      ),
+      dueCents: items.reduce((sum, charge) => sum + chargeRemainingCents(charge), 0),
+    }))
+}

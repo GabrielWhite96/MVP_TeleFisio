@@ -66,7 +66,7 @@ export function PhysioBillingOverview({ physiotherapistId }: { physiotherapistId
                       )}
                     </>
                   ) : (
-                    <Badge variant="outline">Sem acordo</Badge>
+                    <Badge variant="outline">Falta definir valor</Badge>
                   )}
                 </div>
               </div>

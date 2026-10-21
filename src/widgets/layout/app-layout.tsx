@@ -136,18 +136,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-dvh overflow-hidden print:h-auto print:overflow-visible">
       <ConsentModal />
-      {/* Desktop sidebar */}
-      <aside className="hidden w-64 flex-col border-r bg-[var(--color-card)] md:flex">
-        <div className="flex h-16 items-center gap-2 border-b px-6">
+      {/* Desktop sidebar — pinned to the viewport so footer stays visible */}
+      <aside className="hidden h-full w-64 shrink-0 flex-col border-r bg-[var(--color-card)] md:flex">
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
           <Activity className="h-6 w-6 text-[var(--color-primary)]" />
           <span className="font-bold">{pt.app.name}</span>
         </div>
-        <nav className="flex-1 space-y-1 p-4">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
           <NavLinks />
         </nav>
-        <div className="border-t p-4">
+        <div className="shrink-0 border-t p-4">
           <p className="mb-2 truncate text-sm font-medium">{profile.full_name}</p>
           <div className="mb-2 flex gap-2">
             <Button
@@ -175,8 +175,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile header */}
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b px-4 md:hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:overflow-visible">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-[var(--color-primary)]" />
             <span className="font-bold">{pt.app.name}</span>
@@ -187,7 +187,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {mobileOpen && (
-          <div className="border-b bg-[var(--color-card)] p-4 md:hidden">
+          <div className="shrink-0 border-b bg-[var(--color-card)] p-4 md:hidden">
             <nav className="space-y-1">
               <NavLinks mobile />
             </nav>
@@ -198,13 +198,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 print:overflow-visible">
           <SubscriptionBanner />
           {children}
         </main>
 
         {/* Mobile bottom nav — larger touch targets for patients */}
-        <nav className="flex border-t bg-[var(--color-card)] md:hidden">
+        <nav className="flex shrink-0 border-t bg-[var(--color-card)] md:hidden">
           {mobileNavItems.map((item) => {
             const Icon = item.icon
             const onPatientReport = location.pathname.endsWith('/relatorio')
