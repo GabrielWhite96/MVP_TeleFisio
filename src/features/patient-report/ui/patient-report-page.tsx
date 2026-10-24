@@ -23,7 +23,6 @@ import { pt } from '@/shared/config/i18n/pt'
 import { CLINICAL_STATUS_LABELS, ROUTES } from '@/shared/config/routes'
 import { formatDateTime } from '@/shared/lib/dates'
 import { cn } from '@/shared/lib/utils'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -116,7 +115,7 @@ export function PhysioReportsPage() {
   }, [patientsQuery.data, search])
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -161,7 +160,7 @@ export function PhysioReportsPage() {
           ))}
         </div>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -309,7 +308,7 @@ export function PhysioPatientReportPage() {
   }
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="no-print sticky top-0 z-20 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b bg-[var(--color-background)]/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
           <div className="flex flex-wrap gap-1">
@@ -368,6 +367,6 @@ export function PhysioPatientReportPage() {
           />
         )}
       </div>
-    </AppLayout>
+    
   )
 }

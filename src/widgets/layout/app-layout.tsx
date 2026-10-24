@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Calendar,
@@ -17,7 +17,7 @@ import {
   BarChart3,
   Library,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { signOut } from '@/features/auth/api/auth-api'
 import { ConsentModal } from '@/features/consent/ui/consent-modal'
@@ -70,15 +70,22 @@ const navByRole: Record<UserRole, NavItem[]> = {
   ],
 }
 
-export function AppLayout({ children }: { children: ReactNode }) {
+export function AppLayout({ children }: { children?: ReactNode }) {
   const { profile } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const mainRef = useRef<HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { locale, setLocale } = useTranslation()
   useRealtimeNotifications()
+  const content = children ?? <Outlet />
 
-  if (!profile) return <>{children}</>
+  useEffect(() => {
+    setMobileOpen(false)
+    mainRef.current?.scrollTo({ top: 0 })
+  }, [location.pathname])
+
+  if (!profile) return <>{content}</>
 
   const navItems = navByRole[profile.role]
   const isPatient = profile.role === 'patient'
@@ -144,7 +151,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex h-dvh overflow-hidden print:h-auto print:overflow-visible">
       <ConsentModal />
       <aside className="studio-field relative hidden h-full w-64 shrink-0 flex-col overflow-hidden text-[var(--color-ink-foreground)] md:flex">
-        <MotionArc className="pointer-events-none absolute -right-16 -bottom-16 w-56 text-[var(--color-primary)] opacity-50" />
+        <MotionArc
+          key={location.pathname}
+          className="pointer-events-none absolute -right-16 -bottom-16 w-56 text-[var(--color-primary)] opacity-50"
+        />
         <div className="relative flex h-16 shrink-0 items-center px-5">
           <BrandMark size="sm" tone="inverse" />
         </div>
@@ -211,9 +221,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8 lg:p-10 print:overflow-visible">
+        <main
+          ref={mainRef}
+          className="min-h-0 flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8 lg:p-10 print:overflow-visible"
+        >
           <SubscriptionBanner />
-          {children}
+          {content}
         </main>
 
         <nav className="flex shrink-0 bg-[var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[var(--color-ink-foreground)] md:hidden">

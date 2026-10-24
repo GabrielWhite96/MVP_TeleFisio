@@ -31,7 +31,6 @@ import { PhysioAgenda } from '@/features/physio-agenda/ui/physio-agenda'
 import { PatientBillingPanel } from '@/features/billing/ui/patient-billing-panel'
 import { PhysioBillingOverview } from '@/features/billing/ui/physio-billing-overview'
 import { queryKeys } from '@/shared/api/query-keys'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { AppointmentList, StatCard } from '@/widgets/dashboard/dashboard-widgets'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -114,7 +113,7 @@ export function PhysioDashboardPage() {
   }
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -327,7 +326,7 @@ export function PhysioDashboardPage() {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -345,13 +344,13 @@ export function PhysioAgendaPage() {
   })
 
   return (
-    <AppLayout>
+    
       <PhysioAgenda
         appointments={appointmentsQuery.data ?? []}
         loading={appointmentsQuery.isLoading || physioQuery.isLoading}
         physiotherapistId={physioQuery.data?.id ?? ''}
       />
-    </AppLayout>
+    
   )
 }
 
@@ -364,11 +363,11 @@ export function PhysioBillingPage() {
   })
 
   if (!physioQuery.data) {
-    return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+    return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
   }
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">{pt.physio.billing}</h1>
@@ -376,7 +375,7 @@ export function PhysioBillingPage() {
         </div>
         <PhysioBillingOverview physiotherapistId={physioQuery.data.id} />
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -414,7 +413,7 @@ export function PhysioPatientsPage() {
   const practiceOpen = !physioQuery.data || canManagePractice(physioQuery.data)
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold">{pt.physio.patients}</h1>
@@ -490,7 +489,7 @@ export function PhysioPatientsPage() {
           ))}
         </div>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -503,20 +502,20 @@ export function PhysioPatientNewPage() {
   })
 
   if (!physioQuery.data) {
-    return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+    return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
   }
 
   if (!canManagePractice(physioQuery.data)) {
-    return <AppLayout><p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p></AppLayout>
+    return <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p>
   }
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-2xl space-y-6">
         <h1 className="text-2xl font-bold">{pt.physio.newPatient}</h1>
         <CreatePatientForm physiotherapistId={physioQuery.data.id} />
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -553,10 +552,10 @@ export function PhysioPatientDetailPage() {
   })
 
   if (!physioQuery.data || patientQuery.isLoading) {
-    return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+    return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
   }
   if (!patientQuery.data) {
-    return <AppLayout><ErrorState message="Paciente não encontrado" /></AppLayout>
+    return <ErrorState message="Paciente não encontrado" />
   }
 
   const patient = patientQuery.data
@@ -565,7 +564,7 @@ export function PhysioPatientDetailPage() {
   )
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         {inviteSent === true && (
           <p className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
@@ -717,7 +716,7 @@ export function PhysioPatientDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -734,15 +733,15 @@ export function PhysioAppointmentNewPage() {
   })
 
   if (!physioQuery.data) {
-    return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+    return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
   }
 
   if (!canManagePractice(physioQuery.data)) {
-    return <AppLayout><p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p></AppLayout>
+    return <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.locked}</p>
   }
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-2xl space-y-6">
         <h1 className="text-2xl font-bold">{pt.physio.newAppointment}</h1>
         <PhysioCreateAppointmentForm
@@ -752,7 +751,7 @@ export function PhysioAppointmentNewPage() {
           preselectedTime={preselectedTime}
         />
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -770,11 +769,11 @@ export function PhysioAppointmentDetailPage() {
     enabled: !!id,
   })
 
-  if (query.isLoading) return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
-  if (query.error || !query.data) return <AppLayout><ErrorState message="Consulta não encontrada" /></AppLayout>
+  if (query.isLoading) return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
+  if (query.error || !query.data) return <ErrorState message="Consulta não encontrada" />
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <AppointmentSession appointment={query.data} role="physiotherapist" />
         {physioQuery.data && query.data.status === 'completed' && (
@@ -785,7 +784,7 @@ export function PhysioAppointmentDetailPage() {
           />
         )}
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -827,7 +826,7 @@ export function PhysioProfilePage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-2xl space-y-6">
         <h1 className="text-2xl font-bold">{pt.physio.professionalProfile}</h1>
         <Card>
@@ -862,16 +861,16 @@ export function PhysioProfilePage() {
         </Card>
         {physioQuery.data && <AvailabilityEditor physiotherapistId={physioQuery.data.id} />}
       </div>
-    </AppLayout>
+    
   )
 }
 
 export function PhysioNotificationsPage() {
   const { user } = useAuth()
-  if (!user) return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
+  if (!user) return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
   return (
-    <AppLayout>
+    
       <NotificationInbox userId={user.id} />
-    </AppLayout>
+    
   )
 }

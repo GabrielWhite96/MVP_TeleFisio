@@ -34,128 +34,93 @@ import {
   AdminAuditLogsPage,
 } from '@/pages/admin/admin-pages'
 import { CaregiverDashboardPage } from '@/pages/caregiver/caregiver-pages'
+import { AppLayout } from '@/widgets/layout/app-layout'
 import { ROUTES } from '@/shared/config/routes'
 
 export const router = createBrowserRouter([
   { path: ROUTES.home, element: <HomePage /> },
-  { path: ROUTES.login, element: <GuestRoute><LoginPage /></GuestRoute> },
-  { path: ROUTES.signup, element: <GuestRoute><SignupPage /></GuestRoute> },
-  { path: ROUTES.forgotPassword, element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
-  { path: '/auth/invite/:token', element: <GuestRoute><InviteAcceptPage /></GuestRoute> },
-  { path: '/auth/caregiver-signup', element: <GuestRoute><CaregiverSignupPage /></GuestRoute> },
-
   {
-    path: ROUTES.patient.dashboard,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientDashboardPage /></RoleGuard></ProtectedRoute>,
+    element: <GuestRoute />,
+    children: [
+      { path: ROUTES.login, element: <LoginPage /> },
+      { path: ROUTES.signup, element: <SignupPage /> },
+      { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+      { path: '/auth/invite/:token', element: <InviteAcceptPage /> },
+      { path: '/auth/caregiver-signup', element: <CaregiverSignupPage /> },
+    ],
   },
   {
-    path: ROUTES.patient.profile,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientProfilePage /></RoleGuard></ProtectedRoute>,
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <RoleGuard allowedRoles={['patient']} />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: ROUTES.patient.dashboard, element: <PatientDashboardPage /> },
+              { path: ROUTES.patient.profile, element: <PatientProfilePage /> },
+              { path: ROUTES.patient.appointments, element: <PatientAppointmentsPage /> },
+              { path: '/patient/appointments/:id', element: <PatientAppointmentDetailPage /> },
+              { path: ROUTES.patient.exercises, element: <PatientExercisesPage /> },
+              { path: ROUTES.patient.checkIn, element: <PatientCheckInPage /> },
+              { path: ROUTES.patient.notifications, element: <PatientNotificationsPage /> },
+              { path: ROUTES.patient.caregivers, element: <PatientCaregiversPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RoleGuard allowedRoles={['physiotherapist']} />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: ROUTES.physio.dashboard, element: <PhysioDashboardPage /> },
+              { path: ROUTES.physio.agenda, element: <PhysioAgendaPage /> },
+              { path: ROUTES.physio.billing, element: <PhysioBillingPage /> },
+              { path: ROUTES.physio.reports, element: <PhysioReportsPage /> },
+              { path: ROUTES.physio.tools, element: <PhysioToolsPage /> },
+              { path: '/physio/ferramentas/:slug', element: <PhysioToolDetailPage /> },
+              { path: ROUTES.physio.patients, element: <PhysioPatientsPage /> },
+              { path: ROUTES.physio.patientNew, element: <PhysioPatientNewPage /> },
+              { path: '/physio/patients/:id/relatorio', element: <PhysioPatientReportPage /> },
+              { path: '/physio/patients/:id', element: <PhysioPatientDetailPage /> },
+              { path: ROUTES.physio.appointmentNew, element: <PhysioAppointmentNewPage /> },
+              { path: '/physio/appointments/:id', element: <PhysioAppointmentDetailPage /> },
+              { path: ROUTES.physio.profile, element: <PhysioProfilePage /> },
+              { path: ROUTES.physio.notifications, element: <PhysioNotificationsPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RoleGuard allowedRoles={['caregiver']} />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: ROUTES.caregiver.dashboard, element: <CaregiverDashboardPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RoleGuard allowedRoles={['admin']} />,
+        children: [
+          {
+            element: <AppLayout />,
+            children: [
+              { path: ROUTES.admin.dashboard, element: <AdminDashboardPage /> },
+              { path: ROUTES.admin.users, element: <AdminUsersPage /> },
+              { path: ROUTES.admin.appointments, element: <AdminAppointmentsPage /> },
+              { path: ROUTES.admin.auditLogs, element: <AdminAuditLogsPage /> },
+            ],
+          },
+        ],
+      },
+    ],
   },
-  {
-    path: ROUTES.patient.appointments,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientAppointmentsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: '/patient/appointments/:id',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientAppointmentDetailPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.patient.exercises,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientExercisesPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.patient.checkIn,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientCheckInPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.patient.notifications,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientNotificationsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.patient.caregivers,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['patient']}><PatientCaregiversPage /></RoleGuard></ProtectedRoute>,
-  },
-
-  {
-    path: ROUTES.physio.dashboard,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioDashboardPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.agenda,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAgendaPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.billing,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioBillingPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.reports,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioReportsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.tools,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: '/physio/ferramentas/:slug',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolDetailPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.patients,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.patientNew,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientNewPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: '/physio/patients/:id/relatorio',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientReportPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: '/physio/patients/:id',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientDetailPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.appointmentNew,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentNewPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: '/physio/appointments/:id',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentDetailPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.profile,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioProfilePage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.physio.notifications,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioNotificationsPage /></RoleGuard></ProtectedRoute>,
-  },
-
-  {
-    path: ROUTES.caregiver.dashboard,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['caregiver']}><CaregiverDashboardPage /></RoleGuard></ProtectedRoute>,
-  },
-
-  {
-    path: ROUTES.admin.dashboard,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['admin']}><AdminDashboardPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.admin.users,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['admin']}><AdminUsersPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.admin.appointments,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['admin']}><AdminAppointmentsPage /></RoleGuard></ProtectedRoute>,
-  },
-  {
-    path: ROUTES.admin.auditLogs,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['admin']}><AdminAuditLogsPage /></RoleGuard></ProtectedRoute>,
-  },
-
   { path: '*', element: <NotFoundPage /> },
 ])
 

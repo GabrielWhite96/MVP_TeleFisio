@@ -52,7 +52,6 @@ describe('clinical tools screens', () => {
     renderLibrary()
 
     expect(screen.getByRole('heading', { name: 'Biblioteca de ferramentas' })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Ferramentas' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Geriatria' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Testes e avaliações clínicas' })).toBeInTheDocument()
 

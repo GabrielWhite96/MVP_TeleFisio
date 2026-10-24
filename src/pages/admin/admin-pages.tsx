@@ -4,7 +4,6 @@ import { getAdminStats, getAdminUsers, getAdminAppointments, getAuditLogs, promo
 import { getAdminPhysioSubscriptions, setPhysioSubscriptionStatus } from '@/entities/physiotherapist/api/saas-checkout-api'
 import { Button } from '@/shared/ui/button'
 import { queryKeys } from '@/shared/api/query-keys'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { StatCard } from '@/widgets/dashboard/dashboard-widgets'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
@@ -30,7 +29,7 @@ export function AdminDashboardPage() {
     : []
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.admin.dashboard}</h1>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -55,7 +54,7 @@ export function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -101,7 +100,7 @@ export function AdminUsersPage() {
   }
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.admin.users}</h1>
         <Card>
@@ -178,7 +177,7 @@ export function AdminUsersPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -189,7 +188,7 @@ export function AdminAppointmentsPage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.admin.appointments}</h1>
         <Card>
@@ -223,7 +222,7 @@ export function AdminAppointmentsPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -234,7 +233,7 @@ export function AdminAuditLogsPage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.audit.title}</h1>
         <Card>
@@ -262,6 +261,6 @@ export function AdminAuditLogsPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    
   )
 }

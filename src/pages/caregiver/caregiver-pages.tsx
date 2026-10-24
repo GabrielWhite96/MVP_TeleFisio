@@ -11,7 +11,6 @@ import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-pro
 import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-card'
 import { PatientExerciseList } from '@/features/exercises/ui/exercise-components'
 import { queryKeys } from '@/shared/api/query-keys'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
@@ -68,7 +67,7 @@ export function CaregiverDashboardPage() {
   const patientName = activeLink?.patient?.profiles?.full_name ?? 'Paciente'
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -171,6 +170,6 @@ export function CaregiverDashboardPage() {
           </>
         )}
       </div>
-    </AppLayout>
+    
   )
 }

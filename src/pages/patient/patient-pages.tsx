@@ -33,7 +33,6 @@ import {
   PatientTodayHero,
 } from '@/widgets/patient-home/patient-home'
 import { queryKeys } from '@/shared/api/query-keys'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { AppointmentList } from '@/widgets/dashboard/dashboard-widgets'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -118,7 +117,7 @@ export function PatientDashboardPage() {
   const physioName = (physioQuery.data as { profiles?: { full_name?: string } | null } | undefined)?.profiles?.full_name
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
           <div className="flex flex-col gap-6 lg:col-span-8">
@@ -208,7 +207,7 @@ export function PatientDashboardPage() {
           </PatientPanel>
         </div>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -255,7 +254,7 @@ export function PatientProfilePage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-2xl font-bold">{pt.patient.profile}</h1>
         <Card>
@@ -305,7 +304,7 @@ export function PatientProfilePage() {
         </Card>
         {patientQuery.data && <ClinicalProfileForm patientId={patientQuery.data.id} />}
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -329,7 +328,7 @@ export function PatientAppointmentsPage() {
   const past = appointments.filter((appointment) => !upcoming.some((item) => item.id === appointment.id))
 
   return (
-    <AppLayout>
+    
       <div className="space-y-8">
         <h1 className="text-2xl font-bold">Minhas consultas</h1>
         <section className="space-y-3">
@@ -351,7 +350,7 @@ export function PatientAppointmentsPage() {
           />
         </section>
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -363,13 +362,13 @@ export function PatientAppointmentDetailPage() {
     enabled: !!id,
   })
 
-  if (query.isLoading) return <AppLayout><LoadingSpinner className="mx-auto mt-8 h-8 w-8" /></AppLayout>
-  if (query.error || !query.data) return <AppLayout><ErrorState message="Consulta não encontrada" /></AppLayout>
+  if (query.isLoading) return <LoadingSpinner className="mx-auto mt-8 h-8 w-8" />
+  if (query.error || !query.data) return <ErrorState message="Consulta não encontrada" />
 
   return (
-    <AppLayout>
+    
       <AppointmentSession appointment={query.data} role="patient" />
-    </AppLayout>
+    
   )
 }
 
@@ -382,12 +381,12 @@ export function PatientExercisesPage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{pt.patient.exercises}</h1>
         {patientQuery.data && <PatientExerciseList patientId={patientQuery.data.id} canComplete />}
       </div>
-    </AppLayout>
+    
   )
 }
 
@@ -408,7 +407,7 @@ export function PatientCheckInPage() {
     : null
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-2xl font-bold">{pt.checkIn.title}</h1>
         {(patientQuery.isLoading || checkInQuery.isLoading) && <LoadingSpinner />}
@@ -417,17 +416,17 @@ export function PatientCheckInPage() {
           <CheckInForm patientId={patientQuery.data.id} />
         )}
       </div>
-    </AppLayout>
+    
   )
 }
 
 export function PatientNotificationsPage() {
   const { user } = useAuth()
-  if (!user) return <AppLayout><LoadingSpinner /></AppLayout>
+  if (!user) return <LoadingSpinner />
   return (
-    <AppLayout>
+    
       <NotificationInbox userId={user.id} />
-    </AppLayout>
+    
   )
 }
 
@@ -457,7 +456,7 @@ export function PatientCaregiversPage() {
   })
 
   return (
-    <AppLayout>
+    
       <div className="mx-auto max-w-lg space-y-6">
         <h1 className="text-2xl font-bold">{pt.patient.caregivers}</h1>
         {patientQuery.data && <CaregiverInviteForm patientId={patientQuery.data.id} />}
@@ -492,6 +491,6 @@ export function PatientCaregiversPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    
   )
 }

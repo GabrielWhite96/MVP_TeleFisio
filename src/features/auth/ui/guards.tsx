@@ -1,10 +1,11 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import type { ReactNode } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/use-auth'
 import { LoadingSpinner } from '@/shared/ui/states'
 import type { UserRole } from '@/shared/types/database'
 import { ROUTES } from '@/shared/config/routes'
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export function ProtectedRoute({ children }: { children?: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
 
@@ -20,7 +21,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to={ROUTES.login} state={{ from: location }} replace />
   }
 
-  return <>{children}</>
+  return children ? <>{children}</> : <Outlet />
 }
 
 export function RoleGuard({
@@ -28,7 +29,7 @@ export function RoleGuard({
   children,
 }: {
   allowedRoles: UserRole[]
-  children: React.ReactNode
+  children?: ReactNode
 }) {
   const { profile, isLoading } = useAuth()
 
@@ -44,10 +45,10 @@ export function RoleGuard({
     return <Navigate to={ROUTES.home} replace />
   }
 
-  return <>{children}</>
+  return children ? <>{children}</> : <Outlet />
 }
 
-export function GuestRoute({ children }: { children: React.ReactNode }) {
+export function GuestRoute({ children }: { children?: ReactNode }) {
   const { isAuthenticated, profile, isLoading } = useAuth()
 
   if (isLoading) {
@@ -68,5 +69,5 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to={routes[profile.role]} replace />
   }
 
-  return <>{children}</>
+  return children ? <>{children}</> : <Outlet />
 }

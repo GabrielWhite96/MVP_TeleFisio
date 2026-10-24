@@ -2,7 +2,6 @@ import { useEffect, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { pt } from '@/shared/config/i18n/pt'
 import { ROUTES } from '@/shared/config/routes'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { EmptyState } from '@/shared/ui/states'
@@ -68,13 +67,13 @@ export function PhysioToolDetailPage() {
 
   if (!tool) {
     return (
-      <AppLayout>
+      
         <EmptyState
           title={pt.tools.notFound}
           description={pt.tools.notFoundDescription}
           action={<Button asChild variant="outline"><Link to={ROUTES.physio.tools}>{pt.tools.back}</Link></Button>}
         />
-      </AppLayout>
+      
     )
   }
 
@@ -86,7 +85,7 @@ export function PhysioToolDetailPage() {
   })
 
   return (
-    <AppLayout>
+    
       <article className="mx-auto max-w-3xl space-y-6">
         <Button variant="ghost" size="sm" asChild>
           <Link to={ROUTES.physio.tools}>{pt.tools.back}</Link>
@@ -204,6 +203,6 @@ export function PhysioToolDetailPage() {
           </Section>
         )}
       </article>
-    </AppLayout>
+    
   )
 }

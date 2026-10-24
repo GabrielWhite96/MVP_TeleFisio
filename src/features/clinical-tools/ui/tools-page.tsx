@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { pt } from '@/shared/config/i18n/pt'
 import { ROUTES } from '@/shared/config/routes'
 import { cn } from '@/shared/lib/utils'
-import { AppLayout } from '@/widgets/layout/app-layout'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
 import { EmptyState } from '@/shared/ui/states'
@@ -77,7 +76,7 @@ export function PhysioToolsPage() {
   const filtersOn = !browsing
 
   return (
-    <AppLayout>
+    
       <div className="space-y-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">{pt.tools.title}</h1>
@@ -230,6 +229,6 @@ export function PhysioToolsPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    
   )
 }
