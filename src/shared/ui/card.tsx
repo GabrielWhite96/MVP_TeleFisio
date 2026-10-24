@@ -3,14 +3,21 @@ import { cn } from '@/shared/lib/utils'
 
 export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('rounded-lg border bg-[var(--color-card)] text-[var(--color-card-foreground)] shadow-sm', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn(
+        'rounded-2xl border border-[var(--color-foreground)]/8 bg-[var(--color-card)] text-[var(--color-card-foreground)] shadow-[var(--shadow-card)]',
+        className
+      )}
+      {...props}
+    />
   )
 )
 Card.displayName = 'Card'
 
 export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+    <div ref={ref} className={cn('flex flex-col gap-1.5 p-6', className)} {...props} />
   )
 )
 CardHeader.displayName = 'CardHeader'

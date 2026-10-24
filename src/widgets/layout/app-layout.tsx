@@ -9,7 +9,6 @@ import {
   Menu,
   X,
   LogOut,
-  Activity,
   HeartPulse,
   Bell,
   ScrollText,
@@ -18,7 +17,7 @@ import {
   BarChart3,
   Library,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { signOut } from '@/features/auth/api/auth-api'
 import { ConsentModal } from '@/features/consent/ui/consent-modal'
@@ -27,6 +26,8 @@ import { useRealtimeNotifications } from '@/features/notifications/hooks/use-rea
 import { useTranslation } from '@/shared/config/i18n/use-translation'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/ui/button'
+import { BrandMark } from '@/shared/ui/brand'
+import { MotionArc } from '@/shared/ui/motion-arc'
 import { pt } from '@/shared/config/i18n/pt'
 import { ROUTES } from '@/shared/config/routes'
 import type { UserRole } from '@/shared/types/database'
@@ -69,7 +70,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
   ],
 }
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children }: { children: ReactNode }) {
   const { profile } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -104,27 +105,31 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     navigate('/auth/login')
   }
 
-  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
+  const isActive = (href: string) => {
+    const onPatientReport = location.pathname.endsWith('/relatorio')
+    if (href === ROUTES.physio.reports) return location.pathname.startsWith(href) || onPatientReport
+    if (href === ROUTES.physio.patients) return location.pathname.startsWith(href) && !onPatientReport
+    return location.pathname.startsWith(href)
+  }
+
+  const NavLinks = ({ surface }: { surface: 'dock' | 'sheet' }) => (
     <>
       {navItems.map((item) => {
         const Icon = item.icon
-        const onPatientReport = location.pathname.endsWith('/relatorio')
-        const active = item.href === ROUTES.physio.reports
-          ? location.pathname.startsWith(item.href) || onPatientReport
-          : item.href === ROUTES.physio.patients
-            ? location.pathname.startsWith(item.href) && !onPatientReport
-            : location.pathname.startsWith(item.href)
+        const active = isActive(item.href)
+        const dock = surface === 'dock'
         return (
           <Link
             key={item.href}
             to={item.href}
-            onClick={() => mobile && setMobileOpen(false)}
+            onClick={() => surface === 'sheet' && setMobileOpen(false)}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              isPatient && 'min-h-12 py-3 text-base md:min-h-0 md:py-2 md:text-sm',
-              active
-                ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
-                : 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]'
+              'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition-colors',
+              isPatient && 'min-h-12 py-3 text-base md:min-h-0 md:py-2.5 md:text-sm',
+              dock && active && 'relative bg-white/10 text-[var(--color-ink-foreground)] before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-[var(--color-primary)]',
+              dock && !active && 'text-[var(--color-ink-foreground)]/65 hover:bg-white/8 hover:text-[var(--color-ink-foreground)]',
+              !dock && active && 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)]',
+              !dock && !active && 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]'
             )}
           >
             <Icon className={cn('h-4 w-4', isPatient && 'h-5 w-5')} />
@@ -138,58 +143,66 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh overflow-hidden print:h-auto print:overflow-visible">
       <ConsentModal />
-      {/* Desktop sidebar — pinned to the viewport so footer stays visible */}
-      <aside className="hidden h-full w-64 shrink-0 flex-col border-r bg-[var(--color-card)] md:flex">
-        <div className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
-          <Activity className="h-6 w-6 text-[var(--color-primary)]" />
-          <span className="font-bold">{pt.app.name}</span>
+      <aside className="studio-field relative hidden h-full w-64 shrink-0 flex-col overflow-hidden text-[var(--color-ink-foreground)] md:flex">
+        <MotionArc className="pointer-events-none absolute -right-16 -bottom-16 w-56 text-[var(--color-primary)] opacity-50" />
+        <div className="relative flex h-16 shrink-0 items-center px-5">
+          <BrandMark size="sm" tone="inverse" />
         </div>
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
-          <NavLinks />
+        <nav className="relative flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
+          <NavLinks surface="dock" />
         </nav>
-        <div className="shrink-0 border-t p-4">
-          <p className="mb-2 truncate text-sm font-medium">{profile.full_name}</p>
+        <div className="relative shrink-0 p-4">
+          <p className="mb-3 truncate text-sm font-bold">{profile.full_name}</p>
           <div className="mb-2 flex gap-2">
-            <Button
-              variant={locale === 'pt' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="flex-1"
+            <button
+              type="button"
+              className={cn(
+                'flex-1 rounded-xl px-3 py-2 text-xs font-bold',
+                locale === 'pt' ? 'bg-white/14' : 'text-[var(--color-ink-foreground)]/60 hover:bg-white/8'
+              )}
               onClick={() => setLocale('pt')}
             >
               PT
-            </Button>
-            <Button
-              variant={locale === 'en' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="flex-1"
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'flex-1 rounded-xl px-3 py-2 text-xs font-bold',
+                locale === 'en' ? 'bg-white/14' : 'text-[var(--color-ink-foreground)]/60 hover:bg-white/8'
+              )}
               onClick={() => setLocale('en')}
             >
               EN
-            </Button>
+            </button>
           </div>
-          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
+          <button
+            type="button"
+            className="flex w-full items-center justify-start gap-2 rounded-xl px-3 py-2 text-sm font-bold text-[var(--color-ink-foreground)]/70 hover:bg-white/8 hover:text-[var(--color-ink-foreground)]"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
             {pt.auth.logout}
-          </Button>
+          </button>
         </div>
       </aside>
 
-      {/* Mobile header */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:overflow-visible">
-        <header className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-[var(--color-primary)]" />
-            <span className="font-bold">{pt.app.name}</span>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
+        <header className="studio-field flex h-14 shrink-0 items-center justify-between px-4 text-[var(--color-ink-foreground)] md:hidden">
+          <BrandMark size="sm" tone="inverse" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-[var(--color-ink-foreground)] hover:bg-white/10 hover:text-[var(--color-ink-foreground)]"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </header>
 
         {mobileOpen && (
           <div className="shrink-0 border-b bg-[var(--color-card)] p-4 md:hidden">
-            <nav className="space-y-1">
-              <NavLinks mobile />
+            <nav className="flex flex-col gap-1">
+              <NavLinks surface="sheet" />
             </nav>
             <Button variant="ghost" size="sm" className="mt-4 w-full justify-start" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -198,29 +211,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 print:overflow-visible">
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8 lg:p-10 print:overflow-visible">
           <SubscriptionBanner />
           {children}
         </main>
 
-        {/* Mobile bottom nav — larger touch targets for patients */}
-        <nav className="flex shrink-0 border-t bg-[var(--color-card)] md:hidden">
+        <nav className="flex shrink-0 bg-[var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[var(--color-ink-foreground)] md:hidden">
           {mobileNavItems.map((item) => {
             const Icon = item.icon
-            const onPatientReport = location.pathname.endsWith('/relatorio')
-            const active = item.href === ROUTES.physio.reports
-              ? location.pathname.startsWith(item.href) || onPatientReport
-              : item.href === ROUTES.physio.patients
-                ? location.pathname.startsWith(item.href) && !onPatientReport
-                : location.pathname.startsWith(item.href)
+            const active = isActive(item.href)
             return (
               <Link
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  'flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-xs',
+                  'flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-bold',
                   isPatient && 'min-h-16 py-3 text-sm',
-                  active ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted-foreground)]'
+                  active ? 'text-[var(--color-primary)]' : 'text-[var(--color-ink-foreground)]/55'
                 )}
               >
                 <Icon className={cn('h-5 w-5', isPatient && 'h-6 w-6')} />

@@ -53,7 +53,7 @@ export function InviteAcceptForm() {
 
   if (invite?.status === 'accepted') {
     return (
-      <Card className="mx-auto w-full max-w-md">
+      <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
         <CardHeader>
           <CardTitle>{pt.auth.inviteAcceptedTitle}</CardTitle>
           <CardDescription>{pt.auth.inviteAcceptedDescription}</CardDescription>
@@ -69,7 +69,7 @@ export function InviteAcceptForm() {
 
   if (invalid) {
     return (
-      <Card className="mx-auto w-full max-w-md">
+      <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
         <CardHeader>
           <CardTitle>{pt.auth.inviteInvalidTitle}</CardTitle>
           <CardDescription>{pt.auth.inviteInvalidDescription}</CardDescription>
@@ -84,7 +84,7 @@ export function InviteAcceptForm() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
+    <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
       <CardHeader>
         <CardTitle>{pt.auth.inviteTitle}</CardTitle>
         <CardDescription>

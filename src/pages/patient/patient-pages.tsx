@@ -24,18 +24,26 @@ import { CaregiverAuthorizeForm } from '@/features/caregiver/ui/caregiver-author
 import { CaregiverInviteForm } from '@/features/caregiver/ui/caregiver-invite-form'
 import { ClinicalProfileForm } from '@/features/clinical-profile/ui/clinical-profile-form'
 import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-progress-widget'
+import {
+  PatientCareSummary,
+  PatientGreeting,
+  PatientNextVisit,
+  PatientPanel,
+  PatientProgressCard,
+  PatientTodayHero,
+} from '@/widgets/patient-home/patient-home'
 import { queryKeys } from '@/shared/api/query-keys'
 import { AppLayout } from '@/widgets/layout/app-layout'
-import { NextAppointmentCard, AppointmentList, StatCard } from '@/widgets/dashboard/dashboard-widgets'
+import { AppointmentList } from '@/widgets/dashboard/dashboard-widgets'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Input, Label } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { LoadingSpinner, ErrorState } from '@/shared/ui/states'
-import { ROUTES, BRAZILIAN_UFS, CLINICAL_STATUS_LABELS } from '@/shared/config/routes'
+import { ROUTES, BRAZILIAN_UFS } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { isUpcoming, isSameCalendarDay, formatDateTime } from '@/shared/lib/dates'
-import { Bell, HeartPulse } from 'lucide-react'
+import { Bell } from 'lucide-react'
 
 const profileSchema = z.object({
   fullName: z.string().min(2),
@@ -111,95 +119,38 @@ export function PatientDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">{pt.patient.dashboard}</h1>
-            <p className="text-[var(--color-muted-foreground)]">
-              {pt.auth.greeting}{firstName ? `, ${firstName}` : ''}! {pt.patient.portalTagline}
-            </p>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
+          <div className="flex flex-col gap-6 lg:col-span-8">
+            <PatientGreeting firstName={firstName} />
+            {patientQuery.data && (
+              <PatientTodayHero
+                loading={exercisesQuery.isLoading || checkInQuery.isLoading || appointmentsQuery.isLoading}
+                todayCheckIn={todayCheckIn}
+                dueExercises={dueExercises}
+                nextAppointment={upcoming[0]}
+              />
+            )}
           </div>
-          <Button asChild variant="outline">
-            <Link to={ROUTES.patient.checkIn}>
-              <HeartPulse className="mr-2 h-4 w-4" />
-              {pt.patient.howAmI}
-            </Link>
-          </Button>
+          {patientQuery.data && (
+            <div className="flex flex-col gap-4 lg:col-span-4">
+              <PatientNextVisit appointment={upcoming[0]} loading={appointmentsQuery.isLoading} />
+              <PatientCareSummary
+                clinicalStatus={patientQuery.data.clinical_status}
+                physioName={physioName}
+                loading={physioQuery.isLoading}
+              />
+            </div>
+          )}
         </div>
 
         {patientQuery.data && (
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">{pt.patient.today}</h2>
-            <div className="grid gap-4 lg:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{pt.patient.exercisesDue}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {exercisesQuery.isLoading && <p className="text-sm text-[var(--color-muted-foreground)]">{pt.common.loading}</p>}
-                  {!exercisesQuery.isLoading && dueExercises.length === 0 && (
-                    <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.noExercisesToday}</p>
-                  )}
-                  <ul className="space-y-2">
-                    {dueExercises.slice(0, 4).map((exercise) => {
-                      const title = (exercise.exercise as { title?: string } | null)?.title ?? pt.patient.exercises
-                      return <li key={exercise.id} className="text-sm font-medium">{title}</li>
-                    })}
-                  </ul>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to={ROUTES.patient.exercises}>{pt.patient.seeExercises}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{pt.patient.howAmI}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {todayCheckIn ? (
-                    <>
-                      <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.checkInSent}</p>
-                      <p className="text-lg font-semibold">{pt.checkIn.pain}: {todayCheckIn.pain_level ?? '—'}</p>
-                      <p className="text-sm">{pt.recovery.adherence}: {adherenceQuery.data ?? 0}%</p>
-                    </>
-                  ) : (
-                    <Button asChild className="w-full">
-                      <Link to={ROUTES.patient.checkIn}>
-                        <HeartPulse className="mr-2 h-4 w-4" />
-                        {pt.patient.howAmI}
-                      </Link>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-              <NextAppointmentCard
-                appointment={upcoming[0]}
-                loading={appointmentsQuery.isLoading}
-                href={upcoming[0] ? ROUTES.patient.appointment(upcoming[0].id) : undefined}
-              />
-            </div>
-          </section>
-        )}
-
-        {patientQuery.data && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">{pt.patient.treatmentSummary}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg font-semibold">
-                  {CLINICAL_STATUS_LABELS[patientQuery.data.clinical_status]}
-                </p>
-                {physioName && (
-                  <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-                    {pt.patient.myPhysio}: {physioName}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            <StatCard title={pt.patient.progress} value={`${progress}%`} loading={exercisesQuery.isLoading} />
-          </div>
+          <PatientProgressCard
+            progress={progress}
+            adherence={adherenceQuery.data ?? 0}
+            checkIn={todayCheckIn}
+            loading={exercisesQuery.isLoading || adherenceQuery.isLoading}
+          />
         )}
 
         {patientQuery.data && (
@@ -210,18 +161,26 @@ export function PatientDashboardPage() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle className="text-base">{pt.patient.history}</CardTitle></CardHeader>
-            <CardContent>
-              <AppointmentList appointments={history} loading={appointmentsQuery.isLoading} role="patient" emptyMessage="Nenhuma consulta no histórico" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">{pt.patient.notifications}</CardTitle>
-              {unread > 0 && <span className="flex items-center gap-1 text-sm text-[var(--color-primary)]"><Bell className="h-4 w-4" /> {unread}</span>}
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <PatientPanel title={pt.patient.history}>
+            <AppointmentList
+              appointments={history}
+              loading={appointmentsQuery.isLoading}
+              role="patient"
+              emptyMessage="Nenhuma consulta no histórico"
+            />
+          </PatientPanel>
+          <PatientPanel
+            title={pt.patient.notifications}
+            action={
+              unread > 0 ? (
+                <span className="flex items-center gap-1 text-sm text-[var(--color-primary)]">
+                  <Bell className="size-4" aria-hidden="true" />
+                  {unread}
+                </span>
+              ) : undefined
+            }
+          >
+            <div className="flex flex-col gap-2">
               {notificationsQuery.data?.slice(0, 5).map((n) => {
                 const href = notificationHref('patient', n.metadata) ?? ROUTES.patient.notifications
                 return (
@@ -235,7 +194,7 @@ export function PatientDashboardPage() {
                         })
                       }
                     }}
-                    className="block rounded-lg border p-3 text-sm hover:bg-[var(--color-accent)]"
+                    className="block rounded-lg p-3 text-sm transition-colors hover:bg-[var(--color-accent)]"
                   >
                     <p className="font-medium">{n.title}</p>
                     <p className="text-[var(--color-muted-foreground)]">{n.body}</p>
@@ -245,8 +204,8 @@ export function PatientDashboardPage() {
               <Button asChild variant="link" className="px-0">
                 <Link to={ROUTES.patient.notifications}>{pt.common.viewAll}</Link>
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </PatientPanel>
         </div>
       </div>
     </AppLayout>

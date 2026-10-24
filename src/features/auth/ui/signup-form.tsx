@@ -26,12 +26,12 @@ export function SignupForm() {
   })
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{pt.auth.signupPhysio}</CardTitle>
+    <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
+      <CardHeader className="p-0">
+        <CardTitle className="font-display text-3xl font-semibold tracking-tight">{pt.auth.signupPhysio}</CardTitle>
         <CardDescription>{pt.auth.signupPhysioDescription}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="mt-6 p-0">
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">{pt.auth.fullName}</Label>

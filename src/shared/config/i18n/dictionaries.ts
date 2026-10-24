@@ -3,9 +3,20 @@ import { pt } from './pt'
 export type Locale = 'pt' | 'en'
 
 export const en = {
-  app: { name: 'TeleFisio', tagline: 'Tele-physiotherapy and home rehabilitation' },
+  app: {
+    name: 'TeleFisio',
+    tagline: 'Tele-physiotherapy and home rehabilitation',
+    loginHeadline: 'Get moving again.',
+    loginSubline: 'Physiotherapy, exercises, and visits at your body’s pace.',
+    loginBeatCheckIn: 'Check-in',
+    loginBeatTrain: 'Training',
+    loginBeatVisit: 'Visit',
+  },
   auth: {
     login: 'Sign in',
+    loginDescription: 'Access your account.',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     signup: 'Create account',
     signupPhysio: 'Create professional account',
     signupPhysioDescription: 'Sign up to manage your patients and treatments.',
@@ -22,6 +33,8 @@ export const en = {
     roleCaregiver: 'I am a family caregiver',
     resetSent: 'Recovery email sent.',
     greeting: 'Good morning',
+    greetingAfternoon: 'Good afternoon',
+    greetingEvening: 'Good evening',
     inviteTitle: 'Activate patient account',
     inviteDescription: '{physio} invited you. Set your password to access the portal ({email}).',
     inviteInvalidTitle: 'Invalid or expired invite',

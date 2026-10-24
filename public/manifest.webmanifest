@@ -4,8 +4,8 @@
   "description": "Tele-fisioterapia e reabilitação domiciliar",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f766e",
+  "background_color": "#EAF2EE",
+  "theme_color": "#07241E",
   "lang": "pt-BR",
   "icons": [
     {

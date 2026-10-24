@@ -18,12 +18,12 @@ export function ForgotPasswordForm() {
   const mutation = useMutation({ mutationFn: resetPassword })
 
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{pt.auth.resetPassword}</CardTitle>
+    <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
+      <CardHeader className="p-0">
+        <CardTitle className="font-display text-3xl font-semibold tracking-tight">{pt.auth.resetPassword}</CardTitle>
         <CardDescription>Enviaremos um link de recuperação para seu e-mail.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="mt-6 p-0">
         {mutation.isSuccess ? (
           <p className="text-center text-green-700">{pt.auth.resetSent}</p>
         ) : (
