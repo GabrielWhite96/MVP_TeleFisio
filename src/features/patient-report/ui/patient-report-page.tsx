@@ -119,7 +119,7 @@ export function PhysioReportsPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>
+            <h1 className="page-title">{copy.title}</h1>
             <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{copy.subtitle}</p>
           </div>
           {!patientsQuery.isLoading && patientsQuery.data && (

@@ -71,8 +71,8 @@ export function CaregiverDashboardPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{pt.caregiver.dashboard}</h1>
-            <p className="text-[var(--color-muted-foreground)]">{pt.caregiver.readOnly}</p>
+            <h1 className="page-title">{pt.caregiver.dashboard}</h1>
+            <p className="page-kicker">{pt.caregiver.readOnly}</p>
           </div>
           {links.length > 1 && (
             <Select value={activePatientId} onValueChange={setSelectedPatientId}>

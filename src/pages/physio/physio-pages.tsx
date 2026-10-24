@@ -34,6 +34,7 @@ import { queryKeys } from '@/shared/api/query-keys'
 import { AppointmentList, StatCard } from '@/widgets/dashboard/dashboard-widgets'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
+import { PageHeader } from '@/shared/ui/page-header'
 import { Input, Label, Textarea } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
@@ -115,12 +116,12 @@ export function PhysioDashboardPage() {
   return (
     
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">{pt.physio.dashboard}</h1>
-            <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.saasTagline}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+        <PageHeader.Root>
+          <PageHeader.Copy>
+            <PageHeader.Title>{pt.physio.dashboard}</PageHeader.Title>
+            <PageHeader.Description>{pt.physio.saasTagline}</PageHeader.Description>
+          </PageHeader.Copy>
+          <PageHeader.Actions>
             <Button asChild={practiceOpen} variant="outline" disabled={!practiceOpen}>
               {practiceOpen ? (
                 <Link to={ROUTES.physio.patientNew}>
@@ -150,8 +151,8 @@ export function PhysioDashboardPage() {
                 </span>
               )}
             </Button>
-          </div>
-        </div>
+          </PageHeader.Actions>
+        </PageHeader.Root>
 
         {onboardingQuery.data &&
           !(onboardingQuery.data.hasAvailability && onboardingQuery.data.hasPatient && onboardingQuery.data.hasAssessment) && (
@@ -161,17 +162,17 @@ export function PhysioDashboardPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {!onboardingQuery.data.hasAvailability && (
-                <Link to={ROUTES.physio.profile} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                <Link to={ROUTES.physio.profile} className="block rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]">
                   {pt.physio.onboardingAvailability}
                 </Link>
               )}
               {!onboardingQuery.data.hasPatient && (
-                <Link to={ROUTES.physio.patientNew} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                <Link to={ROUTES.physio.patientNew} className="block rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]">
                   {pt.physio.onboardingPatient}
                 </Link>
               )}
               {!onboardingQuery.data.hasAssessment && (
-                <Link to={ROUTES.physio.patients} className="block rounded-lg border p-3 hover:bg-[var(--color-accent)]">
+                <Link to={ROUTES.physio.patients} className="block rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]">
                   {pt.physio.onboardingAssessment}
                 </Link>
               )}
@@ -201,7 +202,7 @@ export function PhysioDashboardPage() {
                 <Link
                   key={n.id}
                   to={ROUTES.physio.notifications}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                  className="flex items-center justify-between rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]"
                 >
                   <div>
                     <p className="font-medium">{n.title}</p>
@@ -224,7 +225,7 @@ export function PhysioDashboardPage() {
                 <Link
                   key={p.id}
                   to={ROUTES.physio.patient(p.id)}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                  className="flex items-center justify-between rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]"
                 >
                   <div>
                     <p className="font-medium">{p.full_name}</p>
@@ -247,7 +248,7 @@ export function PhysioDashboardPage() {
                 <Link
                   key={p.id}
                   to={ROUTES.physio.patient(p.id)}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                  className="flex items-center justify-between rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]"
                 >
                   <div>
                     <p className="font-medium">{p.full_name}</p>
@@ -270,7 +271,7 @@ export function PhysioDashboardPage() {
                 <Link
                   key={p.id}
                   to={ROUTES.physio.patient(p.id)}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                  className="flex items-center justify-between rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]"
                 >
                   <div>
                     <p className="font-medium">{p.full_name}</p>
@@ -296,7 +297,7 @@ export function PhysioDashboardPage() {
                 <Link
                   key={p.patientId}
                   to={ROUTES.physio.patient(p.patientId)}
-                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-[var(--color-accent)]"
+                  className="flex items-center justify-between rounded-2xl bg-[var(--color-muted)] p-3 hover:bg-[var(--color-accent)]"
                 >
                   <div>
                     <p className="font-medium">{p.patientName}</p>
@@ -370,8 +371,8 @@ export function PhysioBillingPage() {
     
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">{pt.physio.billing}</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)]">{pt.physio.billingTagline}</p>
+          <h1 className="page-title">{pt.physio.billing}</h1>
+          <p className="page-kicker">{pt.physio.billingTagline}</p>
         </div>
         <PhysioBillingOverview physiotherapistId={physioQuery.data.id} />
       </div>
@@ -416,7 +417,7 @@ export function PhysioPatientsPage() {
     
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">{pt.physio.patients}</h1>
+          <h1 className="page-title">{pt.physio.patients}</h1>
           <Button asChild={practiceOpen} disabled={!practiceOpen}>
             {practiceOpen ? (
               <Link to={ROUTES.physio.patientNew}>
@@ -512,7 +513,7 @@ export function PhysioPatientNewPage() {
   return (
     
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-bold">{pt.physio.newPatient}</h1>
+        <h1 className="page-title">{pt.physio.newPatient}</h1>
         <CreatePatientForm physiotherapistId={physioQuery.data.id} />
       </div>
     
@@ -578,7 +579,7 @@ export function PhysioPatientDetailPage() {
         )}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">{patient.full_name}</h1>
+            <h1 className="page-title">{patient.full_name}</h1>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">{CLINICAL_STATUS_LABELS[patient.clinical_status]}</Badge>
               <Badge variant={patient.account_status === 'active' ? 'success' : 'outline'}>
@@ -743,7 +744,7 @@ export function PhysioAppointmentNewPage() {
   return (
     
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-bold">{pt.physio.newAppointment}</h1>
+        <h1 className="page-title">{pt.physio.newAppointment}</h1>
         <PhysioCreateAppointmentForm
           physiotherapistId={physioQuery.data.id}
           preselectedPatientId={preselectedPatientId}
@@ -828,7 +829,7 @@ export function PhysioProfilePage() {
   return (
     
       <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-2xl font-bold">{pt.physio.professionalProfile}</h1>
+        <h1 className="page-title">{pt.physio.professionalProfile}</h1>
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">

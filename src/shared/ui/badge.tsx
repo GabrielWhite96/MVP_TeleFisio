@@ -13,7 +13,7 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
         variant === 'secondary' && 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)]',
         variant === 'destructive' && 'bg-[var(--color-destructive)] text-[var(--color-destructive-foreground)]',
         variant === 'outline' && 'border border-[var(--color-border)]',
-        variant === 'success' && 'bg-emerald-100 text-emerald-800',
+        variant === 'success' && 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)]',
         className
       )}
       {...props}

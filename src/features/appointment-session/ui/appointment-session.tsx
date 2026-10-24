@@ -135,7 +135,7 @@ export function AppointmentSession({ appointment, role }: AppointmentSessionProp
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Consulta</h1>
+          <h1 className="page-title">Consulta</h1>
           <p className="text-[var(--color-muted-foreground)]">{formatDateTime(appointment.scheduled_at)}</p>
         </div>
         <div className="flex gap-2">

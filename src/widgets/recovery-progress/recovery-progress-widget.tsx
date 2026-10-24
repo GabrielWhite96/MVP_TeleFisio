@@ -72,7 +72,7 @@ export function RecoveryProgressWidget({ patientId }: RecoveryProgressWidgetProp
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-[var(--color-muted)]">
             <div
-              className="h-full rounded-full bg-emerald-600"
+              className="h-full rounded-full bg-[var(--color-primary)]"
               style={{ width: `${Math.min(100, adherence)}%` }}
             />
           </div>
@@ -98,9 +98,9 @@ export function RecoveryProgressWidget({ patientId }: RecoveryProgressWidgetProp
 
 function Metric({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-lg border p-3 text-center">
-      <p className="text-xs text-[var(--color-muted-foreground)]">{label}</p>
-      <p className="text-2xl font-bold tabular-nums">{value ?? '—'}</p>
+    <div className="rounded-2xl bg-[var(--color-muted)] p-3 text-center">
+      <p className="text-sm text-[var(--color-muted-foreground)]">{label}</p>
+      <p className="mt-1 font-display text-3xl font-semibold tabular-nums leading-none">{value ?? '—'}</p>
     </div>
   )
 }

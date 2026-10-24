@@ -29,8 +29,8 @@ export function AgendaToolbar({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{pt.physio.agenda}</h1>
-          <p className="text-sm text-[var(--color-muted-foreground)]">{pt.agenda.subtitle}</p>
+          <h1 className="page-title">{pt.physio.agenda}</h1>
+          <p className="page-kicker">{pt.agenda.subtitle}</p>
         </div>
         <div className="flex flex-col items-stretch gap-2 sm:items-end">
           {physiotherapistId ? (

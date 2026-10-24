@@ -1,7 +1,7 @@
 import { cn } from '@/shared/lib/utils'
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('animate-pulse rounded-md bg-[var(--color-muted)]', className)} {...props} />
+  return <div className={cn('animate-pulse rounded-2xl bg-[var(--color-muted)]', className)} {...props} />
 }
 
 export function EmptyState({
@@ -14,7 +14,7 @@ export function EmptyState({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+    <div className="flex flex-col items-center justify-center rounded-[1.5rem] bg-[var(--color-secondary)] p-8 text-center">
       <h3 className="text-lg font-medium">{title}</h3>
       {description && <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
@@ -24,7 +24,7 @@ export function EmptyState({
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-800">
+    <div className="rounded-2xl bg-[var(--color-destructive)]/10 p-4 text-center text-[var(--color-destructive)]">
       <p>{message}</p>
       {onRetry && (
         <button type="button" onClick={onRetry} className="mt-2 text-sm underline">

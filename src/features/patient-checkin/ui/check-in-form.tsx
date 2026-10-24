@@ -75,7 +75,7 @@ export function CheckInTodaySummary({ checkIn }: { checkIn: CheckIn }) {
   ]
 
   return (
-    <Card>
+    <Card className="surface-tape shadow-none">
       <CardHeader>
         <CardTitle>{pt.checkIn.title}</CardTitle>
         <CardDescription>{pt.checkIn.alreadySent}</CardDescription>
@@ -83,9 +83,9 @@ export function CheckInTodaySummary({ checkIn }: { checkIn: CheckIn }) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => (
-            <div key={metric.label} className="rounded-lg border p-3 text-center">
-              <p className="text-xs text-[var(--color-muted-foreground)]">{metric.label}</p>
-              <p className="text-2xl font-bold tabular-nums">{metric.value ?? '—'}</p>
+            <div key={metric.label} className="rounded-2xl bg-[var(--color-muted)] p-4 text-center">
+              <p className="text-sm text-[var(--color-muted-foreground)]">{metric.label}</p>
+              <p className="mt-1 font-display text-3xl font-semibold tabular-nums leading-none">{metric.value ?? '—'}</p>
             </div>
           ))}
         </div>
@@ -134,7 +134,7 @@ export function CheckInForm({ patientId, onSuccess }: CheckInFormProps) {
   })
 
   return (
-    <Card>
+    <Card className="surface-tape shadow-none">
       <CardHeader>
         <CardTitle>{pt.checkIn.title}</CardTitle>
         <CardDescription>{pt.checkIn.subtitle}</CardDescription>

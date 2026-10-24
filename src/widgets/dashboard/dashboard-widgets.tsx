@@ -54,10 +54,10 @@ export function AppointmentList({
         <Link
           key={a.id}
           to={`${base}/${a.id}`}
-          className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-[var(--color-accent)]"
+          className="surface-tape flex items-center justify-between bg-[var(--color-card)] p-4 transition-colors hover:bg-[var(--color-accent)]"
         >
           <div>
-            <p className="font-medium">{formatDateTime(a.scheduled_at)}</p>
+            <p className="font-display text-lg font-semibold">{formatDateTime(a.scheduled_at)}</p>
             <p className="text-sm text-[var(--color-muted-foreground)]">
               {role === 'patient'
                 ? a.physiotherapist?.profiles?.full_name
@@ -118,13 +118,9 @@ export function NextAppointmentCard({
 export function StatCard({ title, value, loading }: { title: string; value: number | string; loading?: boolean }) {
   if (loading) return <Skeleton className="h-24 w-full" />
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-[var(--color-muted-foreground)]">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-3xl font-bold">{value}</p>
-      </CardContent>
-    </Card>
+    <article className="surface-tape bg-[var(--color-card)] p-5">
+      <p className="text-sm text-[var(--color-muted-foreground)]">{title}</p>
+      <p className="mt-2 font-display text-4xl font-semibold tabular-nums leading-none">{value}</p>
+    </article>
   )
 }

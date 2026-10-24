@@ -93,7 +93,7 @@ export function PhysioToolDetailPage() {
 
         <header className="space-y-3">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{tool.name}</h1>
+            <h1 className="page-title">{tool.name}</h1>
             <FavoriteButton
               active={favorites.includes(tool.id)}
               name={tool.name}

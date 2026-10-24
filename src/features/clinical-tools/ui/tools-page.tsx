@@ -13,7 +13,7 @@ import { ToolCard } from './tool-card'
 import { useToolPrefs } from './use-tool-prefs'
 
 const selectClass =
-  'flex h-10 w-full rounded-md border border-[var(--color-input)] bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]'
+  'flex h-12 w-full rounded-2xl border-0 bg-[var(--color-muted)] px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] md:h-11 md:text-sm'
 
 function Chip({
   active,
@@ -79,8 +79,8 @@ export function PhysioToolsPage() {
     
       <div className="space-y-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{pt.tools.title}</h1>
-          <p className="max-w-3xl text-sm text-[var(--color-muted-foreground)]">{pt.tools.subtitle}</p>
+          <h1 className="page-title">{pt.tools.title}</h1>
+          <p className="page-kicker">{pt.tools.subtitle}</p>
         </div>
 
         <div className="space-y-2">

@@ -256,7 +256,7 @@ export function PatientProfilePage() {
   return (
     
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-2xl font-bold">{pt.patient.profile}</h1>
+        <h1 className="page-title">{pt.patient.profile}</h1>
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
@@ -330,7 +330,7 @@ export function PatientAppointmentsPage() {
   return (
     
       <div className="space-y-8">
-        <h1 className="text-2xl font-bold">Minhas consultas</h1>
+        <h1 className="page-title">Minhas consultas</h1>
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">{pt.patient.upcoming}</h2>
           <AppointmentList
@@ -383,7 +383,7 @@ export function PatientExercisesPage() {
   return (
     
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.patient.exercises}</h1>
+        <h1 className="page-title">{pt.patient.exercises}</h1>
         {patientQuery.data && <PatientExerciseList patientId={patientQuery.data.id} canComplete />}
       </div>
     
@@ -409,7 +409,7 @@ export function PatientCheckInPage() {
   return (
     
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-2xl font-bold">{pt.checkIn.title}</h1>
+        <h1 className="page-title">{pt.checkIn.title}</h1>
         {(patientQuery.isLoading || checkInQuery.isLoading) && <LoadingSpinner />}
         {patientQuery.data && todayCheckIn && <CheckInTodaySummary checkIn={todayCheckIn} />}
         {patientQuery.data && !checkInQuery.isLoading && !todayCheckIn && (
@@ -458,7 +458,7 @@ export function PatientCaregiversPage() {
   return (
     
       <div className="mx-auto max-w-lg space-y-6">
-        <h1 className="text-2xl font-bold">{pt.patient.caregivers}</h1>
+        <h1 className="page-title">{pt.patient.caregivers}</h1>
         {patientQuery.data && <CaregiverInviteForm patientId={patientQuery.data.id} />}
         {patientQuery.data && <CaregiverAuthorizeForm patientId={patientQuery.data.id} />}
         <Card>

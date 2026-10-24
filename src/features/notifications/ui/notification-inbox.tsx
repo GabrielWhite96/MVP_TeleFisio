@@ -54,7 +54,7 @@ export function NotificationInbox({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">{pt.notifications.title}</h1>
+        <h1 className="page-title">{pt.notifications.title}</h1>
         {unread > 0 && (
           <Button variant="outline" onClick={() => markAll.mutate()} disabled={markAll.isPending}>
             {pt.notifications.markAllRead}
@@ -68,7 +68,7 @@ export function NotificationInbox({ userId }: { userId: string }) {
           <button
             key={n.id}
             type="button"
-            className="w-full rounded-lg border p-4 text-left"
+            className="surface-tape w-full bg-[var(--color-card)] p-4 text-left"
             onClick={() => openNotification(n as Notification)}
           >
             <div className="flex items-start justify-between gap-2">

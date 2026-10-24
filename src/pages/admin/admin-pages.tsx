@@ -31,7 +31,7 @@ export function AdminDashboardPage() {
   return (
     
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.admin.dashboard}</h1>
+        <h1 className="page-title">{pt.admin.dashboard}</h1>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard title={pt.admin.stats.patients} value={statsQuery.data?.patients ?? 0} loading={statsQuery.isLoading} />
           <StatCard title={pt.admin.stats.physiotherapists} value={statsQuery.data?.physiotherapists ?? 0} loading={statsQuery.isLoading} />
@@ -48,7 +48,7 @@ export function AdminDashboardPage() {
                 <XAxis dataKey="name" fontSize={12} />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="oklch(0.45 0.12 200)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#1aa7a1" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -102,7 +102,7 @@ export function AdminUsersPage() {
   return (
     
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.admin.users}</h1>
+        <h1 className="page-title">{pt.admin.users}</h1>
         <Card>
           <CardContent className="pt-6">
             <Table>
@@ -190,7 +190,7 @@ export function AdminAppointmentsPage() {
   return (
     
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.admin.appointments}</h1>
+        <h1 className="page-title">{pt.admin.appointments}</h1>
         <Card>
           <CardContent className="pt-6">
             <Table>
@@ -235,7 +235,7 @@ export function AdminAuditLogsPage() {
   return (
     
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{pt.audit.title}</h1>
+        <h1 className="page-title">{pt.audit.title}</h1>
         <Card>
           <CardContent className="pt-6">
             <Table>
