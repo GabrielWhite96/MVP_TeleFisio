@@ -29,6 +29,7 @@ export const ROUTES = {
     billing: '/physio/billing',
     notifications: '/physio/notifications',
     profile: '/physio/profile',
+    subscription: '/physio/assinatura',
   },
   caregiver: {
     dashboard: '/caregiver/dashboard',

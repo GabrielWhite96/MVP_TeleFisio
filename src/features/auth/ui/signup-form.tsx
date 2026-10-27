@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { signupSchema, type SignupFormData } from '../model/schemas'
-import { signUp, getDashboardRoute } from '../api/auth-api'
+import { signUp } from '../api/auth-api'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -20,7 +20,7 @@ export function SignupForm() {
     mutationFn: signUp,
     onSuccess: async (result) => {
       if (result.user) {
-        navigate(getDashboardRoute('physiotherapist'))
+        navigate(ROUTES.physio.subscription)
       }
     },
   })
