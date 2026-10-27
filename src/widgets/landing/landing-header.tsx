@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Menu, X } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
+import { Button, buttonVariants } from '@/shared/ui/button'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { cn } from '@/shared/lib/utils'
@@ -40,12 +40,18 @@ export function LandingHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 sm:flex">
-          <Button asChild variant="ghost" className="text-[var(--landing-ink)]">
-            <Link to={ROUTES.login}>{pt.landing.login}</Link>
-          </Button>
-          <Button asChild className="bg-[var(--landing-teal)] text-white hover:opacity-90">
-            <Link to={ROUTES.signup}>{pt.landing.signup}</Link>
-          </Button>
+          <Link
+            to={ROUTES.login}
+            className={cn(buttonVariants({ variant: 'ghost' }), 'text-[var(--landing-ink)]')}
+          >
+            {pt.landing.login}
+          </Link>
+          <Link
+            to={ROUTES.signup}
+            className={cn(buttonVariants(), 'bg-[var(--landing-teal)] text-white hover:opacity-90')}
+          >
+            {pt.landing.signup}
+          </Link>
         </div>
 
         <Button
@@ -81,12 +87,15 @@ export function LandingHeader() {
           ))}
         </nav>
         <div className="mt-4 flex flex-col gap-2 sm:hidden">
-          <Button asChild variant="outline" className="w-full">
-            <Link to={ROUTES.login}>{pt.landing.login}</Link>
-          </Button>
-          <Button asChild className="w-full bg-[var(--landing-teal)] text-white hover:opacity-90">
-            <Link to={ROUTES.signup}>{pt.landing.signup}</Link>
-          </Button>
+          <Link to={ROUTES.login} className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}>
+            {pt.landing.login}
+          </Link>
+          <Link
+            to={ROUTES.signup}
+            className={cn(buttonVariants(), 'w-full bg-[var(--landing-teal)] text-white hover:opacity-90')}
+          >
+            {pt.landing.signup}
+          </Link>
         </div>
       </div>
     </header>

@@ -1,8 +1,9 @@
 import { AlertTriangle, GitCompareArrows, ChartNoAxesColumn, Smartphone } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/shared/ui/button'
+import { buttonVariants } from '@/shared/ui/button'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { cn } from '@/shared/lib/utils'
 
 const benefits = [
   { icon: AlertTriangle, title: pt.landing.benefitRiskTitle, body: pt.landing.benefitRiskBody },
@@ -42,9 +43,15 @@ export function LandingBenefits() {
           <p className="mx-auto mt-3 max-w-xl text-[color-mix(in_oklab,white_78%,transparent)]">
             {pt.landing.midCtaBody}
           </p>
-          <Button asChild size="lg" className="mt-6 bg-[var(--landing-cyan)] text-[var(--landing-ink)] hover:opacity-90">
-            <Link to={ROUTES.signup}>{pt.landing.midCtaButton}</Link>
-          </Button>
+          <Link
+            to={ROUTES.signup}
+            className={cn(
+              buttonVariants({ size: 'lg' }),
+              'mt-6 bg-[var(--landing-cyan)] text-[var(--landing-ink)] hover:opacity-90'
+            )}
+          >
+            {pt.landing.midCtaButton}
+          </Link>
         </div>
       </div>
     </section>

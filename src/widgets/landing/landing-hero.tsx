@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Button } from '@/shared/ui/button'
+import { buttonVariants } from '@/shared/ui/button'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { cn } from '@/shared/lib/utils'
 
 export function LandingHero() {
   return (
@@ -30,12 +31,18 @@ export function LandingHero() {
             {pt.landing.heroSubtitle}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" className="bg-[var(--landing-teal)] text-white hover:opacity-90">
-              <Link to={ROUTES.signup}>{pt.landing.heroPrimary}</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-[var(--landing-ink)]/20">
-              <Link to={ROUTES.login}>{pt.landing.heroSecondary}</Link>
-            </Button>
+            <Link
+              to={ROUTES.signup}
+              className={cn(buttonVariants({ size: 'lg' }), 'bg-[var(--landing-teal)] text-white hover:opacity-90')}
+            >
+              {pt.landing.heroPrimary}
+            </Link>
+            <Link
+              to={ROUTES.login}
+              className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'border-[var(--landing-ink)]/20')}
+            >
+              {pt.landing.heroSecondary}
+            </Link>
           </div>
         </div>
 

@@ -13,7 +13,7 @@ export function LandingPage() {
     <div className="landing-root min-h-screen bg-[var(--landing-paper)] font-[family-name:var(--font-landing-sans)] text-[var(--landing-ink)] antialiased">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--landing-teal)] focus:px-4 focus:py-2 focus:text-white"
+        className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:m-0 focus:inline-flex focus:h-auto focus:w-auto focus:overflow-visible focus:whitespace-normal focus:rounded-md focus:bg-[var(--landing-teal)] focus:px-4 focus:py-2 focus:text-white"
       >
         {pt.landing.skipToContent}
       </a>
