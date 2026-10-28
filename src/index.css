@@ -21,6 +21,58 @@
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
+  --font-landing-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --font-landing-sans: "Source Sans 3", "Source Sans Pro", "Segoe UI", sans-serif;
+}
+
+.landing-root {
+  --landing-paper: #f3f7f8;
+  --landing-mist: #dceced;
+  --landing-ink: #14323a;
+  --landing-ink-muted: #4a646c;
+  --landing-teal: #0f766e;
+  --landing-cyan: #5ec4c0;
+}
+
+@keyframes landing-care-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.landing-hero-copy {
+  animation: landing-care-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-care-sheet {
+  animation: landing-care-in 900ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-care-bar {
+  transform-origin: left center;
+  animation: landing-bar-fill 900ms 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-copy,
+  .landing-care-sheet,
+  .landing-care-bar {
+    animation: none;
+  }
 }
 
 * {

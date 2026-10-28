@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { ProtectedRoute, RoleGuard, GuestRoute } from '@/features/auth/ui/guards'
+import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
 import { LoginPage, SignupPage, ForgotPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
 import {
@@ -24,6 +24,7 @@ import {
   PhysioProfilePage,
   PhysioNotificationsPage,
 } from '@/pages/physio/physio-pages'
+import { PhysioSubscriptionPage } from '@/pages/physio/subscription-page'
 import { PhysioPatientReportPage, PhysioReportsPage } from '@/features/patient-report/ui/patient-report-page'
 import { PhysioToolDetailPage } from '@/features/clinical-tools/ui/tool-detail-page'
 import { PhysioToolsPage } from '@/features/clinical-tools/ui/tools-page'
@@ -35,6 +36,16 @@ import {
 } from '@/pages/admin/admin-pages'
 import { CaregiverDashboardPage } from '@/pages/caregiver/caregiver-pages'
 import { ROUTES } from '@/shared/config/routes'
+
+function PhysioRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <RoleGuard allowedRoles={['physiotherapist']}>
+        <SubscriptionGuard>{children}</SubscriptionGuard>
+      </RoleGuard>
+    </ProtectedRoute>
+  )
+}
 
 export const router = createBrowserRouter([
   { path: ROUTES.home, element: <HomePage /> },
@@ -78,60 +89,70 @@ export const router = createBrowserRouter([
   },
 
   {
+    path: ROUTES.physio.subscription,
+    element: (
+      <ProtectedRoute>
+        <RoleGuard allowedRoles={['physiotherapist']}>
+          <PhysioSubscriptionPage />
+        </RoleGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: ROUTES.physio.dashboard,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioDashboardPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioDashboardPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.agenda,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAgendaPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioAgendaPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.billing,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioBillingPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioBillingPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.reports,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioReportsPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioReportsPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.tools,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolsPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioToolsPage /></PhysioRoute>,
   },
   {
     path: '/physio/ferramentas/:slug',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioToolDetailPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioToolDetailPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.patients,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientsPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioPatientsPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.patientNew,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientNewPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioPatientNewPage /></PhysioRoute>,
   },
   {
     path: '/physio/patients/:id/relatorio',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientReportPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioPatientReportPage /></PhysioRoute>,
   },
   {
     path: '/physio/patients/:id',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioPatientDetailPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioPatientDetailPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.appointmentNew,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentNewPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioAppointmentNewPage /></PhysioRoute>,
   },
   {
     path: '/physio/appointments/:id',
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioAppointmentDetailPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioAppointmentDetailPage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.profile,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioProfilePage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioProfilePage /></PhysioRoute>,
   },
   {
     path: ROUTES.physio.notifications,
-    element: <ProtectedRoute><RoleGuard allowedRoles={['physiotherapist']}><PhysioNotificationsPage /></RoleGuard></ProtectedRoute>,
+    element: <PhysioRoute><PhysioNotificationsPage /></PhysioRoute>,
   },
 
   {

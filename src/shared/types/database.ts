@@ -84,6 +84,8 @@ export interface Database {
           bio: string | null
           subscription_status: SaasSubscriptionStatus
           trial_ends_at: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           created_at: string
           updated_at: string
         }
@@ -98,6 +100,8 @@ export interface Database {
           bio?: string | null
           subscription_status?: SaasSubscriptionStatus
           trial_ends_at?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
         }
         Update: Partial<Database['public']['Tables']['physiotherapists']['Insert']>
       }

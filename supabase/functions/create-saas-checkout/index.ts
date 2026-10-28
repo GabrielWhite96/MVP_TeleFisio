@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
 
   const { data: physio, error: physioError } = await supabase
     .from("physiotherapists")
-    .select("id")
+    .select("id, stripe_customer_id")
     .eq("profile_id", user.id)
     .single();
   if (physioError || !physio) return json({ error: "Physiotherapist not found" }, 400);
@@ -38,13 +38,20 @@ Deno.serve(async (req) => {
   params.set("mode", "subscription");
   params.set("line_items[0][price]", priceId);
   params.set("line_items[0][quantity]", "1");
-  params.set("success_url", `${origin}/physio/dashboard`);
-  params.set("cancel_url", `${origin}/physio/dashboard`);
+  params.set("success_url", `${origin}/physio/assinatura?checkout=success`);
+  params.set("cancel_url", `${origin}/physio/assinatura?checkout=cancel`);
   params.set("client_reference_id", physio.id);
   params.set("metadata[kind]", "saas");
   params.set("metadata[physiotherapist_id]", physio.id);
   params.set("subscription_data[metadata][kind]", "saas");
   params.set("subscription_data[metadata][physiotherapist_id]", physio.id);
+  params.set("allow_promotion_codes", "true");
+
+  if (physio.stripe_customer_id) {
+    params.set("customer", physio.stripe_customer_id);
+  } else if (user.email) {
+    params.set("customer_email", user.email);
+  }
 
   const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

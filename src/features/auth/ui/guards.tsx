@@ -1,5 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/use-auth'
+import { getPhysiotherapistByProfileId } from '@/entities/physiotherapist/api/physiotherapist-api'
+import { canManagePractice } from '@/entities/physiotherapist/model/subscription-access'
+import { queryKeys } from '@/shared/api/query-keys'
 import { LoadingSpinner } from '@/shared/ui/states'
 import type { UserRole } from '@/shared/types/database'
 import { ROUTES } from '@/shared/config/routes'
@@ -42,6 +46,37 @@ export function RoleGuard({
 
   if (!profile || !allowedRoles.includes(profile.role)) {
     return <Navigate to={ROUTES.home} replace />
+  }
+
+  return <>{children}</>
+}
+
+/** Blocks physiotherapists without an active subscription from internal clinic routes. */
+export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
+  const { profile, user, isLoading } = useAuth()
+  const location = useLocation()
+
+  const physioQuery = useQuery({
+    queryKey: queryKeys.physiotherapist(user?.id ?? ''),
+    queryFn: () => getPhysiotherapistByProfileId(user!.id),
+    enabled: profile?.role === 'physiotherapist' && !!user?.id,
+  })
+
+  if (isLoading || (profile?.role === 'physiotherapist' && physioQuery.isLoading)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  if (profile?.role === 'physiotherapist') {
+    if (physioQuery.error || !physioQuery.data) {
+      return <Navigate to={ROUTES.physio.subscription} replace />
+    }
+    if (!canManagePractice(physioQuery.data) && location.pathname !== ROUTES.physio.subscription) {
+      return <Navigate to={ROUTES.physio.subscription} replace />
+    }
   }
 
   return <>{children}</>

@@ -3,9 +3,9 @@ import type { SaasSubscriptionStatus } from '@/shared/types/database'
 
 export function canManagePractice(physio: {
   subscription_status: SaasSubscriptionStatus
-  trial_ends_at: string | null
+  trial_ends_at?: string | null
 }) {
-  return physio.subscription_status !== 'inactive'
+  return physio.subscription_status === 'active'
 }
 
 export function trialDaysLeft(trialEndsAt: string | null) {
@@ -21,6 +21,6 @@ export async function assertPracticeWritable(physiotherapistId: string) {
     .single()
   if (error) throw error
   if (!canManagePractice(data)) {
-    throw new Error('Assinatura inativa. Renove para cadastrar pacientes e consultas.')
+    throw new Error('Assinatura inativa. Assine para cadastrar pacientes e consultas.')
   }
 }
