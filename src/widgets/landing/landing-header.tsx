@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Menu, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/shared/ui/button'
@@ -14,89 +14,108 @@ const anchors = [
   { href: '#faq', label: pt.landing.navFaq },
 ] as const
 
-export function LandingHeader() {
+interface LandingHeaderProps {
+  headerRef: RefObject<HTMLElement | null>
+  progressRef: RefObject<HTMLSpanElement | null>
+}
+
+export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="landing-header sticky top-0 z-40 border-b border-[color-mix(in_oklab,var(--landing-ink)_12%,transparent)] bg-[color-mix(in_oklab,var(--landing-paper)_88%,transparent)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <a href="#topo" className="flex items-center gap-2 text-[var(--landing-ink)]">
-          <Activity className="h-6 w-6 text-[var(--landing-teal)]" aria-hidden />
-          <span className="font-[family-name:var(--font-landing-display)] text-xl font-semibold tracking-tight">
-            {pt.landing.heroBrand}
-          </span>
-        </a>
+    <header ref={headerRef} className="landing-header pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4">
+      <div className="landing-glass pointer-events-auto relative mx-auto max-w-6xl overflow-hidden rounded-2xl">
+        <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-5">
+          <a href="#topo" className="flex items-center gap-2 text-[var(--landing-ink)]">
+            <span className="landing-mark text-[var(--landing-teal)]">
+              <Activity className="h-6 w-6" aria-hidden />
+            </span>
+            <span className="landing-wordmark font-[family-name:var(--font-landing-display)] text-xl font-semibold tracking-tight">
+              {pt.landing.heroBrand}
+            </span>
+          </a>
 
-        <nav className="hidden items-center gap-6 lg:flex" aria-label="Seções">
-          {anchors.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="text-sm font-medium text-[var(--landing-ink-muted)] transition-colors hover:text-[var(--landing-ink)]"
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Seções">
+            {anchors.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                data-landing-nav=""
+                className="landing-nav-link rounded-lg px-3 py-2 text-sm font-medium text-[var(--landing-ink-muted)]"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-2 sm:flex">
+            <Link
+              to={ROUTES.login}
+              className={cn(buttonVariants({ variant: 'ghost' }), 'landing-cta text-[var(--landing-ink)] hover:bg-white/40')}
             >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+              {pt.landing.login}
+            </Link>
+            <Link
+              to={ROUTES.signup}
+              className={cn(buttonVariants(), 'landing-cta landing-cta-primary bg-[var(--landing-teal)] text-white hover:opacity-90')}
+            >
+              {pt.landing.signup}
+            </Link>
+          </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
-          <Link
-            to={ROUTES.login}
-            className={cn(buttonVariants({ variant: 'ghost' }), 'text-[var(--landing-ink)]')}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="landing-mobile-nav"
+            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
           >
-            {pt.landing.login}
-          </Link>
-          <Link
-            to={ROUTES.signup}
-            className={cn(buttonVariants(), 'bg-[var(--landing-teal)] text-white hover:opacity-90')}
-          >
-            {pt.landing.signup}
-          </Link>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="landing-mobile-nav"
-          aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+        <div
+          id="landing-mobile-nav"
+          className="landing-mobile-nav"
+          data-open={open ? '' : undefined}
+          inert={!open}
+          aria-hidden={!open}
         >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
-
-      <div
-        id="landing-mobile-nav"
-        className={cn(
-          'border-t border-[color-mix(in_oklab,var(--landing-ink)_10%,transparent)] bg-[var(--landing-paper)] px-4 py-4 lg:hidden',
-          open ? 'block' : 'hidden'
-        )}
-      >
-        <nav className="flex flex-col gap-2" aria-label="Seções mobile">
-          {anchors.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-3 py-3 text-base font-medium text-[var(--landing-ink)] hover:bg-[var(--landing-mist)]"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <div className="mt-4 flex flex-col gap-2 sm:hidden">
-          <Link to={ROUTES.login} className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}>
-            {pt.landing.login}
-          </Link>
-          <Link
-            to={ROUTES.signup}
-            className={cn(buttonVariants(), 'w-full bg-[var(--landing-teal)] text-white hover:opacity-90')}
-          >
-            {pt.landing.signup}
-          </Link>
+          <div className="landing-mobile-nav-inner">
+            <div className="border-t border-white/40 px-4 py-4">
+              <nav className="flex flex-col gap-1" aria-label="Seções mobile">
+                {anchors.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    data-landing-nav=""
+                    className="landing-nav-link rounded-lg px-3 py-3 text-base font-medium text-[var(--landing-ink)]"
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+              <div className="mt-4 flex flex-col gap-2 sm:hidden">
+                <Link to={ROUTES.login} className={cn(buttonVariants({ variant: 'outline' }), 'landing-cta w-full bg-white/40')}>
+                  {pt.landing.login}
+                </Link>
+                <Link
+                  to={ROUTES.signup}
+                  className={cn(
+                    buttonVariants(),
+                    'landing-cta landing-cta-primary w-full bg-[var(--landing-teal)] text-white hover:opacity-90'
+                  )}
+                >
+                  {pt.landing.signup}
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
+        <span ref={progressRef} className="landing-progress" aria-hidden />
       </div>
     </header>
   )
