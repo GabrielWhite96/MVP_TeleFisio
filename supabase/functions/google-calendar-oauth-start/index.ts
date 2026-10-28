@@ -54,9 +54,12 @@ Deno.serve(async (req) => {
       url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
     });
   } catch (error) {
-    return json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      500
-    );
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("google-calendar-oauth-start", message);
+    const status =
+      message.includes("GOOGLE_CLIENT_ID") || message.includes("GOOGLE_CLIENT_SECRET")
+        ? 503
+        : 500;
+    return json({ error: message }, status);
   }
 });

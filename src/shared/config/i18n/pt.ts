@@ -279,6 +279,9 @@ export const pt = {
     googleDisconnected: 'Google Agenda desconectada.',
     googleConnectError: 'Não foi possível conectar ao Google Agenda',
     googleDisconnectError: 'Não foi possível desconectar o Google Agenda',
+    googleNotConfigured:
+      'A integração com o Google Agenda ainda não foi configurada no servidor. Cadastre GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET e GOOGLE_TOKEN_ENCRYPTION_KEY nas secrets das Edge Functions.',
+    googlePhysioNotFound: 'Não encontramos o perfil de fisioterapeuta desta conta.',
   },
   caregiver: {
     dashboard: 'Acompanhamento',
