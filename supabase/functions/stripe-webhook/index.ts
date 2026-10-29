@@ -198,15 +198,28 @@ async function provisionSaasAccess(supabase: SupabaseClient, obj: StripeObject) 
 
   if (!profileId) {
     if (!email) throw new Error("missing_email");
+    const { data: provisionToken, error: allowError } = await supabase.rpc("service_allow_stripe_physio", {
+      p_email: email,
+      p_full_name: fullName,
+    });
+    if (allowError || !provisionToken) throw allowError ?? new Error("provision_allow_failed");
+    const provisionTokenValue = String(provisionToken);
     generatedPassword = generatePassword();
     const { data: created, error: createError } = await supabase.auth.admin.createUser({
       email,
       password: generatedPassword,
       email_confirm: true,
-      user_metadata: { full_name: fullName, role: "physiotherapist" },
+      user_metadata: {
+        full_name: fullName,
+        role: "physiotherapist",
+        provision_token: provisionTokenValue,
+      },
       app_metadata: { provisioned_by: "stripe_saas", role: "physiotherapist" },
     });
-    if (createError || !created.user) throw createError ?? new Error("create_user_failed");
+    if (createError || !created.user) {
+      console.error("createUser failed", createError?.message ?? "create_user_failed");
+      throw createError ?? new Error("create_user_failed");
+    }
     profileId = created.user.id;
     createdNow = true;
     const { data: createdPhysio } = await supabase
