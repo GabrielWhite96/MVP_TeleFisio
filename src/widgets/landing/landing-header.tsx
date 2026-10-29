@@ -56,7 +56,7 @@ export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
               {pt.landing.login}
             </Link>
             <Link
-              to={ROUTES.signup}
+              to={ROUTES.subscribe}
               className={cn(buttonVariants(), 'landing-cta landing-cta-primary bg-[var(--landing-teal)] text-white hover:opacity-90')}
             >
               {pt.landing.signup}
@@ -103,7 +103,7 @@ export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
                   {pt.landing.login}
                 </Link>
                 <Link
-                  to={ROUTES.signup}
+                  to={ROUTES.subscribe}
                   className={cn(
                     buttonVariants(),
                     'landing-cta landing-cta-primary w-full bg-[var(--landing-teal)] text-white hover:opacity-90'

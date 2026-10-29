@@ -1,5 +1,17 @@
 import { supabase } from '@/shared/api/supabase'
+import { ROUTES } from '@/shared/config/routes'
 import type { SaasSubscriptionStatus } from '@/shared/types/database'
+
+const PHYSIO_HUB_PATHS = [
+  ROUTES.physio.dashboard,
+  ROUTES.physio.profile,
+  ROUTES.physio.notifications,
+  ROUTES.physio.subscription,
+] as const
+
+export function isPhysioHubPath(pathname: string) {
+  return PHYSIO_HUB_PATHS.some((path) => pathname === path)
+}
 
 export function canManagePractice(physio: {
   subscription_status: SaasSubscriptionStatus

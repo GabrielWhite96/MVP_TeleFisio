@@ -49,7 +49,7 @@ export function LandingPricing() {
               ))}
             </ul>
             <Link
-              to={ROUTES.signup}
+              to={ROUTES.subscribe}
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary mt-8 w-full bg-[var(--landing-teal)] text-white hover:opacity-90'

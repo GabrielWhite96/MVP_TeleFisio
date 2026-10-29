@@ -23,7 +23,7 @@ export function LandingFooter() {
             <Link to={ROUTES.login} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
               {pt.landing.footerLogin}
             </Link>
-            <Link to={ROUTES.signup} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
+            <Link to={ROUTES.subscribe} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
               {pt.landing.footerSignup}
             </Link>
           </div>

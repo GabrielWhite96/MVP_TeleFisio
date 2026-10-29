@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId, updatePhysiotherapist } from '@/entities/physiotherapist/api/physiotherapist-api'
 import { canManagePractice } from '@/entities/physiotherapist/model/subscription-access'
+import { InactivePracticeHub } from '@/features/billing/ui/inactive-practice-hub'
 import { getPhysioOnboarding, getPhysioPatientStats } from '@/entities/physiotherapist/api/physio-stats-api'
 import { getPhysioOwnedPatients, getPatientById } from '@/entities/patient/api/patient-api'
 import { getAppointments, getAppointmentById } from '@/entities/appointment/api/appointment-api'
@@ -59,34 +60,36 @@ export function PhysioDashboardPage() {
     enabled: !!user?.id,
   })
 
+  const practiceOpen = physioQuery.data ? canManagePractice(physioQuery.data) : false
+
   const appointmentsQuery = useQuery({
     queryKey: queryKeys.appointments({ physiotherapistId: physioQuery.data?.id }),
     queryFn: () => getAppointments({ physiotherapistId: physioQuery.data!.id }),
-    enabled: !!physioQuery.data?.id,
+    enabled: !!physioQuery.data?.id && practiceOpen,
   })
 
   const patientsQuery = useQuery({
     queryKey: queryKeys.physioPatients(physioQuery.data?.id ?? ''),
     queryFn: () => getPhysioOwnedPatients(physioQuery.data!.id),
-    enabled: !!physioQuery.data?.id,
+    enabled: !!physioQuery.data?.id && practiceOpen,
   })
 
   const statsQuery = useQuery({
     queryKey: queryKeys.physioPatientStats(physioQuery.data?.id ?? ''),
     queryFn: () => getPhysioPatientStats(physioQuery.data!.id),
-    enabled: !!physioQuery.data?.id,
+    enabled: !!physioQuery.data?.id && practiceOpen,
   })
 
   const onboardingQuery = useQuery({
     queryKey: queryKeys.physioOnboarding(physioQuery.data?.id ?? ''),
     queryFn: () => getPhysioOnboarding(physioQuery.data!.id),
-    enabled: !!physioQuery.data?.id,
+    enabled: !!physioQuery.data?.id && practiceOpen,
   })
 
   const atRiskQuery = useQuery({
     queryKey: queryKeys.atRiskPatients(physioQuery.data?.id),
     queryFn: () => getAtRiskPatients(physioQuery.data!.id),
-    enabled: !!physioQuery.data?.id,
+    enabled: !!physioQuery.data?.id && practiceOpen,
   })
 
   const notificationsQuery = useQuery({
@@ -105,12 +108,22 @@ export function PhysioDashboardPage() {
     (n) => !n.read_at && (n.type === 'appointment_reminder' || n.type === 'evaluation_due')
   ) ?? []
 
-  const practiceOpen = !physioQuery.data || canManagePractice(physioQuery.data)
-
   const reasonLabels: Record<string, string> = {
     high_pain: 'Dor alta',
     low_adherence: 'Baixa adesão',
     missing_check_in: 'Sem check-in',
+  }
+
+  if (physioQuery.isLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <LoadingSpinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  if (physioQuery.data && !practiceOpen) {
+    return <InactivePracticeHub />
   }
 
   return (

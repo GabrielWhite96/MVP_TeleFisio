@@ -38,7 +38,7 @@ export function LandingHero({ parallaxRef }: { parallaxRef: RefObject<HTMLDivEle
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              to={ROUTES.signup}
+              to={ROUTES.subscribe}
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary bg-[var(--landing-teal)] text-white hover:opacity-90'

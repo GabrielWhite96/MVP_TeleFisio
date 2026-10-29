@@ -1,21 +1,35 @@
 import { supabase } from '@/shared/api/supabase'
 import type { SaasSubscriptionStatus } from '@/shared/types/database'
 
-export async function startSaasCheckout() {
-  const { data, error } = await supabase.functions.invoke('create-saas-checkout', {
-    body: { origin: window.location.origin },
-  })
+async function openSaasCheckout(body: {
+  origin: string
+  email?: string
+  fullName?: string
+}) {
+  const { data, error } = await supabase.functions.invoke('create-saas-checkout', { body })
   if (error) {
     const context = (error as { context?: Response }).context
     if (context && typeof context.json === 'function') {
-      const body = await context.json().catch(() => null) as { error?: string } | null
-      if (body?.error) throw new Error(body.error)
+      const payload = await context.json().catch(() => null) as { error?: string } | null
+      if (payload?.error) throw new Error(payload.error)
     }
     throw new Error('Não foi possível abrir o checkout.')
   }
   const payload = (data ?? {}) as { url?: string; error?: string }
   if (!payload.url) throw new Error(payload.error ?? 'Checkout indisponível')
   window.location.assign(payload.url)
+}
+
+export async function startSaasCheckout() {
+  await openSaasCheckout({ origin: window.location.origin })
+}
+
+export async function startPublicSaasCheckout(input: { email: string; fullName: string }) {
+  await openSaasCheckout({
+    origin: window.location.origin,
+    email: input.email,
+    fullName: input.fullName,
+  })
 }
 
 export async function getAdminPhysioSubscriptions() {

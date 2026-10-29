@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canManagePractice, trialDaysLeft } from '@/entities/physiotherapist/model/subscription-access'
+import { canManagePractice, isPhysioHubPath, trialDaysLeft } from '@/entities/physiotherapist/model/subscription-access'
 import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
@@ -30,13 +30,19 @@ describe('trialDaysLeft', () => {
 })
 
 describe('SaaS plan offer', () => {
-  it('exposes the R$ 27 monthly plan', () => {
-    expect(SAAS_PLAN.amountLabel).toBe('R$ 27')
+  it('exposes the R$ 29,90 monthly plan', () => {
+    expect(SAAS_PLAN.amountLabel).toBe('R$ 29,90')
     expect(SAAS_PLAN.interval).toBe('mês')
   })
 
   it('has a dedicated subscription route', () => {
     expect(ROUTES.physio.subscription).toBe('/physio/assinatura')
+    expect(ROUTES.subscribe).toBe('/assinar')
+  })
+
+  it('treats the dashboard as the inactive hub', () => {
+    expect(isPhysioHubPath('/physio/dashboard')).toBe(true)
+    expect(isPhysioHubPath('/physio/agenda')).toBe(false)
   })
 
   it('describes the paywall lock in Portuguese', () => {

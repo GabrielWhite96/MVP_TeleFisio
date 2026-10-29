@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   LayoutDashboard,
   Calendar,
@@ -16,12 +17,16 @@ import {
   Wallet,
   BarChart3,
   Library,
+  CreditCard,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { signOut } from '@/features/auth/api/auth-api'
 import { ConsentModal } from '@/features/consent/ui/consent-modal'
 import { SubscriptionBanner } from '@/features/billing/ui/subscription-banner'
+import { getPhysiotherapistByProfileId } from '@/entities/physiotherapist/api/physiotherapist-api'
+import { canManagePractice } from '@/entities/physiotherapist/model/subscription-access'
+import { queryKeys } from '@/shared/api/query-keys'
 import { useRealtimeNotifications } from '@/features/notifications/hooks/use-realtime-notifications'
 import { useTranslation } from '@/shared/config/i18n/use-translation'
 import { cn } from '@/shared/lib/utils'
@@ -70,10 +75,26 @@ const navByRole: Record<UserRole, NavItem[]> = {
   ],
 }
 
+const physioHubNav: NavItem[] = [
+  { label: pt.physio.dashboard, href: ROUTES.physio.dashboard, icon: LayoutDashboard },
+  { label: pt.saas.status, href: ROUTES.physio.subscription, icon: CreditCard },
+  { label: pt.patient.notifications, href: ROUTES.physio.notifications, icon: Bell },
+  { label: pt.patient.profile, href: ROUTES.physio.profile, icon: User },
+]
+
 export function AppLayout({ children }: { children?: ReactNode }) {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const physioQuery = useQuery({
+    queryKey: queryKeys.physiotherapist(user?.id ?? ''),
+    queryFn: () => getPhysiotherapistByProfileId(user!.id),
+    enabled: profile?.role === 'physiotherapist' && !!user?.id,
+  })
+  const clinicOpen = profile?.role !== 'physiotherapist'
+    || physioQuery.isLoading
+    || !physioQuery.data
+    || canManagePractice(physioQuery.data)
   const mainRef = useRef<HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { locale, setLocale } = useTranslation()
@@ -87,7 +108,9 @@ export function AppLayout({ children }: { children?: ReactNode }) {
 
   if (!profile) return <>{content}</>
 
-  const navItems = navByRole[profile.role]
+  const navItems = profile.role === 'physiotherapist' && !clinicOpen
+    ? physioHubNav
+    : navByRole[profile.role]
   const isPatient = profile.role === 'patient'
   const patientMobileHrefs: string[] = [
     ROUTES.patient.dashboard,
@@ -95,12 +118,19 @@ export function AppLayout({ children }: { children?: ReactNode }) {
     ROUTES.patient.exercises,
     ROUTES.patient.checkIn,
   ]
-  const physioMobileHrefs: string[] = [
-    ROUTES.physio.dashboard,
-    ROUTES.physio.agenda,
-    ROUTES.physio.patients,
-    ROUTES.physio.tools,
-  ]
+  const physioMobileHrefs: string[] = clinicOpen
+    ? [
+      ROUTES.physio.dashboard,
+      ROUTES.physio.agenda,
+      ROUTES.physio.patients,
+      ROUTES.physio.tools,
+    ]
+    : [
+      ROUTES.physio.dashboard,
+      ROUTES.physio.subscription,
+      ROUTES.physio.notifications,
+      ROUTES.physio.profile,
+    ]
   const mobileNavItems = isPatient
     ? navItems.filter((item) => patientMobileHrefs.includes(item.href))
     : profile.role === 'physiotherapist'

@@ -92,10 +92,10 @@ export function LoginForm() {
           <span className="text-[var(--color-muted-foreground)]">
             {pt.auth.noAccount}{' '}
             <Link
-              to={ROUTES.signup}
+              to={ROUTES.subscribe}
               className="font-bold text-[var(--color-primary)] underline-offset-4 hover:underline"
             >
-              {pt.auth.signup}
+              {pt.auth.subscribeCta}
             </Link>
           </span>
         </div>

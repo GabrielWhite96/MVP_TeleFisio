@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { escapeHtml, sendGmail } from "../_shared/gmail-smtp.ts";
 
 type StripeObject = {
   id?: string;
@@ -8,6 +9,8 @@ type StripeObject = {
   subscription?: string | { id?: string } | null;
   status?: string;
   payment_status?: string;
+  customer_email?: string | null;
+  customer_details?: { email?: string | null; name?: string | null } | null;
   metadata?: Record<string, string>;
   client_reference_id?: string | null;
 };
@@ -29,11 +32,19 @@ function mapSubscriptionStatus(stripeStatus: string | undefined): "active" | "in
   return "inactive";
 }
 
-async function verifyStripeSignature(
-  payload: string,
-  header: string,
-  secret: string,
-): Promise<boolean> {
+function generatePassword(length = 20) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+}
+
+function appOrigin() {
+  return (Deno.env.get("APP_URL") ?? Deno.env.get("SITE_URL") ?? "http://localhost:5173")
+    .trim()
+    .replace(/\/$/, "");
+}
+
+async function verifyStripeSignature(payload: string, header: string, secret: string) {
   const parts = Object.fromEntries(
     header.split(",").map((item) => {
       const [k, v] = item.split("=");
@@ -69,6 +80,187 @@ async function verifyStripeSignature(
     mismatch |= digest.charCodeAt(i) ^ signature.charCodeAt(i);
   }
   return mismatch === 0;
+}
+
+async function sendCredentialsEmail(input: {
+  to: string;
+  email: string;
+  password?: string;
+  loginUrl: string;
+  kind: "created" | "reactivated";
+}) {
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
+  const appPassword = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replaceAll(" ", "");
+  if (!gmailUser || !appPassword) {
+    return { ok: false as const, reason: "missing_key", status: 501 };
+  }
+  if (input.to.includes("\r") || input.to.includes("\n")) {
+    return { ok: false as const, reason: "invalid_email", status: 400 };
+  }
+
+  const subject = input.kind === "created"
+    ? "Seu acesso ao TeleFisio foi criado"
+    : "Sua assinatura do TeleFisio está ativa";
+  const intro = input.kind === "created"
+    ? "O pagamento foi confirmado e o acesso profissional foi criado."
+    : "O pagamento foi confirmado e sua assinatura voltou a ficar ativa.";
+  const secretBlock = input.password
+    ? `<p>E-mail: <strong>${escapeHtml(input.email)}</strong></p><p>Senha temporária: <strong>${escapeHtml(input.password)}</strong></p><p>Recomendamos alterar a senha depois do primeiro acesso.</p>`
+    : `<p>Entre com o e-mail <strong>${escapeHtml(input.email)}</strong> e a senha que você já usa no TeleFisio.</p>`;
+  const html = `<p>${intro}</p>${secretBlock}<p><a href="${escapeHtml(input.loginUrl)}">${escapeHtml(input.loginUrl)}</a></p>`;
+
+  return sendGmail({
+    user: gmailUser,
+    appPassword,
+    to: input.to,
+    subject,
+    html,
+  });
+}
+
+async function markPhysioActive(
+  supabase: SupabaseClient,
+  physioId: string,
+  updates: Record<string, string | null>,
+) {
+  const { error } = await supabase.from("physiotherapists").update(updates).eq("id", physioId);
+  if (error) throw error;
+}
+
+async function provisionSaasAccess(supabase: SupabaseClient, obj: StripeObject) {
+  const email = (
+    obj.customer_details?.email ??
+    obj.customer_email ??
+    obj.metadata?.signup_email ??
+    ""
+  ).trim().toLowerCase();
+  const fullName = (obj.metadata?.full_name ?? obj.customer_details?.name ?? email.split("@")[0] ?? "Fisioterapeuta")
+    .trim()
+    .slice(0, 120);
+  const customer = customerId(obj.customer);
+  const subId = subscriptionId(obj.subscription);
+  const physioFromMeta = obj.metadata?.physiotherapist_id || obj.client_reference_id || "";
+  const updates: Record<string, string | null> = {
+    subscription_status: obj.payment_status === "unpaid" ? "inactive" : "active",
+  };
+  if (customer) updates.stripe_customer_id = customer;
+  if (subId) updates.stripe_subscription_id = subId;
+
+  if (obj.payment_status === "unpaid") {
+    if (physioFromMeta) await markPhysioActive(supabase, physioFromMeta, updates);
+    return { ok: true as const };
+  }
+
+  let physioId = physioFromMeta;
+  let profileId: string | null = null;
+  let credentialsSentAt: string | null = null;
+  let provisionedByStripe = false;
+
+  if (physioId) {
+    const { data: existing } = await supabase
+      .from("physiotherapists")
+      .select("id, profile_id, credentials_email_sent_at")
+      .eq("id", physioId)
+      .maybeSingle();
+    if (existing) {
+      profileId = existing.profile_id;
+      credentialsSentAt = existing.credentials_email_sent_at;
+    }
+  }
+
+  if (!profileId && email) {
+    const { data: existingUserId } = await supabase.rpc("service_find_auth_user_id", { p_email: email });
+    if (typeof existingUserId === "string" && existingUserId) {
+      profileId = existingUserId;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", existingUserId)
+        .maybeSingle();
+      if (profile && profile.role !== "physiotherapist") {
+        console.error("saas checkout email belongs to another role");
+        return { ok: true as const };
+      }
+      const { data: existingPhysio } = await supabase
+        .from("physiotherapists")
+        .select("id, credentials_email_sent_at")
+        .eq("profile_id", existingUserId)
+        .maybeSingle();
+      if (existingPhysio) {
+        physioId = existingPhysio.id;
+        credentialsSentAt = existingPhysio.credentials_email_sent_at;
+      }
+    }
+  }
+
+  let generatedPassword: string | undefined;
+  let createdNow = false;
+
+  if (!profileId) {
+    if (!email) throw new Error("missing_email");
+    generatedPassword = generatePassword();
+    const { data: created, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password: generatedPassword,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, role: "physiotherapist" },
+      app_metadata: { provisioned_by: "stripe_saas", role: "physiotherapist" },
+    });
+    if (createError || !created.user) throw createError ?? new Error("create_user_failed");
+    profileId = created.user.id;
+    createdNow = true;
+    const { data: createdPhysio } = await supabase
+      .from("physiotherapists")
+      .select("id, credentials_email_sent_at")
+      .eq("profile_id", profileId)
+      .maybeSingle();
+    physioId = createdPhysio?.id ?? "";
+    credentialsSentAt = createdPhysio?.credentials_email_sent_at ?? null;
+    provisionedByStripe = true;
+  } else {
+    const { data: user } = await supabase.auth.admin.getUserById(profileId);
+    provisionedByStripe = user.user?.app_metadata?.provisioned_by === "stripe_saas";
+  }
+
+  if (!physioId && profileId) {
+    const { data: createdPhysio } = await supabase
+      .from("physiotherapists")
+      .select("id")
+      .eq("profile_id", profileId)
+      .maybeSingle();
+    physioId = createdPhysio?.id ?? "";
+  }
+  if (!physioId) throw new Error("physio_missing");
+
+  await markPhysioActive(supabase, physioId, updates);
+
+  if (credentialsSentAt) return { ok: true as const };
+
+  const loginUrl = `${appOrigin()}/auth/login`;
+  const shouldIssuePassword = createdNow || provisionedByStripe;
+  if (shouldIssuePassword && !generatedPassword) {
+    generatedPassword = generatePassword();
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(profileId, {
+      password: generatedPassword,
+    });
+    if (passwordError) throw passwordError;
+  }
+
+  const sent = await sendCredentialsEmail({
+    to: email,
+    email,
+    password: shouldIssuePassword ? generatedPassword : undefined,
+    loginUrl,
+    kind: shouldIssuePassword ? "created" : "reactivated",
+  });
+  if (!sent.ok) return sent;
+
+  await supabase
+    .from("physiotherapists")
+    .update({ credentials_email_sent_at: new Date().toISOString() })
+    .eq("id", physioId);
+
+  return { ok: true as const };
 }
 
 Deno.serve(async (req) => {
@@ -108,33 +300,35 @@ Deno.serve(async (req) => {
   const obj = event.data?.object;
   const kind = obj?.metadata?.kind;
   const physioFromMeta = obj?.metadata?.physiotherapist_id;
-  const physioFromRef = obj?.client_reference_id ?? undefined;
-  const physioId = physioFromMeta || physioFromRef;
 
-  if (kind === "saas" || physioId) {
-    if (
-      event.type === "checkout.session.completed" ||
-      event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.deleted"
-    ) {
+  if (kind === "saas" || physioFromMeta) {
+    if (event.type === "checkout.session.completed") {
+      try {
+        const result = await provisionSaasAccess(supabase, obj ?? {});
+        if (!result.ok) {
+          return new Response(JSON.stringify({ error: result.reason }), { status: result.status });
+        }
+      } catch (error) {
+        console.error("saas provision failed", error instanceof Error ? error.message : "unknown");
+        return new Response(JSON.stringify({ error: "provision_failed" }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const status = event.type === "customer.subscription.deleted"
         ? "inactive"
-        : event.type === "checkout.session.completed"
-          ? (obj?.payment_status === "unpaid" ? "inactive" : "active")
-          : mapSubscriptionStatus(obj?.status);
-
-      const updates: Record<string, string | null> = {
-        subscription_status: status,
-      };
+        : mapSubscriptionStatus(obj?.status);
+      const updates: Record<string, string | null> = { subscription_status: status };
       const customer = customerId(obj?.customer);
-      const subId = event.type === "checkout.session.completed"
-        ? subscriptionId(obj?.subscription)
-        : (obj?.object === "subscription" ? obj.id ?? null : subscriptionId(obj?.subscription));
+      const subId = obj?.object === "subscription" ? obj.id ?? null : subscriptionId(obj?.subscription);
       if (customer) updates.stripe_customer_id = customer;
       if (subId) updates.stripe_subscription_id = subId;
 
-      if (physioId) {
-        await supabase.from("physiotherapists").update(updates).eq("id", physioId);
+      if (physioFromMeta) {
+        await supabase.from("physiotherapists").update(updates).eq("id", physioFromMeta);
       } else if (customer) {
         await supabase.from("physiotherapists").update(updates).eq("stripe_customer_id", customer);
       } else if (subId) {

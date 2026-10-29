@@ -2,6 +2,7 @@ export const ROUTES = {
   home: '/',
   login: '/auth/login',
   signup: '/auth/signup',
+  subscribe: '/assinar',
   forgotPassword: '/auth/forgot-password',
   invite: (token: string) => `/auth/invite/${token}`,
   patient: {

@@ -1,26 +1,11 @@
 import { supabase, getSupabaseErrorMessage } from '@/shared/api/supabase'
-import type { LoginFormData, SignupFormData, ForgotPasswordFormData, InviteAcceptFormData } from '../model/schemas'
+import type { LoginFormData, ForgotPasswordFormData, InviteAcceptFormData } from '../model/schemas'
 import type { UserRole } from '@/shared/types/database'
 
 export async function signIn(data: LoginFormData) {
   const { data: result, error } = await supabase.auth.signInWithPassword({
     email: data.email,
     password: data.password,
-  })
-  if (error) throw new Error(getSupabaseErrorMessage(error))
-  return result
-}
-
-export async function signUp(data: SignupFormData) {
-  const { data: result, error } = await supabase.auth.signUp({
-    email: data.email,
-    password: data.password,
-    options: {
-      data: {
-        full_name: data.fullName,
-        role: 'physiotherapist',
-      },
-    },
   })
   if (error) throw new Error(getSupabaseErrorMessage(error))
   return result

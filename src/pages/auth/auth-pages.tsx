@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { LoginForm } from '@/features/auth/ui/login-form'
-import { SignupForm } from '@/features/auth/ui/signup-form'
+import { SubscribeForm } from '@/features/auth/ui/subscribe-form'
 import { ForgotPasswordForm } from '@/features/auth/ui/forgot-password-form'
 import { InviteAcceptForm } from '@/features/auth/ui/invite-accept-form'
 import { CaregiverSignupForm } from '@/features/auth/ui/caregiver-signup-form'
@@ -58,10 +58,10 @@ export function LoginPage() {
   )
 }
 
-export function SignupPage() {
+export function SubscribePage() {
   return (
     <AuthLayout>
-      <SignupForm />
+      <SubscribeForm />
     </AuthLayout>
   )
 }

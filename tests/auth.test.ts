@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { loginSchema, signupSchema, forgotPasswordSchema, inviteAcceptSchema } from '@/features/auth/model/schemas'
+import { loginSchema, signupSchema, subscribeSchema, forgotPasswordSchema, inviteAcceptSchema } from '@/features/auth/model/schemas'
 
 describe('Auth schemas', () => {
   it('validates login form', () => {
@@ -12,13 +12,20 @@ describe('Auth schemas', () => {
     expect(result.success).toBe(false)
   })
 
-  it('validates physiotherapist signup form without role picker', () => {
-    const result = signupSchema.safeParse({
+  it('validates public subscribe form without password', () => {
+    const result = subscribeSchema.safeParse({
       fullName: 'João Silva',
       email: 'joao@example.com',
-      password: '123456',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('rejects subscribe form without a valid email', () => {
+    const result = subscribeSchema.safeParse({
+      fullName: 'João Silva',
+      email: 'invalid',
+    })
+    expect(result.success).toBe(false)
   })
 
   it('rejects short password on signup', () => {

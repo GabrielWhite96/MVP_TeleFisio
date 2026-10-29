@@ -1,7 +1,7 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { ProtectedRoute, RoleGuard, GuestRoute } from '@/features/auth/ui/guards'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
-import { LoginPage, SignupPage, ForgotPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
+import { LoginPage, SubscribePage, ForgotPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
 import {
   PatientDashboardPage,
   PatientProfilePage,
@@ -34,6 +34,7 @@ import {
   AdminAuditLogsPage,
 } from '@/pages/admin/admin-pages'
 import { CaregiverDashboardPage } from '@/pages/caregiver/caregiver-pages'
+import { PhysioSubscriptionPage } from '@/pages/physio/subscription-page'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { ROUTES } from '@/shared/config/routes'
 
@@ -43,7 +44,8 @@ export const router = createBrowserRouter([
     element: <GuestRoute />,
     children: [
       { path: ROUTES.login, element: <LoginPage /> },
-      { path: ROUTES.signup, element: <SignupPage /> },
+      { path: ROUTES.subscribe, element: <SubscribePage /> },
+      { path: ROUTES.signup, element: <Navigate to={ROUTES.subscribe} replace /> },
       { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
       { path: '/auth/invite/:token', element: <InviteAcceptPage /> },
       { path: '/auth/caregiver-signup', element: <CaregiverSignupPage /> },
@@ -74,9 +76,13 @@ export const router = createBrowserRouter([
         element: <RoleGuard allowedRoles={['physiotherapist']} />,
         children: [
           {
+            element: <SubscriptionGuard />,
+            children: [
+          {
             element: <AppLayout />,
             children: [
               { path: ROUTES.physio.dashboard, element: <PhysioDashboardPage /> },
+              { path: ROUTES.physio.subscription, element: <PhysioSubscriptionPage /> },
               { path: ROUTES.physio.agenda, element: <PhysioAgendaPage /> },
               { path: ROUTES.physio.billing, element: <PhysioBillingPage /> },
               { path: ROUTES.physio.reports, element: <PhysioReportsPage /> },
@@ -90,6 +96,8 @@ export const router = createBrowserRouter([
               { path: '/physio/appointments/:id', element: <PhysioAppointmentDetailPage /> },
               { path: ROUTES.physio.profile, element: <PhysioProfilePage /> },
               { path: ROUTES.physio.notifications, element: <PhysioNotificationsPage /> },
+            ],
+          },
             ],
           },
         ],

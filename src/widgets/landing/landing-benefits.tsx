@@ -50,7 +50,7 @@ export function LandingBenefits() {
               {pt.landing.midCtaBody}
             </p>
             <Link
-              to={ROUTES.signup}
+              to={ROUTES.subscribe}
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary mt-6 bg-[var(--landing-cyan)] text-[var(--landing-deep)] hover:opacity-90'

@@ -6,11 +6,12 @@ test.describe('TeleFisio core flow', () => {
     await expect(page.getByRole('button', { name: /entrar/i })).toBeVisible()
   })
 
-  test('signup is physiotherapist-only', async ({ page }) => {
-    await page.goto('/auth/signup')
-    await expect(page.getByText(/conta profissional|fisioterapeuta/i).first()).toBeVisible()
-    await expect(page.getByText(/sou paciente/i)).toHaveCount(0)
-    await expect(page.getByText(/sou familiar|cuidador/i)).toHaveCount(0)
+  test('public subscribe collects email instead of creating an account', async ({ page }) => {
+    await page.goto('/assinar')
+    await expect(page.getByRole('heading', { name: /assinar o telefiso/i })).toBeVisible()
+    await expect(page.getByLabel(/e-mail/i)).toBeVisible()
+    await expect(page.getByLabel(/nome completo/i)).toBeVisible()
+    await expect(page.getByLabel(/senha/i)).toHaveCount(0)
   })
 
   test('home page loads brand', async ({ page }) => {
