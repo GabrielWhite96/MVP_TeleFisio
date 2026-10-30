@@ -4,6 +4,7 @@ export const ROUTES = {
   signup: '/auth/signup',
   subscribe: '/assinar',
   forgotPassword: '/auth/forgot-password',
+  resetPassword: '/auth/reset-password',
   invite: (token: string) => `/auth/invite/${token}`,
   patient: {
     dashboard: '/patient/dashboard',

@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
-import { LoginPage, SubscribePage, ForgotPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
+import { LoginPage, SubscribePage, ForgotPasswordPage, ResetPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
 import {
   PatientDashboardPage,
   PatientProfilePage,
@@ -129,6 +129,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: ROUTES.resetPassword, element: <ResetPasswordPage /> },
   { path: '*', element: <NotFoundPage /> },
 ])
 

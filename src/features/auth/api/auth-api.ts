@@ -37,9 +37,31 @@ export async function signOut() {
 }
 
 export async function resetPassword(data: ForgotPasswordFormData) {
+  const origin = window.location.origin
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-    redirectTo: `${window.location.origin}/auth/login`,
+    redirectTo: `${origin}/auth/reset-password`,
   })
+  if (!error) return
+
+  const redirectRejected = /redirect/i.test(error.message)
+  if (!redirectRejected) throw new Error(getSupabaseErrorMessage(error))
+
+  const { error: fallbackError } = await supabase.auth.resetPasswordForEmail(data.email, {
+    redirectTo: `${origin}/auth/login`,
+  })
+  if (fallbackError) throw new Error(getSupabaseErrorMessage(fallbackError))
+}
+
+export async function verifyRecoveryOtp(tokenHash: string) {
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: 'recovery',
+  })
+  if (error) throw new Error(getSupabaseErrorMessage(error))
+}
+
+export async function updatePassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password })
   if (error) throw new Error(getSupabaseErrorMessage(error))
 }
 

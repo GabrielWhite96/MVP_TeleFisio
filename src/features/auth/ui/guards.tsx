@@ -8,6 +8,7 @@ import { queryKeys } from '@/shared/api/query-keys'
 import { LoadingSpinner } from '@/shared/ui/states'
 import type { UserRole } from '@/shared/types/database'
 import { ROUTES } from '@/shared/config/routes'
+import { isPasswordRecovery } from '../lib/password-recovery'
 
 export function ProtectedRoute({ children }: { children?: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -23,6 +24,10 @@ export function ProtectedRoute({ children }: { children?: ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.login} state={{ from: location }} replace />
+  }
+
+  if (isPasswordRecovery() && location.pathname !== ROUTES.resetPassword) {
+    return <Navigate to={ROUTES.resetPassword} replace />
   }
 
   return children ? <>{children}</> : <Outlet />
@@ -64,6 +69,10 @@ export function GuestRoute({ children }: { children?: ReactNode }) {
   }
 
   if (isAuthenticated && profile) {
+    if (isPasswordRecovery()) {
+      return <Navigate to={ROUTES.resetPassword} replace />
+    }
+
     const routes: Record<UserRole, string> = {
       patient: ROUTES.patient.dashboard,
       physiotherapist: ROUTES.physio.dashboard,

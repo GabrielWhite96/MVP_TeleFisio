@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { LoginForm } from '@/features/auth/ui/login-form'
 import { SubscribeForm } from '@/features/auth/ui/subscribe-form'
 import { ForgotPasswordForm } from '@/features/auth/ui/forgot-password-form'
+import { ResetPasswordForm } from '@/features/auth/ui/reset-password-form'
 import { InviteAcceptForm } from '@/features/auth/ui/invite-accept-form'
 import { CaregiverSignupForm } from '@/features/auth/ui/caregiver-signup-form'
 import { BrandMark } from '@/shared/ui/brand'
@@ -70,6 +71,14 @@ export function ForgotPasswordPage() {
   return (
     <AuthLayout>
       <ForgotPasswordForm />
+    </AuthLayout>
+  )
+}
+
+export function ResetPasswordPage() {
+  return (
+    <AuthLayout>
+      <ResetPasswordForm />
     </AuthLayout>
   )
 }

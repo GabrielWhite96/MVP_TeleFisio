@@ -22,6 +22,8 @@ export function getSupabaseErrorMessage(error: { message?: string } | null): str
     'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
     'Failed to fetch':
       'Não foi possível conectar ao servidor. Verifique sua conexão e as variáveis VITE_SUPABASE_* no .env.',
+    'Email link is invalid or has expired':
+      'Este link de recuperação é inválido ou já foi usado. Solicite um novo e-mail.',
   }
   return map[error.message] ?? error.message
 }

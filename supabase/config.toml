@@ -20,13 +20,17 @@ port = 54323
 [auth]
 enabled = true
 site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173/**"]
+additional_redirect_urls = ["http://localhost:5173/**", "https://tele-fisio.netlify.app/**"]
 jwt_expiry = 3600
 enable_signup = true
 
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+[auth.email.template.recovery]
+subject = "Redefinir senha do TeleFisio"
+content_path = "./templates/recovery.html"
 
 [functions.google-calendar-oauth-callback]
 verify_jwt = false

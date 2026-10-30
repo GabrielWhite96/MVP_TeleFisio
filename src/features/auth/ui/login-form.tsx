@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { Eye, EyeOff } from 'lucide-react'
 import { loginSchema, type LoginFormData } from '../model/schemas'
 import { signIn, getDashboardRoute, getProfile } from '../api/auth-api'
+import { isExpiredAuthCallback, parseAuthCallback } from '../lib/password-recovery'
 import { supabase } from '@/shared/api/supabase'
 import { useAuth } from '../hooks/use-auth'
 import { Button } from '@/shared/ui/button'
@@ -15,8 +16,12 @@ import { pt } from '@/shared/config/i18n/pt'
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { profile } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
+  const linkError = isExpiredAuthCallback(parseAuthCallback(location.search, location.hash))
+    ? pt.auth.resetLinkExpired
+    : null
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
@@ -37,6 +42,17 @@ export function LoginForm() {
   return (
     <div className="w-full">
       <h2 className="font-display text-3xl font-semibold tracking-tight">{pt.auth.login}</h2>
+      {linkError ? (
+        <div className="mt-4 space-y-1 text-sm text-[var(--color-destructive)]">
+          <p>{linkError}</p>
+          <Link
+            to={ROUTES.forgotPassword}
+            className="inline-block font-bold text-[var(--color-primary)] underline-offset-4 hover:underline"
+          >
+            {pt.auth.resetPassword}
+          </Link>
+        </div>
+      ) : null}
       <form
         onSubmit={handleSubmit((d) => mutation.mutate(d))}
         className="mt-8 flex flex-col gap-5"

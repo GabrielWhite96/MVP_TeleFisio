@@ -4,6 +4,7 @@ import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/shared/api/supabase'
 import { queryKeys } from '@/shared/api/query-keys'
 import { getProfile } from '../api/auth-api'
+import { capturePasswordRecoveryFromUrl, markPasswordRecovery } from '../lib/password-recovery'
 import type { Profile } from '@/shared/types/database'
 
 interface AuthContextValue {
@@ -22,12 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initializing, setInitializing] = useState(true)
 
   useEffect(() => {
+    capturePasswordRecoveryFromUrl()
+
     void supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setInitializing(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY') markPasswordRecovery()
       setSession(newSession)
       queryClient.invalidateQueries({ queryKey: queryKeys.session })
       if (newSession?.user) {
