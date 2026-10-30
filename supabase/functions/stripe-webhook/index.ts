@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { escapeHtml, sendGmail } from "../_shared/gmail-smtp.ts";
+import { sendGmail } from "../_shared/gmail-smtp.ts";
+import { renderTeleFisioEmail, renderTeleFisioText } from "../_shared/email-layout.ts";
 
 type StripeObject = {
   id?: string;
@@ -98,23 +99,39 @@ async function sendCredentialsEmail(input: {
     return { ok: false as const, reason: "invalid_email", status: 400 };
   }
 
-  const subject = input.kind === "created"
+  const created = input.kind === "created";
+  const subject = created
     ? "Seu acesso ao TeleFisio foi criado"
     : "Sua assinatura do TeleFisio está ativa";
-  const intro = input.kind === "created"
-    ? "O pagamento foi confirmado e o acesso profissional foi criado."
-    : "O pagamento foi confirmado e sua assinatura voltou a ficar ativa.";
-  const secretBlock = input.password
-    ? `<p>E-mail: <strong>${escapeHtml(input.email)}</strong></p><p>Senha temporária: <strong>${escapeHtml(input.password)}</strong></p><p>Recomendamos alterar a senha depois do primeiro acesso.</p>`
-    : `<p>Entre com o e-mail <strong>${escapeHtml(input.email)}</strong> e a senha que você já usa no TeleFisio.</p>`;
-  const html = `<p>${intro}</p>${secretBlock}<p><a href="${escapeHtml(input.loginUrl)}">${escapeHtml(input.loginUrl)}</a></p>`;
+  const emailContent = {
+    preview: created
+      ? "Pagamento confirmado. Entre com e-mail e senha temporária."
+      : "Pagamento confirmado. Sua assinatura voltou a ficar ativa.",
+    title: created ? "Sua conta profissional está pronta" : "Sua assinatura está ativa de novo",
+    greeting: created
+      ? "O pagamento foi confirmado e o acesso profissional foi criado."
+      : "O pagamento foi confirmado e sua assinatura voltou a ficar ativa.",
+    paragraphs: created
+      ? ["Entre com os dados abaixo. Depois do primeiro acesso, troque a senha."]
+      : ["Entre com o e-mail da conta e a senha que você já usa no TeleFisio."],
+    details: [
+      { label: "E-mail", value: input.email },
+      ...(input.password
+        ? [{ label: "Senha temporária", value: input.password, mono: true }]
+        : []),
+    ],
+    ctaLabel: "Entrar no TeleFisio",
+    ctaUrl: input.loginUrl,
+    note: "Se você não reconhece esta assinatura, fale com o suporte pelo mesmo e-mail desta mensagem.",
+  };
 
   return sendGmail({
     user: gmailUser,
     appPassword,
     to: input.to,
     subject,
-    html,
+    html: renderTeleFisioEmail(emailContent),
+    text: renderTeleFisioText(emailContent),
   });
 }
 

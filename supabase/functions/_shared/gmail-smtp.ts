@@ -19,6 +19,7 @@ export async function sendGmail(input: {
   to: string;
   subject: string;
   html: string;
+  text?: string;
 }): Promise<{ ok: true } | { ok: false; reason: string; status: number }> {
   let conn: Deno.TlsConn | null = null;
   try {
@@ -31,14 +32,36 @@ export async function sendGmail(input: {
     await command(conn, `MAIL FROM:<${input.user}>`);
     await command(conn, `RCPT TO:<${input.to}>`);
     await command(conn, "DATA");
+    const boundary = `telefisio-${Date.now().toString(16)}`;
+    const html = input.html.replaceAll("\n.", "\n..");
+    const text = (input.text ?? "").replaceAll("\n.", "\n..");
+    const body = input.text
+      ? [
+          `Content-Type: multipart/alternative; boundary="${boundary}"`,
+          "",
+          `--${boundary}`,
+          "Content-Type: text/plain; charset=UTF-8",
+          "Content-Transfer-Encoding: 8bit",
+          "",
+          text,
+          `--${boundary}`,
+          "Content-Type: text/html; charset=UTF-8",
+          "Content-Transfer-Encoding: 8bit",
+          "",
+          html,
+          `--${boundary}--`,
+        ]
+      : [
+          "Content-Type: text/html; charset=UTF-8",
+          "",
+          html,
+        ];
     const message = [
       `From: TeleFisio <${input.user}>`,
       `To: ${input.to}`,
       `Subject: ${encodeSubject(input.subject)}`,
       "MIME-Version: 1.0",
-      "Content-Type: text/html; charset=UTF-8",
-      "",
-      input.html.replaceAll("\n.", "\n.."),
+      ...body,
       ".",
     ].join("\r\n");
     await command(conn, message);

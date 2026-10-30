@@ -1,7 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { json } from "../_shared/cors.ts";
-import { escapeHtml, sendGmail } from "../_shared/gmail-smtp.ts";
+import { sendGmail } from "../_shared/gmail-smtp.ts";
+import { renderTeleFisioEmail, renderTeleFisioText } from "../_shared/email-layout.ts";
 
 function resolveAppOrigin(req: Request): string | null {
   const configured = (Deno.env.get("APP_URL") ?? Deno.env.get("SITE_URL") ?? "").trim();
@@ -69,22 +70,49 @@ Deno.serve(async (req) => {
     return json({ sent: false, reason: "invalid_email" }, 400);
   }
 
+  const senderName = typeof user.user_metadata?.full_name === "string"
+    ? user.user_metadata.full_name.trim()
+    : "";
   const subject = kind === "caregiver"
     ? "Convite para acompanhar um paciente no TeleFisio"
     : "Convite para acessar seu tratamento no TeleFisio";
-  const intro = kind === "caregiver"
-    ? "Você foi convidado a acompanhar um paciente no TeleFisio. Crie sua conta de cuidador com este mesmo e-mail:"
-    : "Seu fisioterapeuta convidou você para acessar o portal do paciente. Defina sua senha neste link:";
-  const safeUrl = escapeHtml(inviteUrl);
-  const safeEmail = escapeHtml(invite.email);
-  const html = `<p>${intro}</p><p>E-mail: ${safeEmail}</p><p><a href="${safeUrl}">${safeUrl}</a></p>`;
+  const emailContent = kind === "caregiver"
+    ? {
+      preview: "Crie sua conta de cuidador no TeleFisio.",
+      title: "Acompanhe quem você cuida",
+      greeting: senderName
+        ? `${senderName} te convidou para o TeleFisio.`
+        : "Você foi convidado para o TeleFisio.",
+      paragraphs: [
+        "Crie sua conta de cuidador com este mesmo e-mail para ver consultas, treinos e check-ins.",
+      ],
+      details: [{ label: "E-mail do convite", value: invite.email }],
+      ctaLabel: "Criar conta de cuidador",
+      ctaUrl: inviteUrl,
+      note: "Se você não esperava este convite, pode ignorar o e-mail.",
+    }
+    : {
+      preview: "Defina sua senha e entre no portal do paciente.",
+      title: "Seu tratamento te espera",
+      greeting: senderName
+        ? `${senderName} te convidou para o portal do paciente.`
+        : "Seu fisioterapeuta te convidou para o portal do paciente.",
+      paragraphs: [
+        "Defina sua senha neste link para acessar exercícios, consultas e check-ins.",
+      ],
+      details: [{ label: "E-mail do convite", value: invite.email }],
+      ctaLabel: "Ativar minha conta",
+      ctaUrl: inviteUrl,
+      note: "O convite expira em alguns dias. Se você não esperava este e-mail, pode ignorar.",
+    };
 
   const sent = await sendGmail({
     user: gmailUser,
     appPassword,
     to: invite.email,
     subject,
-    html,
+    html: renderTeleFisioEmail(emailContent),
+    text: renderTeleFisioText(emailContent),
   });
 
   if (!sent.ok) return json({ sent: false, reason: sent.reason }, sent.status);
