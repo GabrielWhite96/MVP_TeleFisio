@@ -25,7 +25,7 @@ describe('LandingPage', () => {
   })
 
   it('renders brand, header auth actions and pricing', () => {
-    expect(screen.getAllByText(pt.landing.heroBrand).length).toBeGreaterThan(0)
+    expect(screen.getAllByAltText(pt.landing.heroBrand).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: pt.landing.login }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: pt.landing.signup }).length).toBeGreaterThan(0)
     expect(screen.getByText(SAAS_PLAN.amountLabel)).toBeInTheDocument()

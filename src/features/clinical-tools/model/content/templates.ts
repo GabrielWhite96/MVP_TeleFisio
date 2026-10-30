@@ -2,7 +2,7 @@ import type { ClinicalTool } from '../types'
 
 const templateSource = {
   type: 'institution' as const,
-  citation: 'TeleFisio. Modelo autoral alinhado à estrutura do prontuário do sistema. Não é instrumento validado e não grava dados no prontuário.',
+  citation: 'Fisionotes. Modelo autoral alinhado à estrutura do prontuário do sistema. Não é instrumento validado e não grava dados no prontuário.',
   year: 2026,
 }
 

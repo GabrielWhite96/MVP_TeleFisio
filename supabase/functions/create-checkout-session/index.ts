@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     if (!patient) return json({ error: "Patient profile not found" }, 400);
 
-    let packageName = "TeleFisio — sessão / programa";
+    let packageName = "Fisionotes — sessão / programa";
     if (packageId) {
       const { data: pkg } = await supabase
         .from("recovery_packages")

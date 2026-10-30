@@ -4,7 +4,7 @@ export type Locale = 'pt' | 'en'
 
 export const en = {
   app: {
-    name: 'TeleFisio',
+    name: 'Fisionotes',
     tagline: 'Tele-physiotherapy and home rehabilitation',
     loginHeadline: 'Get moving again.',
     loginSubline: 'Physiotherapy, exercises, and visits at your body’s pace.',

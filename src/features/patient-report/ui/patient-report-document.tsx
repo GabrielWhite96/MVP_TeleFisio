@@ -20,6 +20,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Label, Textarea } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import { BrandMark } from '@/shared/ui/brand'
 
 const copy = pt.report
 
@@ -261,7 +262,10 @@ export function PatientReportDocument({
       </p>
 
       <header className="report-section rounded-xl border bg-[var(--color-card)] px-5 py-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">{copy.documentLabel}</p>
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-muted-foreground)]">{copy.documentLabel}</p>
+          <BrandMark layout="horizontal" size="sm" className="max-h-8" />
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <h1 className="text-3xl font-semibold tracking-tight">{patientName}</h1>
           <Badge variant="secondary">{statusLabel}</Badge>

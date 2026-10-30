@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
-const CACHE = 'telefisio-shell-v1'
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/vite.svg']
+const CACHE = 'fisionotes-shell-v1'
+const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/logos/logo_semfundo_sem_nome.png']
 
 self.addEventListener('install', (event) => {
   const e = event as ExtendableEvent

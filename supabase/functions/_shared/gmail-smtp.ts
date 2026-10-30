@@ -57,7 +57,7 @@ export async function sendGmail(input: {
           html,
         ];
     const message = [
-      `From: TeleFisio <${input.user}>`,
+      `From: Fisionotes <${input.user}>`,
       `To: ${input.to}`,
       `Subject: ${encodeSubject(input.subject)}`,
       "MIME-Version: 1.0",

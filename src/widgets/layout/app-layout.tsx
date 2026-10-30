@@ -186,7 +186,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
           className="pointer-events-none absolute -right-16 -bottom-16 w-56 text-[var(--color-primary)] opacity-50"
         />
         <div className="relative flex h-16 shrink-0 items-center px-5">
-          <BrandMark size="sm" tone="inverse" />
+          <BrandMark size="sm" layout="horizontal" tone="onDark" className="max-w-[12.5rem]" />
         </div>
         <nav className="relative flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
           <NavLinks surface="dock" />
@@ -228,7 +228,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:overflow-visible">
         <header className="studio-field flex h-14 shrink-0 items-center justify-between px-4 text-[var(--color-ink-foreground)] md:hidden">
-          <BrandMark size="sm" tone="inverse" />
+          <BrandMark size="sm" layout="horizontal" tone="onDark" className="max-w-[11rem]" />
           <Button
             variant="ghost"
             size="icon"

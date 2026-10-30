@@ -1,9 +1,10 @@
 import { useState, type RefObject } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/shared/ui/button'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { BrandMark } from '@/shared/ui/brand'
 import { cn } from '@/shared/lib/utils'
 
 const anchors = [
@@ -26,12 +27,9 @@ export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
     <header ref={headerRef} className="landing-header pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4">
       <div className="landing-glass pointer-events-auto relative mx-auto max-w-6xl overflow-hidden rounded-2xl">
         <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-5">
-          <a href="#topo" className="flex items-center gap-2 text-[var(--landing-ink)]">
-            <span className="landing-mark text-[var(--landing-teal)]">
-              <Activity className="h-6 w-6" aria-hidden />
-            </span>
-            <span className="landing-wordmark font-[family-name:var(--font-landing-display)] text-xl font-semibold tracking-tight">
-              {pt.landing.heroBrand}
+          <a href="#topo" className="flex min-w-0 items-center">
+            <span className="landing-mark origin-left">
+              <BrandMark layout="horizontal" size="md" className="max-h-9" />
             </span>
           </a>
 

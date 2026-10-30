@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
         .eq("id", existingUserId)
         .maybeSingle();
       if (profile && profile.role !== "physiotherapist") {
-        return json({ error: "Este e-mail já está em uso em outra conta do TeleFisio." }, 409);
+        return json({ error: "Este e-mail já está em uso em outra conta do Fisionotes." }, 409);
       }
       if (profile?.full_name && !fullName) fullName = profile.full_name;
       const { data: existingPhysio } = await admin

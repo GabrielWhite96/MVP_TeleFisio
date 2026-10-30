@@ -46,19 +46,19 @@ const templates = {
   "recovery.html": {
     TITLE: "Redefinir senha",
     PREVIEW: "O link vale só para um clique.",
-    BODY: p("Recebemos um pedido para redefinir a senha da sua conta no TeleFisio."),
+    BODY: p("Recebemos um pedido para redefinir a senha da sua conta no Fisionotes."),
     CTA: cta("Definir nova senha", "{{ .ConfirmationURL }}"),
     NOTE: note("O link vale só para um clique e expira em breve. Se você não pediu isso, ignore este e-mail. Sua senha atual continua valendo."),
   },
   "confirmation.html": {
     TITLE: "Confirme seu e-mail",
-    PREVIEW: "Um clique para ativar sua conta no TeleFisio.",
-    BODY: p("Falta só confirmar este e-mail para entrar no TeleFisio com segurança."),
+    PREVIEW: "Um clique para ativar sua conta no Fisionotes.",
+    BODY: p("Falta só confirmar este e-mail para entrar no Fisionotes com segurança."),
     CTA: cta("Confirmar e-mail", "{{ .ConfirmationURL }}"),
     NOTE: note("Se você não criou uma conta, pode ignorar esta mensagem."),
   },
   "magic_link.html": {
-    TITLE: "Entrar no TeleFisio",
+    TITLE: "Entrar no Fisionotes",
     PREVIEW: "Seu link de acesso está pronto.",
     BODY: p("Use o botão abaixo para entrar na sua conta. O link vale só para um clique."),
     CTA: cta("Entrar agora", "{{ .ConfirmationURL }}"),
@@ -66,37 +66,37 @@ const templates = {
   },
   "invite.html": {
     TITLE: "Você foi convidado",
-    PREVIEW: "Ative sua conta no TeleFisio.",
-    BODY: p("Alguém te convidou para o TeleFisio. Defina sua senha neste link para começar."),
+    PREVIEW: "Ative sua conta no Fisionotes.",
+    BODY: p("Alguém te convidou para o Fisionotes. Defina sua senha neste link para começar."),
     CTA: cta("Ativar minha conta", "{{ .ConfirmationURL }}"),
     NOTE: note("Se você não esperava este convite, pode ignorar o e-mail."),
   },
   "email_change.html": {
     TITLE: "Confirme o novo e-mail",
     PREVIEW: "Um clique para confirmar a troca de e-mail.",
-    BODY: p("Recebemos um pedido para trocar o e-mail da sua conta no TeleFisio. Confirme a nova caixa para concluir."),
+    BODY: p("Recebemos um pedido para trocar o e-mail da sua conta no Fisionotes. Confirme a nova caixa para concluir."),
     CTA: cta("Confirmar novo e-mail", "{{ .ConfirmationURL }}"),
     NOTE: note("Se você não pediu essa troca, ignore esta mensagem. O e-mail atual continua valendo."),
   },
   "reauthentication.html": {
     TITLE: "Confirme que é você",
-    PREVIEW: "Use o código para continuar no TeleFisio.",
+    PREVIEW: "Use o código para continuar no Fisionotes.",
     BODY: `${p("Para concluir esta ação, use o código abaixo.")}${codeBlock("{{ .Token }}")}`,
     CTA: "",
     NOTE: note("O código expira em breve. Se você não pediu isso, ignore o e-mail."),
   },
   "password_changed.html": {
     TITLE: "Sua senha foi alterada",
-    PREVIEW: "A senha da sua conta no TeleFisio mudou.",
-    BODY: p("A senha da sua conta no TeleFisio foi alterada agora. Se foi você, não precisa fazer mais nada."),
-    CTA: cta("Entrar no TeleFisio", "{{ .SiteURL }}"),
+    PREVIEW: "A senha da sua conta no Fisionotes mudou.",
+    BODY: p("A senha da sua conta no Fisionotes foi alterada agora. Se foi você, não precisa fazer mais nada."),
+    CTA: cta("Entrar no Fisionotes", "{{ .SiteURL }}"),
     NOTE: note("Se você não fez essa alteração, redefina a senha imediatamente e fale com o suporte."),
   },
   "email_changed.html": {
     TITLE: "Seu e-mail foi alterado",
-    PREVIEW: "O e-mail da sua conta no TeleFisio mudou.",
-    BODY: p("O e-mail da sua conta no TeleFisio foi alterado. Entre com o novo endereço da próxima vez."),
-    CTA: cta("Entrar no TeleFisio", "{{ .SiteURL }}"),
+    PREVIEW: "O e-mail da sua conta no Fisionotes mudou.",
+    BODY: p("O e-mail da sua conta no Fisionotes foi alterado. Entre com o novo endereço da próxima vez."),
+    CTA: cta("Entrar no Fisionotes", "{{ .SiteURL }}"),
     NOTE: note("Se você não fez essa alteração, fale com o suporte imediatamente."),
   },
 };
@@ -124,7 +124,7 @@ const gmailPreviews = {
     TITLE: "Sua conta profissional está pronta",
     PREVIEW: "Pagamento confirmado. Entre com e-mail e senha temporária.",
     BODY: `${p("O pagamento foi confirmado e o acesso profissional foi criado.")}${p("Entre com os dados abaixo. Depois do primeiro acesso, troque a senha.")}${detailsBox([["E-mail", "fisio@email.com"], ["Senha temporária", "k7#mP2qL9x", true]])}`,
-    CTA: cta("Entrar no TeleFisio", "https://tele-fisio.netlify.app/auth/login"),
+    CTA: cta("Entrar no Fisionotes", "https://tele-fisio.netlify.app/auth/login"),
     NOTE: note("Se você não reconhece esta assinatura, fale com o suporte pelo mesmo e-mail desta mensagem."),
   },
 };
@@ -150,7 +150,7 @@ const previewCards = previews
       ...values,
       CTA: (values.CTA ?? "").replaceAll("{{ .ConfirmationURL }}", "https://tele-fisio.netlify.app/auth/login").replaceAll("{{ .SiteURL }}", "https://tele-fisio.netlify.app"),
       BODY: values.BODY.replaceAll("{{ .Token }}", "184729"),
-    });
+    }).replaceAll("{{ .SiteURL }}", "https://tele-fisio.netlify.app");
     const srcdoc = sample.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
     return `<section style="margin:0 0 36px;">
       <h2 style="margin:0 0 12px;font-family:Arial,sans-serif;color:#f3fffd;font-size:13px;font-weight:bold;">${label}</h2>
@@ -166,10 +166,10 @@ writeFileSync(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>TeleFisio · prévia dos e-mails</title>
+    <title>Fisionotes · prévia dos e-mails</title>
   </head>
   <body style="margin:0;background:#041614;padding:32px 16px 64px;">
-    <p style="max-width:720px;margin:0 auto 28px;font-family:Georgia,serif;font-size:28px;color:#f3fffd;">E-mails do TeleFisio</p>
+    <p style="max-width:720px;margin:0 auto 28px;font-family:Georgia,serif;font-size:28px;color:#f3fffd;">E-mails do Fisionotes</p>
     <div style="max-width:720px;margin:0 auto;">${previewCards}</div>
   </body>
 </html>

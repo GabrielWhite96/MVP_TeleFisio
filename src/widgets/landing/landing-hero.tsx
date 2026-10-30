@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { buttonVariants } from '@/shared/ui/button'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { BrandMark } from '@/shared/ui/brand'
 import { cn } from '@/shared/lib/utils'
 
 const careSteps = [
@@ -27,9 +28,7 @@ export function LandingHero({ parallaxRef }: { parallaxRef: RefObject<HTMLDivEle
 
       <div className="relative z-10 mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-28 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-end lg:pb-24 lg:pt-32">
         <div className="landing-hero-copy max-w-xl">
-          <p className="landing-wordmark font-[family-name:var(--font-landing-display)] text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            {pt.landing.heroBrand}
-          </p>
+          <BrandMark layout="stacked" size="lg" className="max-w-[16rem] sm:max-w-[18rem]" />
           <h1 className="mt-4 font-[family-name:var(--font-landing-display)] text-3xl font-semibold leading-[1.15] tracking-tight text-[var(--landing-ink)] sm:text-4xl">
             {pt.landing.heroTitle}
           </h1>

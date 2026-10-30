@@ -18,7 +18,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[88rem] flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_28rem]">
         <div className="flex flex-col gap-10 px-6 pt-6 pb-8 lg:px-14 lg:py-12">
-          <BrandMark size="lg" tone="inverse" />
+          <BrandMark size="lg" layout="horizontal" tone="onDark" />
           <div className="max-w-xl lg:mt-[8vh]">
             <h1 className="font-display max-w-[11ch] text-[clamp(2.8rem,7.2vw,6.25rem)] font-semibold leading-[0.9] tracking-tight text-pretty">
               {pt.app.loginHeadline}

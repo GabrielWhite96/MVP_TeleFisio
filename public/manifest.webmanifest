@@ -1,6 +1,6 @@
 {
-  "name": "TeleFisio",
-  "short_name": "TeleFisio",
+  "name": "Fisionotes",
+  "short_name": "Fisionotes",
   "description": "Tele-fisioterapia e reabilitação domiciliar",
   "start_url": "/",
   "display": "standalone",
@@ -9,9 +9,9 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/vite.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/logos/logo_semfundo_sem_nome.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

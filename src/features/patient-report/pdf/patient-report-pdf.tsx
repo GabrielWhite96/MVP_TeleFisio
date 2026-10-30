@@ -406,10 +406,10 @@ export function PatientReportPdf({
   const latest = report.comparison.latest
 
   return (
-    <Document title={`Relatório clínico — ${patientName}`} author={physioName || 'TeleFisio'}>
+    <Document title={`Relatório clínico — ${patientName}`} author={physioName || 'Fisionotes'}>
       <Page size="A4" style={styles.page}>
         <View style={styles.hero}>
-          <Text style={styles.kicker}>TeleFisio · {copy.documentLabel}</Text>
+          <Text style={styles.kicker}>Fisionotes · {copy.documentLabel}</Text>
           <Text style={styles.patientName}>{patientName}</Text>
           <Text style={styles.heroMeta}>{statusLabel} · {periodLabel}</Text>
         </View>
@@ -696,7 +696,7 @@ export function PatientReportPdf({
         ) : null}
 
         <View style={styles.footer} fixed>
-          <Text>TeleFisio · {patientName}</Text>
+          <Text>Fisionotes · {patientName}</Text>
           <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>

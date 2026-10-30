@@ -74,15 +74,15 @@ Deno.serve(async (req) => {
     ? user.user_metadata.full_name.trim()
     : "";
   const subject = kind === "caregiver"
-    ? "Convite para acompanhar um paciente no TeleFisio"
-    : "Convite para acessar seu tratamento no TeleFisio";
+    ? "Convite para acompanhar um paciente no Fisionotes"
+    : "Convite para acessar seu tratamento no Fisionotes";
   const emailContent = kind === "caregiver"
     ? {
-      preview: "Crie sua conta de cuidador no TeleFisio.",
+      preview: "Crie sua conta de cuidador no Fisionotes.",
       title: "Acompanhe quem você cuida",
       greeting: senderName
-        ? `${senderName} te convidou para o TeleFisio.`
-        : "Você foi convidado para o TeleFisio.",
+        ? `${senderName} te convidou para o Fisionotes.`
+        : "Você foi convidado para o Fisionotes.",
       paragraphs: [
         "Crie sua conta de cuidador com este mesmo e-mail para ver consultas, treinos e check-ins.",
       ],
@@ -111,7 +111,10 @@ Deno.serve(async (req) => {
     appPassword,
     to: invite.email,
     subject,
-    html: renderTeleFisioEmail(emailContent),
+    html: renderTeleFisioEmail({
+      ...emailContent,
+      logoUrl: `${appOrigin}/logos/logo_semfundo_com_nome_horizontal.png`,
+    }),
     text: renderTeleFisioText(emailContent),
   });
 

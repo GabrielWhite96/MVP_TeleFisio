@@ -207,10 +207,10 @@ function buildEventBody(appointment: AppointmentRow, timeZone: string) {
   const modality = MODALITY_LABELS[appointment.modality] ?? appointment.modality;
 
   return {
-    summary: `Consulta TeleFisio — ${firstName(patientName)}`,
+    summary: `Consulta Fisionotes — ${firstName(patientName)}`,
     description: [
       modality,
-      `Abrir no TeleFisio: ${appUrl}/physio/appointments/${appointment.id}`,
+      `Abrir no Fisionotes: ${appUrl}/physio/appointments/${appointment.id}`,
     ].join("\n"),
     start: { dateTime: start.toISOString(), timeZone },
     end: { dateTime: end.toISOString(), timeZone },

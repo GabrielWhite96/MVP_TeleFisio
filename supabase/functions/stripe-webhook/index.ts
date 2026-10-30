@@ -101,8 +101,8 @@ async function sendCredentialsEmail(input: {
 
   const created = input.kind === "created";
   const subject = created
-    ? "Seu acesso ao TeleFisio foi criado"
-    : "Sua assinatura do TeleFisio está ativa";
+    ? "Seu acesso ao Fisionotes foi criado"
+    : "Sua assinatura do Fisionotes está ativa";
   const emailContent = {
     preview: created
       ? "Pagamento confirmado. Entre com e-mail e senha temporária."
@@ -113,15 +113,16 @@ async function sendCredentialsEmail(input: {
       : "O pagamento foi confirmado e sua assinatura voltou a ficar ativa.",
     paragraphs: created
       ? ["Entre com os dados abaixo. Depois do primeiro acesso, troque a senha."]
-      : ["Entre com o e-mail da conta e a senha que você já usa no TeleFisio."],
+      : ["Entre com o e-mail da conta e a senha que você já usa no Fisionotes."],
     details: [
       { label: "E-mail", value: input.email },
       ...(input.password
         ? [{ label: "Senha temporária", value: input.password, mono: true }]
         : []),
     ],
-    ctaLabel: "Entrar no TeleFisio",
+    ctaLabel: "Entrar no Fisionotes",
     ctaUrl: input.loginUrl,
+    logoUrl: `${appOrigin()}/logos/logo_semfundo_com_nome_horizontal.png`,
     note: "Se você não reconhece esta assinatura, fale com o suporte pelo mesmo e-mail desta mensagem.",
   };
 

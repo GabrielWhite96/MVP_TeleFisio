@@ -55,7 +55,7 @@ export function catalogIssues(tools: ClinicalTool[] = CLINICAL_TOOLS): string[] 
       }
     }
     if (tool.kind === 'calculator' && tool.fields.length === 0) issues.push(`calculadora sem campos: ${tool.id}`)
-    if (tool.reviewStatus === 'verified' && tool.sources.every((source) => source.type === 'institution' && source.citation.startsWith('TeleFisio'))) {
+    if (tool.reviewStatus === 'verified' && tool.sources.every((source) => source.type === 'institution' && source.citation.startsWith('Fisionotes'))) {
       issues.push(`verificada só com texto autoral: ${tool.id}`)
     }
   }

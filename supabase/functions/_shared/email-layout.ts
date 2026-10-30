@@ -13,6 +13,7 @@ export type EmailDetail = {
 };
 
 export type TeleFisioEmail = {
+  logoUrl?: string;
   preview: string;
   title: string;
   greeting?: string;
@@ -48,7 +49,7 @@ export function renderTeleFisioText(email: TeleFisioEmail) {
     "",
     email.note,
     "",
-    "TeleFisio",
+    "Fisionotes",
   ]
     .flat()
     .filter((line): line is string => typeof line === "string" && line.length > 0);
@@ -111,7 +112,9 @@ export function renderTeleFisioEmail(email: TeleFisioEmail) {
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:100%;max-width:560px;">
             <tr>
               <td style="padding:0 8px 18px;">
-                <p style="margin:0;font-family:Georgia,'Palatino Linotype',Palatino,serif;font-size:20px;color:${TEAL_TEXT};">TeleFisio</p>
+                ${email.logoUrl
+                  ? `<img src="${escapeHtml(email.logoUrl)}" alt="Fisionotes" height="36" style="height:36px;width:auto;max-width:220px;display:block;border:0;outline:none;" />`
+                  : `<p style="margin:0;font-family:Georgia,'Palatino Linotype',Palatino,serif;font-size:20px;color:${TEAL_TEXT};">Fisionotes</p>`}
                 <p style="margin:6px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#9fc4bc;">Voltar a se mover.</p>
               </td>
             </tr>
@@ -150,7 +153,7 @@ export function renderTeleFisioEmail(email: TeleFisioEmail) {
             <tr>
               <td style="padding:18px 8px 0;border-top:0;">
                 <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#9fc4bc;">
-                  TeleFisio · fisioterapia, treino e consulta no ritmo do seu corpo.
+                  Fisionotes · fisioterapia, treino e consulta no ritmo do seu corpo.
                 </p>
               </td>
             </tr>
