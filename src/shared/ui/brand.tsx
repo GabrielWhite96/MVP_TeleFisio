@@ -53,7 +53,7 @@ export function BrandMark({
   return (
     <span
       className={cn(
-        'inline-flex max-w-full shrink-0 self-start bg-[var(--color-card)] shadow-[0_1px_0_rgb(255_255_255/0.28)]',
+        'brand-glass inline-flex max-w-full shrink-0 self-start',
         sizeStyles[size].plate,
         className
       )}

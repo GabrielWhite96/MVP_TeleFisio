@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { LoginForm } from '@/features/auth/ui/login-form'
 import { SubscribeForm } from '@/features/auth/ui/subscribe-form'
 import { ForgotPasswordForm } from '@/features/auth/ui/forgot-password-form'
@@ -7,18 +8,51 @@ import { InviteAcceptForm } from '@/features/auth/ui/invite-accept-form'
 import { CaregiverSignupForm } from '@/features/auth/ui/caregiver-signup-form'
 import { BrandMark } from '@/shared/ui/brand'
 import { MotionArc } from '@/shared/ui/motion-arc'
+import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 
 function AuthLayout({ children }: { children: ReactNode }) {
+  const shellRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const shell = shellRef.current
+    if (!shell) return
+    const syncPause = () => {
+      shell.classList.toggle('is-paused', document.hidden)
+    }
+    syncPause()
+    document.addEventListener('visibilitychange', syncPause)
+    return () => document.removeEventListener('visibilitychange', syncPause)
+  }, [])
+
   return (
-    <div className="studio-field relative min-h-dvh w-full overflow-x-hidden overflow-y-auto text-[var(--color-ink-foreground)]">
-      <MotionArc className="pointer-events-none absolute -left-28 top-[-7rem] w-[26rem] rotate-180 opacity-[0.18] lg:w-[36rem]" />
-      <MotionArc className="pointer-events-none absolute right-[36%] top-[12%] hidden w-[16rem] text-[var(--color-primary)] opacity-40 lg:block" />
-      <MotionArc className="pointer-events-none absolute -right-24 -bottom-32 w-[36rem] text-[var(--color-primary)] opacity-90 lg:w-[52rem]" />
+    <div
+      ref={shellRef}
+      className="studio-field auth-shell relative min-h-dvh w-full overflow-x-hidden overflow-y-auto text-[var(--color-ink-foreground)]"
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <span className="auth-arc auth-arc-a absolute -left-28 top-[-7rem] block w-[26rem] opacity-[0.18] lg:w-[36rem]">
+          <MotionArc className="block w-full rotate-180" />
+        </span>
+        <span className="auth-arc auth-arc-b absolute top-[12%] right-[36%] hidden w-[16rem] text-[var(--color-primary)] opacity-40 lg:block">
+          <MotionArc className="block w-full" />
+        </span>
+        <span className="auth-arc auth-arc-c absolute -right-24 -bottom-32 block w-[36rem] text-[var(--color-primary)] opacity-90 lg:w-[52rem]">
+          <MotionArc className="block w-full" />
+        </span>
+      </div>
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[88rem] flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_28rem]">
         <div className="flex flex-col gap-10 px-6 pt-6 pb-8 lg:px-14 lg:py-12">
-          <BrandMark size="lg" layout="horizontal" tone="onDark" />
+          <Link
+            to={ROUTES.home}
+            className="auth-home-mark"
+            aria-label={`${pt.app.name}. ${pt.auth.backToHome}`}
+          >
+            <span className="auth-mark-pulse">
+              <BrandMark size="lg" layout="horizontal" tone="onDark" alt="" />
+            </span>
+          </Link>
           <div className="max-w-xl lg:mt-[8vh]">
             <h1 className="font-display max-w-[11ch] text-[clamp(2.8rem,7.2vw,6.25rem)] font-semibold leading-[0.9] tracking-tight text-pretty">
               {pt.app.loginHeadline}

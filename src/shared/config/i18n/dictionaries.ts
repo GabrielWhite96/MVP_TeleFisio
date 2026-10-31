@@ -15,6 +15,7 @@ export const en = {
   auth: {
     login: 'Sign in',
     loginDescription: 'Access your account.',
+    backToHome: 'Back to the home page',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
     signup: 'Create account',

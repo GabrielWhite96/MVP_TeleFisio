@@ -11,6 +11,7 @@ export const pt = {
   auth: {
     login: 'Entrar',
     loginDescription: 'Acesse sua conta.',
+    backToHome: 'Voltar à página inicial',
     showPassword: 'Mostrar senha',
     hidePassword: 'Ocultar senha',
     signup: 'Assinar',
