@@ -79,7 +79,7 @@ export function SubscribeForm() {
           {mutation.isPending ? pt.common.loading : pt.auth.subscribeCta}
         </Button>
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          {SAAS_PLAN.amountLabel}/{SAAS_PLAN.interval}. {pt.auth.subscribeNote}
+          {pt.saas.trialBadge}. Depois {SAAS_PLAN.amountLabel}/{SAAS_PLAN.interval}. {pt.auth.subscribeNote}
         </p>
         <span className="text-sm text-[var(--color-muted-foreground)]">
           {pt.auth.hasAccount}{' '}

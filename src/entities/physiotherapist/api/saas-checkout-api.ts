@@ -32,6 +32,23 @@ export async function startPublicSaasCheckout(input: { email: string; fullName: 
   })
 }
 
+export async function startSaasBillingPortal() {
+  const { data, error } = await supabase.functions.invoke('create-saas-portal', {
+    body: { origin: window.location.origin },
+  })
+  if (error) {
+    const context = (error as { context?: Response }).context
+    if (context && typeof context.json === 'function') {
+      const payload = await context.json().catch(() => null) as { error?: string } | null
+      if (payload?.error) throw new Error(payload.error)
+    }
+    throw new Error('Não foi possível abrir o portal da assinatura.')
+  }
+  const payload = (data ?? {}) as { url?: string; error?: string }
+  if (!payload.url) throw new Error(payload.error ?? 'Portal indisponível')
+  window.location.assign(payload.url)
+}
+
 export async function getAdminPhysioSubscriptions() {
   const { data, error } = await supabase
     .from('physiotherapists')

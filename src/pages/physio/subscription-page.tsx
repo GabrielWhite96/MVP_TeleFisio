@@ -4,8 +4,12 @@ import { useEffect } from 'react'
 import { Check } from 'lucide-react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId } from '@/entities/physiotherapist/api/physiotherapist-api'
-import { startSaasCheckout } from '@/entities/physiotherapist/api/saas-checkout-api'
-import { canManagePractice } from '@/entities/physiotherapist/model/subscription-access'
+import { startSaasBillingPortal, startSaasCheckout } from '@/entities/physiotherapist/api/saas-checkout-api'
+import {
+  canManagePractice,
+  isInTrial,
+  trialDaysLeft,
+} from '@/entities/physiotherapist/model/subscription-access'
 import { queryKeys } from '@/shared/api/query-keys'
 import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { ROUTES } from '@/shared/config/routes'
@@ -43,6 +47,9 @@ export function PhysioSubscriptionPage() {
   const checkout = useMutation({
     mutationFn: startSaasCheckout,
   })
+  const portal = useMutation({
+    mutationFn: startSaasBillingPortal,
+  })
 
   if (!user || physioQuery.isLoading) {
     return (
@@ -52,7 +59,10 @@ export function PhysioSubscriptionPage() {
     )
   }
 
-  const active = physioQuery.data ? canManagePractice(physioQuery.data) : false
+  const physio = physioQuery.data
+  const active = physio ? canManagePractice(physio) : false
+  const trialing = physio ? isInTrial(physio) : false
+  const daysLeft = physio ? trialDaysLeft(physio.trial_ends_at) : null
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
@@ -80,6 +90,9 @@ export function PhysioSubscriptionPage() {
           <CardDescription>
             <span className="text-3xl font-bold text-[var(--color-foreground)]">{SAAS_PLAN.amountLabel}</span>
             <span className="text-[var(--color-muted-foreground)]">/{SAAS_PLAN.interval}</span>
+            <span className="mt-1 block text-sm text-[var(--color-muted-foreground)]">
+              {pt.saas.trialBadge} · {pt.landing.pricingTrialHint}
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -95,10 +108,29 @@ export function PhysioSubscriptionPage() {
 
           {active ? (
             <div className="space-y-3">
-              <p className="text-sm text-emerald-700">{pt.saas.alreadyActive}</p>
+              {trialing && daysLeft !== null ? (
+                <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">
+                  {pt.saas.trialDays.replace('{days}', String(daysLeft))}
+                </p>
+              ) : null}
+              <p className="text-sm text-emerald-700">
+                {trialing ? pt.saas.alreadyTrialing : pt.saas.alreadyActive}
+              </p>
               <Button asChild className="w-full">
                 <Link to={ROUTES.physio.dashboard}>{pt.saas.goToDashboard}</Link>
               </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => portal.mutate()}
+                disabled={portal.isPending}
+              >
+                {portal.isPending ? pt.common.loading : pt.saas.manage}
+              </Button>
+              <p className="text-xs text-[var(--color-muted-foreground)]">{pt.saas.manageHint}</p>
+              {portal.error ? (
+                <p className="text-sm text-red-600">{(portal.error as Error).message}</p>
+              ) : null}
             </div>
           ) : (
             <>
@@ -107,7 +139,11 @@ export function PhysioSubscriptionPage() {
                 onClick={() => checkout.mutate()}
                 disabled={checkout.isPending}
               >
-                {checkout.isPending ? pt.common.loading : pt.saas.subscribe}
+                {checkout.isPending
+                  ? pt.common.loading
+                  : physio?.stripe_customer_id
+                    ? pt.saas.hubCta
+                    : pt.saas.subscribeTrial}
               </Button>
               {checkout.error ? (
                 <p className="text-sm text-red-600">{(checkout.error as Error).message}</p>

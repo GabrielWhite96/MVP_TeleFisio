@@ -17,12 +17,23 @@ export function canManagePractice(physio: {
   subscription_status: SaasSubscriptionStatus
   trial_ends_at?: string | null
 }) {
-  return physio.subscription_status === 'active'
+  if (physio.subscription_status === 'active') return true
+  if (physio.subscription_status !== 'trialing') return false
+  if (!physio.trial_ends_at) return true
+  return new Date(physio.trial_ends_at).getTime() > Date.now()
 }
 
 export function trialDaysLeft(trialEndsAt: string | null) {
   if (!trialEndsAt) return null
-  return Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const days = Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  return days > 0 ? days : 0
+}
+
+export function isInTrial(physio: {
+  subscription_status: SaasSubscriptionStatus
+  trial_ends_at?: string | null
+}) {
+  return physio.subscription_status === 'trialing' && canManagePractice(physio)
 }
 
 export async function assertPracticeWritable(physiotherapistId: string) {

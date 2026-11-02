@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   const priceId = Deno.env.get("STRIPE_SAAS_PRICE_ID");
+  const trialDaysRaw = (Deno.env.get("STRIPE_SAAS_TRIAL_DAYS") ?? "7").trim();
+  const trialDays = Number.parseInt(trialDaysRaw, 10);
   if (!stripeKey || !priceId) {
     return json({
       error: "Checkout ainda não está configurado. A assinatura será liberada quando o Stripe estiver ativo.",
@@ -125,6 +127,13 @@ Deno.serve(async (req) => {
   if (fullName) params.set("metadata[full_name]", fullName);
   params.set("subscription_data[metadata][kind]", "saas");
   params.set("allow_promotion_codes", "true");
+
+  // New subscribers get a free trial (card collected, charged only after trial).
+  // Returning customers with an existing Stripe customer skip the trial on reactivation.
+  const grantTrial = !physio?.stripe_customer_id && Number.isFinite(trialDays) && trialDays > 0;
+  if (grantTrial) {
+    params.set("subscription_data[trial_period_days]", String(trialDays));
+  }
 
   if (physio) {
     params.set("client_reference_id", physio.id);

@@ -100,6 +100,7 @@ export function buildSoftwareJsonLd() {
           price: '29.90',
           priceCurrency: SAAS_PLAN.currency,
           url: `${url}/assinar`,
+          description: `${SAAS_PLAN.trialDays} dias grátis; depois ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}`,
         },
         publisher: { '@id': `${url}/#organization` },
       },

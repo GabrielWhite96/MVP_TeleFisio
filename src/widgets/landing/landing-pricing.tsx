@@ -31,12 +31,16 @@ export function LandingPricing() {
           <span className="landing-pricing-sheen" aria-hidden />
           <div className="bg-[var(--landing-teal)] px-8 py-5 text-white">
             <p className="text-sm font-medium">{SAAS_PLAN.name}</p>
-            <p className="mt-2 flex items-baseline gap-1">
+            <p className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+              {pt.landing.pricingTrialLabel}
+            </p>
+            <p className="mt-3 flex items-baseline gap-1">
               <span className="font-[family-name:var(--font-landing-display)] text-5xl font-semibold">
                 {SAAS_PLAN.amountLabel}
               </span>
               <span className="text-white/80">{pt.landing.pricingAmountSuffix}</span>
             </p>
+            <p className="mt-1 text-sm text-white/80">{pt.landing.pricingTrialHint}</p>
           </div>
           <div className="p-8">
             <ul className="space-y-3">

@@ -10,11 +10,14 @@ type StripeObject = {
   subscription?: string | { id?: string } | null;
   status?: string;
   payment_status?: string;
+  trial_end?: number | null;
   customer_email?: string | null;
   customer_details?: { email?: string | null; name?: string | null } | null;
   metadata?: Record<string, string>;
   client_reference_id?: string | null;
 };
+
+type SaasStatus = "trialing" | "active" | "inactive";
 
 function customerId(value: StripeObject["customer"]): string | null {
   if (!value) return null;
@@ -28,9 +31,29 @@ function subscriptionId(value: StripeObject["subscription"] | string | undefined
   return value.id ?? null;
 }
 
-function mapSubscriptionStatus(stripeStatus: string | undefined): "active" | "inactive" {
-  if (stripeStatus === "active" || stripeStatus === "trialing") return "active";
+function mapSubscriptionStatus(stripeStatus: string | undefined): SaasStatus {
+  if (stripeStatus === "trialing") return "trialing";
+  if (stripeStatus === "active") return "active";
   return "inactive";
+}
+
+function trialEndsAtFromUnix(trialEnd: number | null | undefined): string | null {
+  if (typeof trialEnd !== "number" || !Number.isFinite(trialEnd) || trialEnd <= 0) return null;
+  return new Date(trialEnd * 1000).toISOString();
+}
+
+async function fetchStripeSubscription(
+  stripeKey: string,
+  subId: string,
+): Promise<{ status?: string; trial_end?: number | null } | null> {
+  const res = await fetch(`https://api.stripe.com/v1/subscriptions/${subId}`, {
+    headers: { Authorization: `Bearer ${stripeKey}` },
+  });
+  if (!res.ok) {
+    console.error("stripe subscription fetch failed", res.status);
+    return null;
+  }
+  return await res.json() as { status?: string; trial_end?: number | null };
 }
 
 function generatePassword(length = 20) {
@@ -89,6 +112,8 @@ async function sendCredentialsEmail(input: {
   password?: string;
   loginUrl: string;
   kind: "created" | "reactivated";
+  trialing?: boolean;
+  trialDays?: number | null;
 }) {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
   const appPassword = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replaceAll(" ", "");
@@ -100,20 +125,44 @@ async function sendCredentialsEmail(input: {
   }
 
   const created = input.kind === "created";
+  const trialing = Boolean(input.trialing);
+  const trialLabel = input.trialDays && input.trialDays > 0
+    ? `${input.trialDays} dias`
+    : "o período de teste";
   const subject = created
-    ? "Seu acesso ao Fisionotes foi criado"
-    : "Sua assinatura do Fisionotes está ativa";
+    ? (trialing ? "Seu teste grátis do Fisionotes começou" : "Seu acesso ao Fisionotes foi criado")
+    : (trialing ? "Seu teste grátis do Fisionotes está ativo" : "Sua assinatura do Fisionotes está ativa");
   const emailContent = {
     preview: created
-      ? "Pagamento confirmado. Entre com e-mail e senha temporária."
-      : "Pagamento confirmado. Sua assinatura voltou a ficar ativa.",
-    title: created ? "Sua conta profissional está pronta" : "Sua assinatura está ativa de novo",
+      ? (trialing
+        ? `Teste grátis de ${trialLabel} iniciado. Entre com e-mail e senha temporária.`
+        : "Assinatura confirmada. Entre com e-mail e senha temporária.")
+      : (trialing
+        ? `Teste grátis de ${trialLabel} ativo. Sua clínica está liberada.`
+        : "Assinatura confirmada. Sua assinatura voltou a ficar ativa."),
+    title: created
+      ? (trialing ? "Seu teste grátis começou" : "Sua conta profissional está pronta")
+      : (trialing ? "Seu teste grátis está ativo" : "Sua assinatura está ativa de novo"),
     greeting: created
-      ? "O pagamento foi confirmado e o acesso profissional foi criado."
-      : "O pagamento foi confirmado e sua assinatura voltou a ficar ativa.",
+      ? (trialing
+        ? `A assinatura foi iniciada com ${trialLabel} de teste grátis e o acesso profissional foi criado.`
+        : "A assinatura foi confirmada e o acesso profissional foi criado.")
+      : (trialing
+        ? `A assinatura foi iniciada com ${trialLabel} de teste grátis.`
+        : "A assinatura foi confirmada e voltou a ficar ativa."),
     paragraphs: created
-      ? ["Entre com os dados abaixo. Depois do primeiro acesso, troque a senha."]
-      : ["Entre com o e-mail da conta e a senha que você já usa no Fisionotes."],
+      ? [
+        "Entre com os dados abaixo. Depois do primeiro acesso, troque a senha.",
+        ...(trialing
+          ? [`Se cancelar durante o teste, você não é cobrado. Depois de ${trialLabel}, a cobrança mensal começa automaticamente.`]
+          : []),
+      ]
+      : [
+        "Entre com o e-mail da conta e a senha que você já usa no Fisionotes.",
+        ...(trialing
+          ? [`Se cancelar durante o teste, você não é cobrado. Depois de ${trialLabel}, a cobrança mensal começa automaticamente.`]
+          : []),
+      ],
     details: [
       { label: "E-mail", value: input.email },
       ...(input.password
@@ -145,7 +194,11 @@ async function markPhysioActive(
   if (error) throw error;
 }
 
-async function provisionSaasAccess(supabase: SupabaseClient, obj: StripeObject) {
+async function provisionSaasAccess(
+  supabase: SupabaseClient,
+  obj: StripeObject,
+  stripeKey: string,
+) {
   const email = (
     obj.customer_details?.email ??
     obj.customer_email ??
@@ -158,8 +211,20 @@ async function provisionSaasAccess(supabase: SupabaseClient, obj: StripeObject) 
   const customer = customerId(obj.customer);
   const subId = subscriptionId(obj.subscription);
   const physioFromMeta = obj.metadata?.physiotherapist_id || obj.client_reference_id || "";
+
+  let saasStatus: SaasStatus = obj.payment_status === "unpaid" ? "inactive" : "active";
+  let trialEndsAt: string | null = null;
+  if (subId && obj.payment_status !== "unpaid") {
+    const subscription = await fetchStripeSubscription(stripeKey, subId);
+    if (subscription) {
+      saasStatus = mapSubscriptionStatus(subscription.status);
+      trialEndsAt = trialEndsAtFromUnix(subscription.trial_end);
+    }
+  }
+
   const updates: Record<string, string | null> = {
-    subscription_status: obj.payment_status === "unpaid" ? "inactive" : "active",
+    subscription_status: saasStatus,
+    trial_ends_at: saasStatus === "trialing" ? trialEndsAt : null,
   };
   if (customer) updates.stripe_customer_id = customer;
   if (subId) updates.stripe_subscription_id = subId;
@@ -277,12 +342,17 @@ async function provisionSaasAccess(supabase: SupabaseClient, obj: StripeObject) 
     if (passwordError) throw passwordError;
   }
 
+  const trialDaysLeft = trialEndsAt
+    ? Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
   const sent = await sendCredentialsEmail({
     to: email,
     email,
     password: shouldIssuePassword ? generatedPassword : undefined,
     loginUrl,
     kind: shouldIssuePassword ? "created" : "reactivated",
+    trialing: saasStatus === "trialing",
+    trialDays: trialDaysLeft,
   });
   if (!sent.ok) return sent;
 
@@ -335,7 +405,7 @@ Deno.serve(async (req) => {
   if (kind === "saas" || physioFromMeta) {
     if (event.type === "checkout.session.completed") {
       try {
-        const result = await provisionSaasAccess(supabase, obj ?? {});
+        const result = await provisionSaasAccess(supabase, obj ?? {}, stripeKey);
         if (!result.ok) {
           return new Response(JSON.stringify({ error: result.reason }), { status: result.status });
         }
@@ -352,7 +422,10 @@ Deno.serve(async (req) => {
       const status = event.type === "customer.subscription.deleted"
         ? "inactive"
         : mapSubscriptionStatus(obj?.status);
-      const updates: Record<string, string | null> = { subscription_status: status };
+      const updates: Record<string, string | null> = {
+        subscription_status: status,
+        trial_ends_at: status === "trialing" ? trialEndsAtFromUnix(obj?.trial_end) : null,
+      };
       const customer = customerId(obj?.customer);
       const subId = obj?.object === "subscription" ? obj.id ?? null : subscriptionId(obj?.subscription);
       if (customer) updates.stripe_customer_id = customer;
