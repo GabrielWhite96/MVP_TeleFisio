@@ -6,6 +6,7 @@ import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { BrandMark } from '@/shared/ui/brand'
 import { cn } from '@/shared/lib/utils'
+import { SubscribeCtaLink } from '@/widgets/landing/tracked-cta'
 
 const anchors = [
   { href: '#funcionalidades', label: pt.landing.navFeatures },
@@ -53,12 +54,12 @@ export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
             >
               {pt.landing.login}
             </Link>
-            <Link
-              to={ROUTES.subscribe}
+            <SubscribeCtaLink
+              placement="header"
               className={cn(buttonVariants(), 'landing-cta landing-cta-primary bg-[var(--landing-teal)] text-white hover:opacity-90')}
             >
               {pt.landing.signup}
-            </Link>
+            </SubscribeCtaLink>
           </div>
 
           <Button
@@ -100,15 +101,15 @@ export function LandingHeader({ headerRef, progressRef }: LandingHeaderProps) {
                 <Link to={ROUTES.login} className={cn(buttonVariants({ variant: 'outline' }), 'landing-cta w-full bg-white/40')}>
                   {pt.landing.login}
                 </Link>
-                <Link
-                  to={ROUTES.subscribe}
+                <SubscribeCtaLink
+                  placement="header-mobile"
                   className={cn(
                     buttonVariants(),
                     'landing-cta landing-cta-primary w-full bg-[var(--landing-teal)] text-white hover:opacity-90'
                   )}
                 >
                   {pt.landing.signup}
-                </Link>
+                </SubscribeCtaLink>
               </div>
             </div>
           </div>

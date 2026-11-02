@@ -1,11 +1,10 @@
 import { Check } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { buttonVariants } from '@/shared/ui/button'
-import { ROUTES } from '@/shared/config/routes'
 import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { LandingReveal } from '@/widgets/landing/landing-reveal'
 import { pt } from '@/shared/config/i18n/pt'
 import { cn } from '@/shared/lib/utils'
+import { SubscribeCtaLink } from '@/widgets/landing/tracked-cta'
 
 const bullets = [
   pt.landing.pricingBullet1,
@@ -48,15 +47,15 @@ export function LandingPricing() {
                 </li>
               ))}
             </ul>
-            <Link
-              to={ROUTES.subscribe}
+            <SubscribeCtaLink
+              placement="pricing"
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary mt-8 w-full bg-[var(--landing-teal)] text-white hover:opacity-90'
               )}
             >
               {pt.landing.pricingCta}
-            </Link>
+            </SubscribeCtaLink>
             <p className="mt-4 text-center text-sm text-[var(--landing-ink-muted)]">{pt.landing.pricingNote}</p>
           </div>
         </div>

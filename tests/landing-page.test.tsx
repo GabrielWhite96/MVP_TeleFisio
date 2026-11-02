@@ -28,6 +28,7 @@ describe('LandingPage', () => {
     expect(screen.getAllByAltText(pt.landing.heroBrand).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: pt.landing.login }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: pt.landing.signup }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: pt.landing.heroDemo }).length).toBeGreaterThan(0)
     expect(screen.getByText(SAAS_PLAN.amountLabel)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: pt.landing.pricingTitle })).toBeInTheDocument()
   })

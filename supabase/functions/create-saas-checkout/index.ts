@@ -16,6 +16,8 @@ function allowedOrigin(requested: unknown) {
   const allowed = new Set([
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://fisionotes.com.br",
+    "https://www.fisionotes.com.br",
     "https://tele-fisio.netlify.app",
   ]);
   try {

@@ -1,0 +1,21 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/auth/*
+  X-Robots-Tag: noindex, nofollow
+
+/assinar
+  X-Robots-Tag: noindex, nofollow
+
+/patient/*
+  X-Robots-Tag: noindex, nofollow
+
+/physio/*
+  X-Robots-Tag: noindex, nofollow
+
+/caregiver/*
+  X-Robots-Tag: noindex, nofollow
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow

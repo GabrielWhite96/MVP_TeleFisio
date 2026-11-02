@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { BrandMark } from '@/shared/ui/brand'
+import { DemoCtaLink, SubscribeCtaLink, WhatsAppCtaLink } from '@/widgets/landing/tracked-cta'
 
 export function LandingFooter() {
   return (
@@ -16,9 +17,24 @@ export function LandingFooter() {
             <Link to={ROUTES.login} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
               {pt.landing.footerLogin}
             </Link>
-            <Link to={ROUTES.subscribe} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
+            <SubscribeCtaLink
+              placement="footer"
+              className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline"
+            >
               {pt.landing.footerSignup}
-            </Link>
+            </SubscribeCtaLink>
+            <DemoCtaLink
+              placement="footer"
+              className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline"
+            >
+              {pt.landing.footerDemo}
+            </DemoCtaLink>
+            <WhatsAppCtaLink
+              placement="footer"
+              className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline"
+            >
+              {pt.landing.footerWhatsApp}
+            </WhatsAppCtaLink>
           </div>
         </div>
       </div>

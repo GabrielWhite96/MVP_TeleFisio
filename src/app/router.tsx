@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom'
+import { DocumentMeta } from '@/app/document-meta'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
 import { LoginPage, SubscribePage, ForgotPasswordPage, ResetPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
@@ -38,7 +39,19 @@ import { PhysioSubscriptionPage } from '@/pages/physio/subscription-page'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { ROUTES } from '@/shared/config/routes'
 
+function RootChrome() {
+  return (
+    <>
+      <DocumentMeta />
+      <Outlet />
+    </>
+  )
+}
+
 export const router = createBrowserRouter([
+  {
+    element: <RootChrome />,
+    children: [
   { path: ROUTES.home, element: <HomePage /> },
   {
     element: <GuestRoute />,
@@ -131,6 +144,8 @@ export const router = createBrowserRouter([
   },
   { path: ROUTES.resetPassword, element: <ResetPasswordPage /> },
   { path: '*', element: <NotFoundPage /> },
+    ],
+  },
 ])
 
 export function AppRouter() {

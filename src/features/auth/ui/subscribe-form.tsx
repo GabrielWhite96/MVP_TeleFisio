@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -9,10 +10,13 @@ import { Input, Label } from '@/shared/ui/input'
 import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { trackBeginCheckout, trackCheckoutSuccess, trackDemoRequest } from '@/shared/lib/analytics'
 
 export function SubscribeForm() {
   const [params] = useSearchParams()
   const checkoutState = params.get('checkout')
+  const intent = params.get('intent')
+  const trackedSuccess = useRef(false)
   const { register, handleSubmit, formState: { errors } } = useForm<SubscribeFormData>({
     resolver: zodResolver(subscribeSchema),
   })
@@ -20,6 +24,13 @@ export function SubscribeForm() {
   const mutation = useMutation({
     mutationFn: (data: SubscribeFormData) => startPublicSaasCheckout(data),
   })
+
+  useEffect(() => {
+    if (checkoutState === 'success' && !trackedSuccess.current) {
+      trackedSuccess.current = true
+      trackCheckoutSuccess()
+    }
+  }, [checkoutState])
 
   return (
     <div className="w-full">
@@ -38,7 +49,11 @@ export function SubscribeForm() {
       ) : null}
 
       <form
-        onSubmit={handleSubmit((data) => mutation.mutate(data))}
+        onSubmit={handleSubmit((data) => {
+          trackDemoRequest(intent === 'demo' ? 'subscribe-form-demo' : 'subscribe-form', 'subscribe_form')
+          trackBeginCheckout()
+          mutation.mutate(data)
+        })}
         className="mt-8 flex flex-col gap-5"
       >
         <div className="flex flex-col gap-2">

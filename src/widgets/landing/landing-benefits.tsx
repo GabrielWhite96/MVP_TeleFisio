@@ -1,10 +1,9 @@
 import { AlertTriangle, GitCompareArrows, ChartNoAxesColumn, Smartphone } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { buttonVariants } from '@/shared/ui/button'
-import { ROUTES } from '@/shared/config/routes'
 import { LandingReveal } from '@/widgets/landing/landing-reveal'
 import { pt } from '@/shared/config/i18n/pt'
 import { cn } from '@/shared/lib/utils'
+import { SubscribeCtaLink } from '@/widgets/landing/tracked-cta'
 
 const benefits = [
   { icon: AlertTriangle, title: pt.landing.benefitRiskTitle, body: pt.landing.benefitRiskBody, tone: 'landing-tone-coral' },
@@ -49,15 +48,15 @@ export function LandingBenefits() {
             <p className="mx-auto mt-3 max-w-xl text-[color-mix(in_oklab,white_82%,transparent)]">
               {pt.landing.midCtaBody}
             </p>
-            <Link
-              to={ROUTES.subscribe}
+            <SubscribeCtaLink
+              placement="mid-cta"
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary mt-6 bg-[var(--landing-cyan)] text-[var(--landing-deep)] hover:opacity-90'
               )}
             >
               {pt.landing.midCtaButton}
-            </Link>
+            </SubscribeCtaLink>
           </div>
         </div>
         </LandingReveal>

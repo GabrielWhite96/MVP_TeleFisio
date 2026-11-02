@@ -1,0 +1,37 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Enable Site configuration > Build & deploy > Post processing > Prerendering
+# so Googlebot and social crawlers receive the React landing HTML.
+
+[[redirects]]
+  from = "https://tele-fisio.netlify.app/*"
+  to = "https://fisionotes.com.br/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.fisionotes.com.br/*"
+  to = "https://fisionotes.com.br/:splat"
+  status = 301
+  force = true
+
+# Keep static SEO files ahead of the SPA fallback.
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

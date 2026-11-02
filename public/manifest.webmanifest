@@ -1,7 +1,7 @@
 {
   "name": "Fisionotes",
   "short_name": "Fisionotes",
-  "description": "Tele-fisioterapia e reabilitação domiciliar",
+  "description": "Sistema para clínica de fisioterapia: agenda, prontuário, financeiro e portal do paciente.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EAF2EE",

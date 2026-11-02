@@ -2,19 +2,10 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getDashboardRoute } from '@/features/auth/api/auth-api'
 import { LandingPage } from '@/pages/landing/landing-page'
-import { LoadingSpinner } from '@/shared/ui/states'
 import { ROUTES } from '@/shared/config/routes'
 
 export function HomePage() {
-  const { isAuthenticated, profile, isLoading } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner className="h-8 w-8" />
-      </div>
-    )
-  }
+  const { isAuthenticated, profile } = useAuth()
 
   if (isAuthenticated && profile) {
     return <Navigate to={getDashboardRoute(profile.role)} replace />

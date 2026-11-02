@@ -7,6 +7,7 @@ const faqs = [
   { q: pt.landing.faq3Q, a: pt.landing.faq3A },
   { q: pt.landing.faq4Q, a: pt.landing.faq4A },
   { q: pt.landing.faq5Q, a: pt.landing.faq5A },
+  { q: pt.landing.faq6Q, a: pt.landing.faq6A },
 ] as const
 
 export function LandingFaq() {

@@ -5,6 +5,7 @@ import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { BrandMark } from '@/shared/ui/brand'
 import { cn } from '@/shared/lib/utils'
+import { DemoCtaLink, SubscribeCtaLink } from '@/widgets/landing/tracked-cta'
 
 const careSteps = [
   { label: pt.landing.careStepComplaint, tone: 'landing-tone-teal' },
@@ -35,21 +36,30 @@ export function LandingHero({ parallaxRef }: { parallaxRef: RefObject<HTMLDivEle
           <p className="mt-5 max-w-prose text-lg text-[var(--landing-ink-muted)]">
             {pt.landing.heroSubtitle}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              to={ROUTES.subscribe}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <SubscribeCtaLink
+              placement="hero"
               className={cn(
                 buttonVariants({ size: 'lg' }),
                 'landing-cta landing-cta-primary bg-[var(--landing-teal)] text-white hover:opacity-90'
               )}
             >
               {pt.landing.heroPrimary}
-            </Link>
-            <Link
-              to={ROUTES.login}
+            </SubscribeCtaLink>
+            <DemoCtaLink
+              placement="hero"
               className={cn(
                 buttonVariants({ size: 'lg', variant: 'outline' }),
                 'landing-cta landing-glass-chip border-white/50'
+              )}
+            >
+              {pt.landing.heroDemo}
+            </DemoCtaLink>
+            <Link
+              to={ROUTES.login}
+              className={cn(
+                buttonVariants({ size: 'lg', variant: 'ghost' }),
+                'landing-cta text-[var(--landing-ink)] hover:bg-white/40'
               )}
             >
               {pt.landing.heroSecondary}

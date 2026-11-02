@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /assinar
+Disallow: /patient/
+Disallow: /physio/
+Disallow: /caregiver/
+Disallow: /admin/
+
+Sitemap: https://fisionotes.com.br/sitemap.xml

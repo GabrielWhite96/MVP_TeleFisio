@@ -13,7 +13,14 @@ function resolveAppOrigin(req: Request): string | null {
   try {
     const url = new URL(origin);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return url.origin;
+    const allowedHosts = new Set([
+      "localhost",
+      "127.0.0.1",
+      "fisionotes.com.br",
+      "www.fisionotes.com.br",
+      "tele-fisio.netlify.app",
+    ]);
+    if (allowedHosts.has(url.hostname)) return url.origin;
   } catch {
     return null;
   }
