@@ -1,6 +1,14 @@
 /// <reference lib="webworker" />
-const CACHE = 'fisionotes-shell-v2'
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/logos/logo_semfundo_sem_nome.png']
+const CACHE = 'fisionotes-shell-v3'
+const SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/favicon.ico',
+  '/favicon-48.png',
+  '/favicon-192.png',
+  '/logos/logo_semfundo_sem_nome.png',
+]
 
 self.addEventListener('install', (event) => {
   const e = event as ExtendableEvent
