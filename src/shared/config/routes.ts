@@ -6,6 +6,12 @@ export const ROUTES = {
   forgotPassword: '/auth/forgot-password',
   resetPassword: '/auth/reset-password',
   invite: (token: string) => `/auth/invite/${token}`,
+  seo: {
+    sistema: '/sistema-para-fisioterapeutas',
+    clinicas: '/software-para-clinicas-de-fisioterapia',
+    prontuario: '/prontuario-eletronico-fisioterapeutas',
+    ferramentas: '/ferramentas-para-fisioterapeutas',
+  },
   patient: {
     dashboard: '/patient/dashboard',
     profile: '/patient/profile',

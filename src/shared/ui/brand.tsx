@@ -35,10 +35,21 @@ export function BrandMark({
   className?: string
   alt?: string
 }) {
+  const intrinsic =
+    layout === 'icon'
+      ? { width: 128, height: 128 }
+      : layout === 'stacked'
+        ? { width: 320, height: 360 }
+        : { width: 420, height: 96 }
+
   const mark = (
     <img
       src={BRAND_LOGOS[layout]}
       alt={alt}
+      width={intrinsic.width}
+      height={intrinsic.height}
+      decoding="async"
+      fetchPriority={size === 'lg' ? 'high' : undefined}
       className={cn(
         'w-auto max-w-full object-contain object-left',
         sizeStyles[size][layout],

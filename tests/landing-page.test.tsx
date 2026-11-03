@@ -33,7 +33,8 @@ describe('LandingPage', () => {
     expect(screen.getByRole('heading', { name: pt.landing.pricingTitle })).toBeInTheDocument()
   })
 
-  it('renders feature, tools, benefits and FAQ sections', () => {
+  it('renders audience, feature, tools, benefits and FAQ sections', () => {
+    expect(screen.getByRole('heading', { name: pt.landing.audienceTitle })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: pt.landing.featuresTitle })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: pt.landing.toolsTitle })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: pt.landing.benefitsTitle })).toBeInTheDocument()
@@ -43,8 +44,14 @@ describe('LandingPage', () => {
 
   it('exposes skip link and section anchors', () => {
     expect(screen.getByRole('link', { name: pt.landing.skipToContent })).toHaveAttribute('href', '#conteudo')
+    expect(document.querySelector('#para-quem')).toBeTruthy()
     expect(document.querySelector('#funcionalidades')).toBeTruthy()
     expect(document.querySelector('#assinatura')).toBeTruthy()
     expect(document.querySelector('#faq')).toBeTruthy()
+  })
+
+  it('links SEO intent pages from the footer', () => {
+    expect(screen.getByRole('link', { name: 'Sistema para fisioterapeutas' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Prontuário eletrônico' })).toBeInTheDocument()
   })
 })

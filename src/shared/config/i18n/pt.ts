@@ -184,13 +184,15 @@ export const pt = {
     navFeatures: 'Funcionalidades',
     navTools: 'Ferramentas',
     navBenefits: 'Vantagens',
+    navAudience: 'Para quem',
     navPricing: 'Assinatura',
     navFaq: 'FAQ',
     login: 'Entrar',
     signup: 'Começar grátis',
     heroBrand: 'Fisionotes',
-    heroTitle: 'Sistema de organização para fisioterapeutas: do prontuário ao check-in do paciente',
-    heroSubtitle: 'Organize agenda, prontuário, exercícios em casa e financeiro num só lugar. Feito para fisioterapeutas — com teleconsulta e atendimento domiciliar.',
+    heroTitle: 'Sistema para fisioterapeutas: agenda, prontuário e gestão em um só lugar',
+    heroSubtitle:
+      'Software para consultório e clínicas de fisioterapia. Organize agenda, prontuário eletrônico, gestão de pacientes, exercícios em casa e financeiro — com teleconsulta e atendimento domiciliar.',
     heroPrimary: 'Começar 7 dias grátis',
     heroDemo: 'Solicitar demonstração',
     heroSecondary: 'Já tenho conta',
@@ -199,11 +201,27 @@ export const pt = {
     careStepPlan: 'Plano',
     careStepSession: 'Sessão',
     careStepCheckIn: 'Check-in',
-    featuresTitle: 'Tudo que sua prática precisa no dia a dia',
-    featuresSubtitle: 'Ferramentas reais do consultório para organizar sua prática — não um marketplace de pacientes.',
-    featureAgendaTitle: 'Agenda clínica',
+    audienceTitle: 'Para quem o Fisionotes foi feito',
+    audienceSubtitle:
+      'Um sistema de gestão para fisioterapia pensado para quem atende sozinho ou em equipe pequena — sem complexidade de ERPs genéricos.',
+    audienceSoloTitle: 'Fisioterapeutas autônomos',
+    audienceSoloBody:
+      'Quem precisa de agenda para fisioterapeutas, prontuário eletrônico e cobrança sem trocar de planilha o tempo todo.',
+    audienceClinicTitle: 'Clínicas e consultórios',
+    audienceClinicBody:
+      'Software para clínicas de fisioterapia que querem gestão de pacientes, evolução clínica e financeiro no mesmo fluxo.',
+    audienceHomeTitle: 'Atendimento domiciliar e teleconsulta',
+    audienceHomeBody:
+      'Ferramentas para fisioterapeutas que alternam consultório, visita e vídeo — com o histórico do paciente sempre à mão.',
+    audienceProblemTitle: 'O que resolve no dia a dia',
+    audienceProblemBody:
+      'Agenda dispersa, prontuário em pastas, adesão invisível e financeiro paralelo. O Fisionotes concentra a prática clínica e administrativa.',
+    featuresTitle: 'Funcionalidades do sistema para fisioterapeutas',
+    featuresSubtitle:
+      'Ferramentas reais do consultório: prontuário eletrônico, agenda, gestão de pacientes e financeiro — não um marketplace de pacientes.',
+    featureAgendaTitle: 'Agenda para fisioterapeutas',
     featureAgendaBody: 'Dia, semana e mês com teleconsulta e visita domiciliar. Sincronize com o Google Calendar.',
-    featureChartTitle: 'Prontuário estruturado',
+    featureChartTitle: 'Prontuário eletrônico',
     featureChartBody: 'Avaliação inicial, evoluções e reavaliações com comparação entre momentos do tratamento.',
     featurePlanTitle: 'Plano de tratamento',
     featurePlanBody: 'Metas mensuráveis, duração e alta documentada no mesmo fluxo do paciente.',
@@ -217,8 +235,9 @@ export const pt = {
     featureBillingBody: 'Controle o que cada paciente deve e registre Pix, dinheiro ou outro recebimento.',
     featurePortalTitle: 'Portal do paciente e do cuidador',
     featurePortalBody: 'Convite por e-mail, consultas, exercícios e permissões granulares para familiares.',
-    toolsTitle: 'Biblioteca clínica na consulta',
-    toolsSubtitle: 'Testes, escalas, calculadoras e protocolos com fonte. Instrumentos protegidos são referenciados, não reproduzidos.',
+    toolsTitle: 'Ferramentas para fisioterapeutas na consulta',
+    toolsSubtitle:
+      'Biblioteca clínica com testes, escalas, calculadoras e protocolos com fonte. Instrumentos protegidos são referenciados, não reproduzidos.',
     toolsCount: '33 fichas',
     toolsCategories: 'Testes funcionais, escalas, fórmulas, avaliação física, exercícios, protocolos e modelos Fisionotes.',
     toolsChips: [
@@ -230,8 +249,9 @@ export const pt = {
       'Protocolos',
       'Modelos Fisionotes',
     ],
-    benefitsTitle: 'Por que vale a pena',
-    benefitsSubtitle: 'Menos planilha e mais decisão clínica: um software para fisioterapeutas acompanharem o paciente.',
+    benefitsTitle: 'Diferenciais de um software para fisioterapia',
+    benefitsSubtitle:
+      'Menos planilha e mais decisão clínica: sistema de gestão para fisioterapia com visão do paciente do check-in à alta.',
     benefitRiskTitle: 'Pacientes em atenção',
     benefitRiskBody: 'Sinais de dor alta, baixa adesão ou check-in ausente aparecem no painel.',
     benefitCompareTitle: 'Evolução comparável',
@@ -240,39 +260,162 @@ export const pt = {
     benefitAdhereBody: 'Exercícios concluídos e check-ins mostram se o plano está saindo do papel.',
     benefitPwaTitle: 'Consultório no celular',
     benefitPwaBody: 'Use como app no telefone (PWA) entre visitas domiciliares e no consultório.',
-    midCtaTitle: '7 dias grátis para organizar sua prática',
-    midCtaBody: 'Informe seu e-mail, faça o checkout e use o Fisionotes por 7 dias sem cobrança. Se cancelar no teste, não paga nada. Depois, R$ 29,90/mês.',
+    midCtaTitle: '7 dias grátis no sistema para fisioterapeutas',
+    midCtaBody:
+      'Informe seu e-mail, faça o checkout e use o Fisionotes por 7 dias sem cobrança. Se cancelar no teste, não paga nada. Depois, R$ 29,90/mês.',
     midCtaButton: 'Começar 7 dias grátis',
-    pricingTitle: 'Um plano. Prática organizada.',
-    pricingSubtitle: '7 dias grátis. Depois, assinatura mensal. A conta profissional é criada depois do checkout.',
+    pricingTitle: 'Como funciona a assinatura',
+    pricingSubtitle:
+      'Um plano completo de software para consultório de fisioterapia. 7 dias grátis; depois, assinatura mensal. A conta profissional é criada após o checkout.',
     pricingAmountSuffix: '/mês',
     pricingTrialLabel: '7 dias grátis',
     pricingTrialHint: 'depois do teste',
     pricingCta: 'Começar 7 dias grátis',
-    pricingNote: 'Cartão no checkout, sem cobrança nos primeiros 7 dias. Cancele no teste e não paga nada. Pacientes e cuidadores entram por convite, sem custo extra.',
-    pricingBullet1: 'Agenda, prontuário e planos de tratamento',
-    pricingBullet2: 'Biblioteca clínica, relatórios PDF e financeiro',
+    pricingNote:
+      'Cartão no checkout, sem cobrança nos primeiros 7 dias. Cancele no teste e não paga nada. Pacientes e cuidadores entram por convite, sem custo extra.',
+    pricingBullet1: 'Agenda, prontuário eletrônico e planos de tratamento',
+    pricingBullet2: 'Ferramentas clínicas, relatórios PDF e financeiro',
     pricingBullet3: 'Portal do paciente, cuidadores e teleconsulta',
     faqTitle: 'Perguntas frequentes',
     faq1Q: 'Como funciona o teste grátis de 7 dias?',
-    faq1A: 'Você informa o e-mail, conclui o checkout com cartão e já organiza sua prática. Nos primeiros 7 dias não há cobrança. Se cancelar nesse período, não paga nada. Depois do teste, a mensalidade de R$ 29,90 começa automaticamente.',
+    faq1A:
+      'Você informa o e-mail, conclui o checkout com cartão e já organiza sua prática. Nos primeiros 7 dias não há cobrança. Se cancelar nesse período, não paga nada. Depois do teste, a mensalidade de R$ 29,90 começa automaticamente.',
     faq2Q: 'O que fica bloqueado sem assinatura?',
-    faq2A: 'Quem já tem login e está inativo continua vendo o painel. Agenda, pacientes, prontuário, ferramentas, relatórios e financeiro ficam bloqueados até a assinatura voltar a ficar ativa.',
+    faq2A:
+      'Quem já tem login e está inativo continua vendo o painel. Agenda, pacientes, prontuário, ferramentas, relatórios e financeiro ficam bloqueados até a assinatura voltar a ficar ativa.',
     faq3Q: 'Pacientes e cuidadores pagam?',
     faq3A: 'Não. Eles entram por convite do fisioterapeuta e usam o portal sem assinar o Fisionotes.',
     faq4Q: 'Teleconsulta e atendimento domiciliar?',
     faq4A: 'As duas modalidades estão no mesmo produto: sala de vídeo na teleconsulta e endereço na visita domiciliar.',
     faq5Q: 'Posso cancelar durante o teste?',
-    faq5A: 'Sim. Cancele pelos 7 dias de teste e não há cobrança. Depois do teste, ao encerrar a assinatura o acesso profissional é bloqueado; o histórico permanece para quando reativar.',
-    faq6Q: 'O Fisionotes é um sistema de organização para fisioterapeutas?',
-    faq6A: 'Sim. É um software para fisioterapeutas organizarem a prática: agenda, prontuário, financeiro, portal do paciente e ferramentas clínicas — inclusive teleconsulta e atendimento domiciliar.',
-    footerTagline: 'Sistema de organização para fisioterapeutas — teleconsulta e reabilitação domiciliar.',
+    faq5A:
+      'Sim. Cancele pelos 7 dias de teste e não há cobrança. Depois do teste, ao encerrar a assinatura o acesso profissional é bloqueado; o histórico permanece para quando reativar.',
+    faq6Q: 'O Fisionotes é um sistema para fisioterapeutas?',
+    faq6A:
+      'Sim. É um software para clínicas e consultórios de fisioterapia: agenda, prontuário eletrônico, gestão de pacientes, financeiro, portal do paciente e ferramentas clínicas — inclusive teleconsulta e atendimento domiciliar.',
+    footerTagline: 'Sistema para fisioterapeutas — agenda, prontuário e gestão da prática.',
+    footerExplore: 'Explorar',
     footerLogin: 'Entrar',
     footerSignup: 'Começar grátis',
     footerDemo: 'Solicitar demonstração',
     footerWhatsApp: 'Falar no WhatsApp',
     footerRights: 'Fisionotes',
   },
+  seoPages: {
+    backHome: 'Voltar à página inicial',
+    ctaTrial: 'Começar 7 dias grátis',
+    ctaDemo: 'Solicitar demonstração',
+    relatedTitle: 'Continue explorando',
+    sistema: {
+      path: '/sistema-para-fisioterapeutas',
+      title: 'Sistema para Fisioterapeutas | Fisionotes',
+      description:
+        'Conheça o sistema para fisioterapeutas Fisionotes: agenda, prontuário eletrônico, gestão de pacientes, financeiro e portal do paciente. Teste 7 dias grátis.',
+      h1: 'Sistema para fisioterapeutas que organiza a prática do início ao fim',
+      intro:
+        'O Fisionotes é um sistema para fisioterapeutas que concentra agenda, prontuário, exercícios, financeiro e acompanhamento do paciente em um fluxo só. Feito para quem atende em consultório, clínica, domicílio ou teleconsulta.',
+      sections: [
+        {
+          title: 'O que é o Fisionotes',
+          body: 'É um software web para fisioterapeutas administrarem a prática clínica e administrativa sem depender de planilhas e apps desconectados. Você cadastra pacientes, registra evolução, agenda sessões e acompanha adesão ao plano.',
+        },
+        {
+          title: 'Problemas que o sistema resolve',
+          body: 'Agenda em um lugar, prontuário em outro e cobrança em um terceiro. Pacientes que somem entre sessões. Falta de visão de quem está em risco. O Fisionotes unifica gestão de pacientes de fisioterapia com sinais clínicos e financeiros no mesmo painel.',
+        },
+        {
+          title: 'Como funciona no dia a dia',
+          body: 'Defina disponibilidade, cadastre pacientes, faça a avaliação inicial, monte o plano, registre evoluções e acompanhe check-ins e exercícios em casa. Relatórios em PDF fecham o ciclo quando precisa documentar ou entregar evolução.',
+        },
+        {
+          title: 'Assinatura simples',
+          body: 'Um plano mensal com 7 dias grátis. Pacientes e cuidadores entram por convite, sem custo extra. Cancele no teste e não há cobrança.',
+        },
+      ],
+    },
+    clinicas: {
+      path: '/software-para-clinicas-de-fisioterapia',
+      title: 'Software para Clínicas de Fisioterapia | Fisionotes',
+      description:
+        'Software para clínicas de fisioterapia com agenda, prontuário, gestão de pacientes e financeiro. Sistema de gestão para fisioterapia em um plano simples.',
+      h1: 'Software para clínicas de fisioterapia sem complexidade de ERP',
+      intro:
+        'Clínicas e consultórios de fisioterapia precisam de sistema de gestão focado na rotina clínica — não de um hospitalário genérico. O Fisionotes organiza pacientes, sessões e cobrança com linguagem da fisioterapia.',
+      sections: [
+        {
+          title: 'Gestão de pacientes de fisioterapia',
+          body: 'Cadastro, status de tratamento, prontuário e histórico no mesmo lugar. Veja quem está ativo, pausado, em reavaliação ou aguardando avaliação inicial.',
+        },
+        {
+          title: 'Agenda clínica e modalidades',
+          body: 'Organize dia, semana e mês com teleconsulta e atendimento domiciliar. Sincronize com o Google Calendar para a equipe não perder horário.',
+        },
+        {
+          title: 'Financeiro alinhado à prática',
+          body: 'Controle o que cada paciente deve e registre Pix, dinheiro ou outro recebimento — sem misturar com ferramentas que não falam a língua do consultório.',
+        },
+        {
+          title: 'Portal para paciente e cuidador',
+          body: 'Convites por e-mail, exercícios em casa e acompanhamento familiar com permissões. Menos mensagem solta e mais adesão ao plano.',
+        },
+      ],
+    },
+    prontuario: {
+      path: '/prontuario-eletronico-fisioterapeutas',
+      title: 'Prontuário Eletrônico para Fisioterapeutas | Fisionotes',
+      description:
+        'Prontuário eletrônico para fisioterapeutas com avaliação, evolução, reavaliação e comparação clínica. Parte do sistema Fisionotes para a prática.',
+      h1: 'Prontuário eletrônico para fisioterapeutas com evolução comparável',
+      intro:
+        'O prontuário eletrônico do Fisionotes acompanha a linha do cuidado: queixa, plano, sessão e check-in. Avaliações, evoluções e reavaliações ficam estruturadas para comparar momentos do tratamento.',
+      sections: [
+        {
+          title: 'Avaliação inicial estruturada',
+          body: 'Registre a entrada do paciente com o contexto clínico necessário para iniciar o plano — sem depender de formulários soltos ou papel.',
+        },
+        {
+          title: 'Evoluções e reavaliações',
+          body: 'Documente cada sessão e compare avaliações lado a lado. Veja a trajetória clínica sem reabrir pastas ou buscar em e-mails.',
+        },
+        {
+          title: 'Plano de tratamento no mesmo fluxo',
+          body: 'Metas mensuráveis, duração e alta documentada junto ao prontuário. O plano deixa de ser um arquivo paralelo.',
+        },
+        {
+          title: 'Relatórios em PDF',
+          body: 'Gere evolução por período com indicadores, sessões e plano para entregar ao paciente, convênio ou arquivo da clínica.',
+        },
+      ],
+    },
+    ferramentas: {
+      path: '/ferramentas-para-fisioterapeutas',
+      title: 'Ferramentas para Fisioterapeutas | Fisionotes',
+      description:
+        'Ferramentas para fisioterapeutas: testes, escalas, calculadoras e protocolos com fonte, dentro do sistema Fisionotes. Apoio clínico na consulta.',
+      h1: 'Ferramentas para fisioterapeutas na hora da consulta',
+      intro:
+        'Além de agenda e prontuário, o Fisionotes inclui uma biblioteca clínica com testes funcionais, escalas, fórmulas, avaliação física, exercícios e protocolos — com fonte indicada.',
+      sections: [
+        {
+          title: 'Biblioteca na consulta',
+          body: 'Acesse fichas clínicas enquanto atende. Instrumentos protegidos por direitos autorais são referenciados, não reproduzidos integralmente.',
+        },
+        {
+          title: 'Do teste ao prontuário',
+          body: 'Use as ferramentas como apoio e registre a decisão clínica no prontuário eletrônico e no plano de tratamento — sem saltar entre sistemas.',
+        },
+        {
+          title: 'Exercícios e adesão',
+          body: 'Prescreva da biblioteca e acompanhe se o paciente concluiu em casa, com feedback de dificuldade. Ferramentas para fisioterapeutas que vão além da sessão presencial.',
+        },
+        {
+          title: 'Parte de um sistema completo',
+          body: 'As ferramentas clínicas vivem no mesmo software para consultório de fisioterapia que já tem agenda, gestão de pacientes e financeiro.',
+        },
+      ],
+    },
+  },
+
   agenda: {
     subtitle: 'Organize seu dia, semana e mês. Clique em um horário vazio para agendar.',
     today: 'Hoje',

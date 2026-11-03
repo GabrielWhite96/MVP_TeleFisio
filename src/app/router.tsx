@@ -2,6 +2,12 @@ import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-rou
 import { DocumentMeta } from '@/app/document-meta'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
+import {
+  FerramentasFisioterapeutasPage,
+  ProntuarioEletronicoPage,
+  SistemaParaFisioterapeutasPage,
+  SoftwareClinicasPage,
+} from '@/pages/seo/seo-intent-page'
 import { LoginPage, SubscribePage, ForgotPasswordPage, ResetPasswordPage, InviteAcceptPage, CaregiverSignupPage } from '@/pages/auth/auth-pages'
 import {
   PatientDashboardPage,
@@ -53,6 +59,10 @@ export const router = createBrowserRouter([
     element: <RootChrome />,
     children: [
   { path: ROUTES.home, element: <HomePage /> },
+  { path: ROUTES.seo.sistema, element: <SistemaParaFisioterapeutasPage /> },
+  { path: ROUTES.seo.clinicas, element: <SoftwareClinicasPage /> },
+  { path: ROUTES.seo.prontuario, element: <ProntuarioEletronicoPage /> },
+  { path: ROUTES.seo.ferramentas, element: <FerramentasFisioterapeutasPage /> },
   {
     element: <GuestRoute />,
     children: [

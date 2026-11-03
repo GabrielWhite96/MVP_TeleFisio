@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /sistema-para-fisioterapeutas
+Allow: /software-para-clinicas-de-fisioterapia
+Allow: /prontuario-eletronico-fisioterapeutas
+Allow: /ferramentas-para-fisioterapeutas
 Disallow: /auth/
 Disallow: /assinar
 Disallow: /patient/

@@ -9,6 +9,7 @@ import { cn } from '@/shared/lib/utils'
 import { SubscribeCtaLink } from '@/widgets/landing/tracked-cta'
 
 const anchors = [
+  { href: '#para-quem', label: pt.landing.navAudience },
   { href: '#funcionalidades', label: pt.landing.navFeatures },
   { href: '#ferramentas', label: pt.landing.navTools },
   { href: '#vantagens', label: pt.landing.navBenefits },

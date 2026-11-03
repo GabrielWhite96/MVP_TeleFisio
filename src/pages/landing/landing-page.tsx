@@ -1,5 +1,6 @@
 import { LandingHeader } from '@/widgets/landing/landing-header'
 import { LandingHero } from '@/widgets/landing/landing-hero'
+import { LandingAudience } from '@/widgets/landing/landing-audience'
 import { LandingFeatures } from '@/widgets/landing/landing-features'
 import { LandingTools } from '@/widgets/landing/landing-tools'
 import { LandingBenefits } from '@/widgets/landing/landing-benefits'
@@ -26,6 +27,7 @@ export function LandingPage() {
       <LandingHeader headerRef={headerRef} progressRef={progressRef} />
       <main id="conteudo">
         <LandingHero parallaxRef={parallaxRef} />
+        <LandingAudience />
         <LandingFeatures />
         <LandingTools />
         <LandingBenefits />

@@ -5,8 +5,9 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Enable Site configuration > Build & deploy > Post processing > Prerendering
-# so Googlebot and social crawlers receive the React landing HTML.
+# Public SEO routes are emitted as static HTML folders at build time
+# (/, /sistema-para-fisioterapeutas, etc.) so crawlers get correct meta
+# without relying only on client-side DocumentMeta.
 
 [[redirects]]
   from = "https://tele-fisio.netlify.app/*"

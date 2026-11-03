@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { BRAND_NAME } from '@/shared/config/brand'
-import { getCanonicalUrl, getOgImageUrl } from '@/shared/config/site'
+import { getCanonicalUrl, getOgImageUrl, OG_IMAGE_ALT } from '@/shared/config/site'
 import { trackPageView } from '@/shared/lib/analytics'
-import { buildSoftwareJsonLd, getSeoForPath } from '@/shared/seo/pages'
+import { buildJsonLdForSeo, getSeoForPath } from '@/shared/seo/pages'
 
 const JSON_LD_ID = 'fisionotes-jsonld'
 
@@ -49,6 +49,9 @@ export function DocumentMeta() {
 
     document.title = seo.title
     upsertMeta('meta[name="description"]', { name: 'description' }, seo.description)
+    if (seo.keywords) {
+      upsertMeta('meta[name="keywords"]', { name: 'keywords' }, seo.keywords)
+    }
     upsertMeta('meta[name="robots"]', { name: 'robots' }, robots)
     upsertMeta('meta[name="googlebot"]', { name: 'googlebot' }, robots)
     upsertMeta('link[rel="canonical"]', { rel: 'canonical', href: canonical })
@@ -56,11 +59,13 @@ export function DocumentMeta() {
     upsertMeta('meta[property="og:description"]', { property: 'og:description' }, seo.description)
     upsertMeta('meta[property="og:url"]', { property: 'og:url' }, canonical)
     upsertMeta('meta[property="og:image"]', { property: 'og:image' }, image)
+    upsertMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, OG_IMAGE_ALT)
     upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name' }, BRAND_NAME)
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, seo.title)
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description' }, seo.description)
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, image)
-    upsertJsonLd(seo.index ? buildSoftwareJsonLd() : null)
+    upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt' }, OG_IMAGE_ALT)
+    upsertJsonLd(buildJsonLdForSeo(seo))
 
     trackPageView({
       path: `${location.pathname}${location.search}`,

@@ -21,6 +21,15 @@ export interface SeoPage {
   canonicalPath: string
   index: boolean
   keywords?: string
+  jsonLd?: 'home' | 'article' | 'none'
+}
+
+type SeoIntentKey = 'sistema' | 'clinicas' | 'prontuario' | 'ferramentas'
+
+const INTENT_ORDER: SeoIntentKey[] = ['sistema', 'clinicas', 'prontuario', 'ferramentas']
+
+function intentContent(key: SeoIntentKey) {
+  return pt.seoPages[key]
 }
 
 export const HOME_SEO: SeoPage = {
@@ -30,7 +39,24 @@ export const HOME_SEO: SeoPage = {
   canonicalPath: '/',
   index: true,
   keywords: SEO_KEYWORDS.join(', '),
+  jsonLd: 'home',
 }
+
+export const INDEXABLE_SEO_PAGES: SeoPage[] = [
+  HOME_SEO,
+  ...INTENT_ORDER.map((key) => {
+    const page = intentContent(key)
+    return {
+      title: page.title,
+      description: page.description,
+      path: page.path,
+      canonicalPath: page.path,
+      index: true,
+      keywords: SEO_KEYWORDS.join(', '),
+      jsonLd: 'article' as const,
+    }
+  }),
+]
 
 const PRIVATE_SEO: SeoPage = {
   title: BRAND_NAME,
@@ -38,20 +64,29 @@ const PRIVATE_SEO: SeoPage = {
   path: '/',
   canonicalPath: '/',
   index: false,
+  jsonLd: 'none',
 }
 
 export function getSeoForPath(pathname: string): SeoPage {
   const path = (pathname.split('?')[0] || '/').replace(/\/$/, '') || '/'
-  if (path === '/') return HOME_SEO
+  const indexed = INDEXABLE_SEO_PAGES.find((page) => page.path === path)
+  if (indexed) return indexed
+
+  if (path === '/assinar') {
+    return {
+      ...PRIVATE_SEO,
+      path,
+      canonicalPath: '/',
+      title: `Assinar o ${BRAND_NAME}`,
+      description: `Assine o ${BRAND_NAME}, sistema para fisioterapeutas, por ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}. Agenda, prontuário eletrônico, financeiro e portal do paciente.`,
+    }
+  }
+
   return {
     ...PRIVATE_SEO,
     path,
-    canonicalPath: path === '/assinar' ? '/' : path,
-    title: path === '/assinar' ? `Assinar o ${BRAND_NAME}` : BRAND_NAME,
-    description:
-      path === '/assinar'
-        ? `Assine o ${BRAND_NAME}, sistema de organização para fisioterapeutas, por ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}. Agenda, prontuário, financeiro e portal do paciente.`
-        : SEO_DESCRIPTION,
+    canonicalPath: path,
+    title: BRAND_NAME,
   }
 }
 
@@ -73,6 +108,7 @@ export function buildSoftwareJsonLd() {
         '@id': `${url}/#website`,
         url,
         name: BRAND_NAME,
+        description: SEO_DESCRIPTION,
         inLanguage: 'pt-BR',
         publisher: { '@id': `${url}/#organization` },
       },
@@ -83,7 +119,7 @@ export function buildSoftwareJsonLd() {
         url,
         image: getOgImageUrl(),
         applicationCategory: 'BusinessApplication',
-        applicationSubCategory: 'Sistema de organização para fisioterapeutas',
+        applicationSubCategory: 'Sistema para fisioterapeutas',
         operatingSystem: 'Web',
         inLanguage: 'pt-BR',
         description: SEO_DESCRIPTION,
@@ -93,6 +129,7 @@ export function buildSoftwareJsonLd() {
           pt.landing.featurePlanTitle,
           pt.landing.featureBillingTitle,
           pt.landing.featurePortalTitle,
+          pt.landing.toolsTitle,
         ],
         offers: {
           '@type': 'Offer',
@@ -100,6 +137,7 @@ export function buildSoftwareJsonLd() {
           price: '29.90',
           priceCurrency: SAAS_PLAN.currency,
           url: `${url}/assinar`,
+          availability: 'https://schema.org/InStock',
           description: `${SAAS_PLAN.trialDays} dias grátis; depois ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}`,
         },
         publisher: { '@id': `${url}/#organization` },
@@ -124,10 +162,82 @@ export function buildSoftwareJsonLd() {
   }
 }
 
+export function buildArticleJsonLd(seo: SeoPage) {
+  const url = getSiteUrl()
+  const pageUrl = getCanonicalUrl(seo.canonicalPath)
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${url}/#organization`,
+        name: BRAND_NAME,
+        url,
+        logo: `${url}${BRAND_LOGOS.horizontal}`,
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${pageUrl}#webpage`,
+        url: pageUrl,
+        name: seo.title,
+        description: seo.description,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${url}/#website` },
+        about: { '@id': `${url}/#app` },
+        publisher: { '@id': `${url}/#organization` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${pageUrl}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Início',
+            item: `${url}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: seo.title.split('|')[0]?.trim() || seo.title,
+            item: pageUrl,
+          },
+        ],
+      },
+      {
+        '@type': 'SoftwareApplication',
+        '@id': `${url}/#app`,
+        name: BRAND_NAME,
+        url,
+        applicationCategory: 'BusinessApplication',
+        applicationSubCategory: 'Sistema para fisioterapeutas',
+        operatingSystem: 'Web',
+        description: SEO_DESCRIPTION,
+        offers: {
+          '@type': 'Offer',
+          price: '29.90',
+          priceCurrency: SAAS_PLAN.currency,
+          url: `${url}/assinar`,
+        },
+      },
+    ],
+  }
+}
+
+export function buildJsonLdForSeo(seo: SeoPage): unknown | null {
+  if (!seo.index || seo.jsonLd === 'none') return null
+  if (seo.jsonLd === 'article') return buildArticleJsonLd(seo)
+  return buildSoftwareJsonLd()
+}
+
 export function buildRobotsTxt(siteUrl = getSiteUrl()): string {
   return [
     'User-agent: *',
     'Allow: /',
+    'Allow: /sistema-para-fisioterapeutas',
+    'Allow: /software-para-clinicas-de-fisioterapia',
+    'Allow: /prontuario-eletronico-fisioterapeutas',
+    'Allow: /ferramentas-para-fisioterapeutas',
     'Disallow: /auth/',
     'Disallow: /assinar',
     'Disallow: /patient/',
@@ -141,18 +251,23 @@ export function buildRobotsTxt(siteUrl = getSiteUrl()): string {
 }
 
 export function buildSitemapXml(siteUrl = getSiteUrl(), lastmod = new Date().toISOString().slice(0, 10)): string {
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    '  <url>',
-    `    <loc>${siteUrl}/</loc>`,
-    `    <lastmod>${lastmod}</lastmod>`,
-    '    <changefreq>weekly</changefreq>',
-    '    <priority>1.0</priority>',
-    '  </url>',
-    '</urlset>',
-    '',
-  ].join('\n')
+  const urls = INDEXABLE_SEO_PAGES.map((page) => {
+    const loc = page.path === '/' ? `${siteUrl}/` : `${siteUrl}${page.path}`
+    const priority = page.path === '/' ? '1.0' : '0.8'
+    const changefreq = page.path === '/' ? 'weekly' : 'monthly'
+    return [
+      '  <url>',
+      `    <loc>${loc}</loc>`,
+      `    <lastmod>${lastmod}</lastmod>`,
+      `    <changefreq>${changefreq}</changefreq>`,
+      `    <priority>${priority}</priority>`,
+      '  </url>',
+    ].join('\n')
+  })
+
+  return ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...urls, '</urlset>', ''].join(
+    '\n'
+  )
 }
 
 export function escapeHtml(value: string): string {
@@ -163,37 +278,42 @@ export function escapeHtml(value: string): string {
     .replaceAll('"', '&quot;')
 }
 
-export function buildSeoHeadHtml(): string {
-  const url = getCanonicalUrl('/')
+export function buildSeoHeadHtml(pathname = '/'): string {
+  const seo = getSeoForPath(pathname)
+  const url = getCanonicalUrl(seo.canonicalPath)
   const image = getOgImageUrl()
-  const jsonLd = JSON.stringify(buildSoftwareJsonLd())
-  return [
-    `<title>${escapeHtml(HOME_SEO.title)}</title>`,
-    `<meta name="description" content="${escapeHtml(HOME_SEO.description)}" />`,
-    `<meta name="keywords" content="${escapeHtml(HOME_SEO.keywords ?? '')}" />`,
-    '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />',
-    '<meta name="googlebot" content="index, follow" />',
+  const robots = seo.index
+    ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+    : 'noindex, nofollow'
+  const jsonLd = buildJsonLdForSeo(seo)
+  const lines = [
+    `<title>${escapeHtml(seo.title)}</title>`,
+    `<meta name="description" content="${escapeHtml(seo.description)}" />`,
+    seo.keywords ? `<meta name="keywords" content="${escapeHtml(seo.keywords)}" />` : null,
+    `<meta name="robots" content="${robots}" />`,
+    `<meta name="googlebot" content="${seo.index ? 'index, follow' : 'noindex, nofollow'}" />`,
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<link rel="alternate" hreflang="pt-BR" href="${escapeHtml(url)}" />`,
     `<link rel="alternate" hreflang="x-default" href="${escapeHtml(url)}" />`,
     '<meta property="og:type" content="website" />',
     `<meta property="og:site_name" content="${escapeHtml(BRAND_NAME)}" />`,
     `<meta property="og:locale" content="${SITE_LOCALE}" />`,
-    `<meta property="og:title" content="${escapeHtml(HOME_SEO.title)}" />`,
-    `<meta property="og:description" content="${escapeHtml(HOME_SEO.description)}" />`,
+    `<meta property="og:title" content="${escapeHtml(seo.title)}" />`,
+    `<meta property="og:description" content="${escapeHtml(seo.description)}" />`,
     `<meta property="og:url" content="${escapeHtml(url)}" />`,
     `<meta property="og:image" content="${escapeHtml(image)}" />`,
     `<meta property="og:image:width" content="${String(OG_IMAGE_WIDTH)}" />`,
     `<meta property="og:image:height" content="${String(OG_IMAGE_HEIGHT)}" />`,
     `<meta property="og:image:alt" content="${escapeHtml(OG_IMAGE_ALT)}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
-    `<meta name="twitter:title" content="${escapeHtml(HOME_SEO.title)}" />`,
-    `<meta name="twitter:description" content="${escapeHtml(HOME_SEO.description)}" />`,
+    `<meta name="twitter:title" content="${escapeHtml(seo.title)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml(seo.description)}" />`,
     `<meta name="twitter:image" content="${escapeHtml(image)}" />`,
-    `<script type="application/ld+json" id="fisionotes-jsonld">${jsonLd}</script>`,
-  ]
-    .map((line) => `    ${line}`)
-    .join('\n')
+    `<meta name="twitter:image:alt" content="${escapeHtml(OG_IMAGE_ALT)}" />`,
+    jsonLd ? `<script type="application/ld+json" id="fisionotes-jsonld">${JSON.stringify(jsonLd)}</script>` : null,
+  ].filter(Boolean) as string[]
+
+  return lines.map((line) => `    ${line}`).join('\n')
 }
 
 export function buildLandingPrerenderHtml(): string {
@@ -206,6 +326,11 @@ export function buildLandingPrerenderHtml(): string {
     [pt.landing.featureReportsTitle, pt.landing.featureReportsBody],
     [pt.landing.featureBillingTitle, pt.landing.featureBillingBody],
     [pt.landing.featurePortalTitle, pt.landing.featurePortalBody],
+  ] as const
+  const audiences = [
+    [pt.landing.audienceSoloTitle, pt.landing.audienceSoloBody],
+    [pt.landing.audienceClinicTitle, pt.landing.audienceClinicBody],
+    [pt.landing.audienceHomeTitle, pt.landing.audienceHomeBody],
   ] as const
   const faqs = [
     [pt.landing.faq1Q, pt.landing.faq1A],
@@ -222,13 +347,60 @@ export function buildLandingPrerenderHtml(): string {
   <p>${escapeHtml(pt.landing.heroSubtitle)}</p>
   <p>${escapeHtml(pt.landing.featuresSubtitle)}</p>
   <p><a href="/assinar">${escapeHtml(pt.landing.heroPrimary)}</a> · <a href="/assinar?intent=demo">${escapeHtml(pt.landing.heroDemo)}</a></p>
+  <h2>${escapeHtml(pt.landing.audienceTitle)}</h2>
+  <p>${escapeHtml(pt.landing.audienceSubtitle)}</p>
+  <ul>
+    ${audiences.map(([title, body]) => `<li><strong>${escapeHtml(title)}</strong> — ${escapeHtml(body)}</li>`).join('\n    ')}
+  </ul>
+  <p>${escapeHtml(pt.landing.audienceProblemBody)}</p>
   <h2>${escapeHtml(pt.landing.featuresTitle)}</h2>
   <ul>
     ${features.map(([title, body]) => `<li><strong>${escapeHtml(title)}</strong> — ${escapeHtml(body)}</li>`).join('\n    ')}
   </ul>
+  <h2>${escapeHtml(pt.landing.toolsTitle)}</h2>
+  <p>${escapeHtml(pt.landing.toolsSubtitle)}</p>
+  <h2>${escapeHtml(pt.landing.benefitsTitle)}</h2>
+  <p>${escapeHtml(pt.landing.benefitsSubtitle)}</p>
   <h2>${escapeHtml(pt.landing.pricingTitle)}</h2>
   <p>${escapeHtml(pt.landing.pricingSubtitle)} ${escapeHtml(SAAS_PLAN.amountLabel)}${escapeHtml(pt.landing.pricingAmountSuffix)}.</p>
   <h2>${escapeHtml(pt.landing.faqTitle)}</h2>
   ${faqs.map(([q, a]) => `<h3>${escapeHtml(q)}</h3>\n  <p>${escapeHtml(a)}</p>`).join('\n  ')}
+  <nav aria-label="${escapeHtml(pt.landing.footerExplore)}">
+    <ul>
+      ${INTENT_ORDER.map((key) => {
+        const page = intentContent(key)
+        return `<li><a href="${escapeHtml(page.path)}">${escapeHtml(page.h1)}</a></li>`
+      }).join('\n      ')}
+    </ul>
+  </nav>
 </article>`
+}
+
+export function buildIntentPrerenderHtml(key: SeoIntentKey): string {
+  const page = intentContent(key)
+  const related = INTENT_ORDER.filter((item) => item !== key).map((item) => intentContent(item))
+  return `
+<article class="seo-prerender">
+  <p><a href="/">${escapeHtml(pt.seoPages.backHome)}</a></p>
+  <h1>${escapeHtml(page.h1)}</h1>
+  <p>${escapeHtml(page.intro)}</p>
+  <p><a href="/assinar">${escapeHtml(pt.seoPages.ctaTrial)}</a> · <a href="/assinar?intent=demo">${escapeHtml(pt.seoPages.ctaDemo)}</a></p>
+  ${page.sections.map((section) => `<h2>${escapeHtml(section.title)}</h2>\n  <p>${escapeHtml(section.body)}</p>`).join('\n  ')}
+  <h2>${escapeHtml(pt.seoPages.relatedTitle)}</h2>
+  <ul>
+    ${related.map((item) => `<li><a href="${escapeHtml(item.path)}">${escapeHtml(item.h1)}</a></li>`).join('\n    ')}
+  </ul>
+</article>`
+}
+
+export function buildPrerenderHtmlForPath(pathname: string): string {
+  const path = (pathname.split('?')[0] || '/').replace(/\/$/, '') || '/'
+  if (path === '/') return buildLandingPrerenderHtml()
+  const key = INTENT_ORDER.find((item) => intentContent(item).path === path)
+  if (key) return buildIntentPrerenderHtml(key)
+  return buildLandingPrerenderHtml()
+}
+
+export function getIndexableStaticPaths(): string[] {
+  return INDEXABLE_SEO_PAGES.map((page) => page.path)
 }

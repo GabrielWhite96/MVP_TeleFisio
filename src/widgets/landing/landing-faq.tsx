@@ -21,11 +21,11 @@ export function LandingFaq() {
         <div className="landing-stagger mt-8 space-y-3">
           {faqs.map((item) => (
             <details key={item.q} className="landing-glass-card landing-faq-item group rounded-2xl px-5 py-4">
-              <summary className="landing-cta cursor-pointer list-none text-lg font-semibold text-[var(--landing-ink)] marker:content-none select-none [&::-webkit-details-marker]:hidden">
+              <summary className="landing-cta cursor-pointer list-none marker:content-none select-none [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center justify-between gap-4">
-                  {item.q}
+                  <h3 className="text-lg font-semibold text-[var(--landing-ink)]">{item.q}</h3>
                   <span
-                    className="landing-faq-plus text-[var(--landing-teal)] group-open:rotate-45"
+                    className="landing-faq-plus shrink-0 text-[var(--landing-teal)] group-open:rotate-45"
                     aria-hidden
                   >
                     +
