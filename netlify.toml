@@ -5,9 +5,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Public SEO routes are emitted as static HTML folders at build time
-# (/, /sistema-para-fisioterapeutas, etc.) so crawlers get correct meta
-# without relying only on client-side DocumentMeta.
+# SEO pages are emitted as flat `{slug}.html` files (not `{slug}/index.html`)
+# so Netlify serves /slug with HTTP 200. Directory indexes would 301 to /slug/
+# and conflict with canonicals/sitemap that use the no-slash URL (Google "Redirect error").
+# Runtime redirect rules are written to dist/_redirects by the Vite SEO plugin.
 
 [[redirects]]
   from = "https://tele-fisio.netlify.app/*"
@@ -21,7 +22,52 @@
   status = 301
   force = true
 
-# Keep static SEO files ahead of the SPA fallback.
+# Trailing-slash → canonical (no slash) for SEO pages.
+[[redirects]]
+  from = "/sistema-para-fisioterapeutas/"
+  to = "/sistema-para-fisioterapeutas"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/software-para-clinicas-de-fisioterapia/"
+  to = "/software-para-clinicas-de-fisioterapia"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/prontuario-eletronico-fisioterapeutas/"
+  to = "/prontuario-eletronico-fisioterapeutas"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ferramentas-para-fisioterapeutas/"
+  to = "/ferramentas-para-fisioterapeutas"
+  status = 301
+  force = true
+
+# Serve prerendered HTML for SEO paths (200 rewrite; no client redirect).
+[[redirects]]
+  from = "/sistema-para-fisioterapeutas"
+  to = "/sistema-para-fisioterapeutas.html"
+  status = 200
+
+[[redirects]]
+  from = "/software-para-clinicas-de-fisioterapia"
+  to = "/software-para-clinicas-de-fisioterapia.html"
+  status = 200
+
+[[redirects]]
+  from = "/prontuario-eletronico-fisioterapeutas"
+  to = "/prontuario-eletronico-fisioterapeutas.html"
+  status = 200
+
+[[redirects]]
+  from = "/ferramentas-para-fisioterapeutas"
+  to = "/ferramentas-para-fisioterapeutas.html"
+  status = 200
+
 [[redirects]]
   from = "/sitemap.xml"
   to = "/sitemap.xml"
@@ -32,6 +78,7 @@
   to = "/robots.txt"
   status = 200
 
+# SPA fallback for app routes. SEO .html files and rules above take precedence.
 [[redirects]]
   from = "/*"
   to = "/index.html"

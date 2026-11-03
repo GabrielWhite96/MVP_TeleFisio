@@ -8,13 +8,37 @@
 /sistema-para-fisioterapeutas
   X-Robots-Tag: index, follow
 
+/sistema-para-fisioterapeutas/
+  X-Robots-Tag: index, follow
+
+/sistema-para-fisioterapeutas.html
+  X-Robots-Tag: index, follow
+
 /software-para-clinicas-de-fisioterapia
+  X-Robots-Tag: index, follow
+
+/software-para-clinicas-de-fisioterapia/
+  X-Robots-Tag: index, follow
+
+/software-para-clinicas-de-fisioterapia.html
   X-Robots-Tag: index, follow
 
 /prontuario-eletronico-fisioterapeutas
   X-Robots-Tag: index, follow
 
+/prontuario-eletronico-fisioterapeutas/
+  X-Robots-Tag: index, follow
+
+/prontuario-eletronico-fisioterapeutas.html
+  X-Robots-Tag: index, follow
+
 /ferramentas-para-fisioterapeutas
+  X-Robots-Tag: index, follow
+
+/ferramentas-para-fisioterapeutas/
+  X-Robots-Tag: index, follow
+
+/ferramentas-para-fisioterapeutas.html
   X-Robots-Tag: index, follow
 
 /auth/*

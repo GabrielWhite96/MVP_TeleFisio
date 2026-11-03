@@ -3,13 +3,14 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { rmSync, readFileSync, writeFileSync } from 'node:fs'
 import {
+  buildNetlifyRedirects,
   buildPrerenderHtmlForPath,
   buildRobotsTxt,
   buildSeoHeadHtml,
   buildSitemapXml,
-  getIndexableStaticPaths,
+  getSeoHtmlRoutes,
 } from './src/shared/seo/pages'
 import { DEFAULT_SITE_URL } from './src/shared/config/site'
 
@@ -43,18 +44,19 @@ function seoPrerenderPlugin(): Plugin {
         const siteUrl = process.env.VITE_SITE_URL?.replace(/\/$/, '') || DEFAULT_SITE_URL
         writeFileSync(path.join(dist, 'robots.txt'), buildRobotsTxt(siteUrl))
         writeFileSync(path.join(dist, 'sitemap.xml'), buildSitemapXml(siteUrl))
+        writeFileSync(path.join(dist, '_redirects'), buildNetlifyRedirects())
 
         const indexHtml = readFileSync(path.join(dist, 'index.html'), 'utf8')
-        for (const routePath of getIndexableStaticPaths()) {
-          if (routePath === '/') continue
+        for (const routePath of getSeoHtmlRoutes()) {
           const slug = routePath.replace(/^\//, '')
-          const outDir = path.join(dist, slug)
-          mkdirSync(outDir, { recursive: true })
+          // Remove legacy directory output from older builds (causes Netlify 301 to trailing slash).
+          rmSync(path.join(dist, slug), { recursive: true, force: true })
           const pageHtml = replaceRootContent(
             replaceSeoHead(indexHtml, buildSeoHeadHtml(routePath)),
             buildPrerenderHtmlForPath(routePath)
           )
-          writeFileSync(path.join(outDir, 'index.html'), pageHtml)
+          // Flat HTML so /slug is served with HTTP 200 (no directory → no trailing-slash redirect).
+          writeFileSync(path.join(dist, `${slug}.html`), pageHtml)
         }
       } catch {
         // dist may be absent when Vite is only transforming HTML in tests

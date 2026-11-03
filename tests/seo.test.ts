@@ -6,6 +6,7 @@ import {
   buildLandingPrerenderHtml,
   buildPrerenderHtmlForPath,
   buildSeoHeadHtml,
+  buildNetlifyRedirects,
   INDEXABLE_SEO_PAGES,
 } from '@/shared/seo/pages'
 import { sanitizeAnalyticsPath } from '@/shared/lib/analytics'
@@ -77,8 +78,20 @@ describe('SEO', () => {
     const intent = buildSeoHeadHtml(ROUTES.seo.sistema)
     expect(home).toContain(`<link rel="canonical" href="https://fisionotes.com.br/" />`)
     expect(intent).toContain(`canonical" href="https://fisionotes.com.br${ROUTES.seo.sistema}"`)
+    expect(intent).not.toContain(`canonical" href="https://fisionotes.com.br${ROUTES.seo.sistema}/"`)
     expect(intent).toContain(pt.seoPages.sistema.title)
     expect(intent).toContain('application/ld+json')
+  })
+
+  it('emits Netlify redirects that avoid trailing-slash loops on SEO pages', () => {
+    const redirects = buildNetlifyRedirects()
+    expect(redirects).toContain(`${ROUTES.seo.sistema}/  ${ROUTES.seo.sistema}  301!`)
+    expect(redirects).toContain(`${ROUTES.seo.sistema}  ${ROUTES.seo.sistema}.html  200`)
+    expect(redirects).toContain(`${ROUTES.seo.clinicas}  ${ROUTES.seo.clinicas}.html  200`)
+    expect(redirects).toContain('/*    /index.html   200')
+    expect(buildSitemapXml('https://fisionotes.com.br')).not.toMatch(
+      /fisionotes\.com\.br\/sistema-para-fisioterapeutas\//
+    )
   })
 
   it('strips ids from analytics paths', () => {
