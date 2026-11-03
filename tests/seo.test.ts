@@ -33,7 +33,7 @@ describe('SEO', () => {
   it('prerenders keyword-rich landing copy for crawlers', () => {
     const html = buildLandingPrerenderHtml()
     expect(html).toContain(pt.landing.heroTitle)
-    expect(html).toContain('sistema para clínica de fisioterapia')
+    expect(html).toContain('sistema de organização para fisioterapeutas')
     expect(html).toContain(pt.landing.faq6Q)
   })
 

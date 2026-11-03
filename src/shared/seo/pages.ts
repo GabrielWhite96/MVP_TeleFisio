@@ -50,7 +50,7 @@ export function getSeoForPath(pathname: string): SeoPage {
     title: path === '/assinar' ? `Assinar o ${BRAND_NAME}` : BRAND_NAME,
     description:
       path === '/assinar'
-        ? `Assine o ${BRAND_NAME}, software para fisioterapeutas, por ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}. Sistema para clínica de fisioterapia com agenda, prontuário e portal do paciente.`
+        ? `Assine o ${BRAND_NAME}, sistema de organização para fisioterapeutas, por ${SAAS_PLAN.amountLabel}/${SAAS_PLAN.interval}. Agenda, prontuário, financeiro e portal do paciente.`
         : SEO_DESCRIPTION,
   }
 }
@@ -83,7 +83,7 @@ export function buildSoftwareJsonLd() {
         url,
         image: getOgImageUrl(),
         applicationCategory: 'BusinessApplication',
-        applicationSubCategory: 'Sistema para clínica de fisioterapia',
+        applicationSubCategory: 'Sistema de organização para fisioterapeutas',
         operatingSystem: 'Web',
         inLanguage: 'pt-BR',
         description: SEO_DESCRIPTION,
