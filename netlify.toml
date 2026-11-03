@@ -5,10 +5,15 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# SEO pages are emitted as flat `{slug}.html` files (not `{slug}/index.html`)
-# so Netlify serves /slug with HTTP 200. Directory indexes would 301 to /slug/
-# and conflict with canonicals/sitemap that use the no-slash URL (Google "Redirect error").
-# Runtime redirect rules are written to dist/_redirects by the Vite SEO plugin.
+# Pretty URLs must stay ON for flat `{slug}.html` files:
+#   /slug      → 200 (serves slug.html, extensionless)
+#   /slug/     → 301 → /slug
+# Do NOT add redirect rules that only change trailing slashes: Netlify
+# normalizes /slug and /slug/ before matching, so `/slug/ → /slug 301!`
+# becomes a self-redirect loop (exactly what broke production).
+# Do NOT rewrite /slug → /slug.html either: with Pretty URLs that also loops.
+[build.processing.html]
+  pretty_urls = true
 
 [[redirects]]
   from = "https://tele-fisio.netlify.app/*"
@@ -22,52 +27,7 @@
   status = 301
   force = true
 
-# Trailing-slash → canonical (no slash) for SEO pages.
-[[redirects]]
-  from = "/sistema-para-fisioterapeutas/"
-  to = "/sistema-para-fisioterapeutas"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/software-para-clinicas-de-fisioterapia/"
-  to = "/software-para-clinicas-de-fisioterapia"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/prontuario-eletronico-fisioterapeutas/"
-  to = "/prontuario-eletronico-fisioterapeutas"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/ferramentas-para-fisioterapeutas/"
-  to = "/ferramentas-para-fisioterapeutas"
-  status = 301
-  force = true
-
-# Serve prerendered HTML for SEO paths (200 rewrite; no client redirect).
-[[redirects]]
-  from = "/sistema-para-fisioterapeutas"
-  to = "/sistema-para-fisioterapeutas.html"
-  status = 200
-
-[[redirects]]
-  from = "/software-para-clinicas-de-fisioterapia"
-  to = "/software-para-clinicas-de-fisioterapia.html"
-  status = 200
-
-[[redirects]]
-  from = "/prontuario-eletronico-fisioterapeutas"
-  to = "/prontuario-eletronico-fisioterapeutas.html"
-  status = 200
-
-[[redirects]]
-  from = "/ferramentas-para-fisioterapeutas"
-  to = "/ferramentas-para-fisioterapeutas.html"
-  status = 200
-
+# Keep static SEO assets ahead of the SPA fallback.
 [[redirects]]
   from = "/sitemap.xml"
   to = "/sitemap.xml"
@@ -78,7 +38,7 @@
   to = "/robots.txt"
   status = 200
 
-# SPA fallback for app routes. SEO .html files and rules above take precedence.
+# SPA fallback only. SEO pages are real `{slug}.html` files handled by Pretty URLs.
 [[redirects]]
   from = "/*"
   to = "/index.html"

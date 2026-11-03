@@ -83,12 +83,12 @@ describe('SEO', () => {
     expect(intent).toContain('application/ld+json')
   })
 
-  it('emits Netlify redirects that avoid trailing-slash loops on SEO pages', () => {
+  it('emits SPA-only Netlify redirects (no trailing-slash 301 loops)', () => {
     const redirects = buildNetlifyRedirects()
-    expect(redirects).toContain(`${ROUTES.seo.sistema}/  ${ROUTES.seo.sistema}  301!`)
-    expect(redirects).toContain(`${ROUTES.seo.sistema}  ${ROUTES.seo.sistema}.html  200`)
-    expect(redirects).toContain(`${ROUTES.seo.clinicas}  ${ROUTES.seo.clinicas}.html  200`)
     expect(redirects).toContain('/*    /index.html   200')
+    expect(redirects).not.toContain('301!')
+    expect(redirects).not.toContain(`${ROUTES.seo.sistema}/  ${ROUTES.seo.sistema}`)
+    expect(redirects).not.toContain(`${ROUTES.seo.sistema}  ${ROUTES.seo.sistema}.html`)
     expect(buildSitemapXml('https://fisionotes.com.br')).not.toMatch(
       /fisionotes\.com\.br\/sistema-para-fisioterapeutas\//
     )
