@@ -27,3 +27,14 @@ dist-ssr
 
 # Test
 coverage
+
+# Capacitor / native secrets (keep android/ and ios/ projects versioned)
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+android/key.properties
+android/app/release/
+ios/App/Pods/
+ios/DerivedData/
+.capacitor/

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fisionotes</string>
+    <string name="title_activity_main">Fisionotes</string>
+    <string name="package_name">br.com.fisionotes.app</string>
+    <string name="custom_url_scheme">br.com.fisionotes.app</string>
+</resources>

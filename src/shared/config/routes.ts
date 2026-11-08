@@ -5,6 +5,8 @@ export const ROUTES = {
   subscribe: '/assinar',
   forgotPassword: '/auth/forgot-password',
   resetPassword: '/auth/reset-password',
+  privacy: '/privacidade',
+  terms: '/termos',
   invite: (token: string) => `/auth/invite/${token}`,
   seo: {
     sistema: '/sistema-para-fisioterapeutas',

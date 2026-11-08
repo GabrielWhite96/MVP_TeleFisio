@@ -42,6 +42,7 @@ import {
 } from '@/pages/admin/admin-pages'
 import { CaregiverDashboardPage } from '@/pages/caregiver/caregiver-pages'
 import { PhysioSubscriptionPage } from '@/pages/physio/subscription-page'
+import { PrivacyPolicyPage, TermsOfUsePage } from '@/pages/legal/legal-pages'
 import { AppLayout } from '@/widgets/layout/app-layout'
 import { ROUTES } from '@/shared/config/routes'
 
@@ -59,6 +60,8 @@ export const router = createBrowserRouter([
     element: <RootChrome />,
     children: [
   { path: ROUTES.home, element: <HomePage /> },
+  { path: ROUTES.privacy, element: <PrivacyPolicyPage /> },
+  { path: ROUTES.terms, element: <TermsOfUsePage /> },
   { path: ROUTES.seo.sistema, element: <SistemaParaFisioterapeutasPage /> },
   { path: ROUTES.seo.clinicas, element: <SoftwareClinicasPage /> },
   { path: ROUTES.seo.prontuario, element: <ProntuarioEletronicoPage /> },

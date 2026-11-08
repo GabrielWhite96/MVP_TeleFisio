@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CURRENT_CONSENT_VERSION,
@@ -10,6 +11,7 @@ import {
 import { getPatientByProfileId } from '@/entities/patient/api/patient-api'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { queryKeys } from '@/shared/api/query-keys'
+import { ROUTES } from '@/shared/config/routes'
 import { Button } from '@/shared/ui/button'
 import {
   Dialog,
@@ -100,10 +102,31 @@ export function ConsentModal({ patientId }: ConsentModalProps) {
         <ul className="space-y-2">
           {missing.map((type) => (
             <li key={type} className="rounded-md border p-3 text-sm">
-              {CONSENT_LABELS[type]}
+              {type === 'privacy' ? (
+                <Link to={ROUTES.privacy} className="font-medium text-[var(--color-primary)] underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
+                  {CONSENT_LABELS[type]}
+                </Link>
+              ) : type === 'terms' ? (
+                <Link to={ROUTES.terms} className="font-medium text-[var(--color-primary)] underline-offset-2 hover:underline" target="_blank" rel="noreferrer">
+                  {CONSENT_LABELS[type]}
+                </Link>
+              ) : (
+                CONSENT_LABELS[type]
+              )}
             </li>
           ))}
         </ul>
+        <p className="text-xs text-[var(--color-muted-foreground)]">
+          Consulte a{' '}
+          <Link to={ROUTES.privacy} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+            Política de Privacidade
+          </Link>{' '}
+          e os{' '}
+          <Link to={ROUTES.terms} className="underline underline-offset-2" target="_blank" rel="noreferrer">
+            Termos de Uso
+          </Link>
+          .
+        </p>
         <label className="flex items-start gap-3 text-sm">
           <input
             type="checkbox"
