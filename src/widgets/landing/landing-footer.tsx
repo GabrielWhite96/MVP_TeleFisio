@@ -56,6 +56,12 @@ export function LandingFooter() {
             >
               {pt.landing.footerWhatsApp}
             </WhatsAppCtaLink>
+            <Link to={ROUTES.privacy} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
+              Privacidade
+            </Link>
+            <Link to={ROUTES.terms} className="transition-colors duration-150 ease-[var(--ease-out)] hover:text-white hover:underline">
+              Termos
+            </Link>
           </div>
         </div>
       </div>

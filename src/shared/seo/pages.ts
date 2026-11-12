@@ -82,6 +82,26 @@ export function getSeoForPath(pathname: string): SeoPage {
     }
   }
 
+  if (path === '/privacidade') {
+    return {
+      ...PRIVATE_SEO,
+      path,
+      canonicalPath: '/privacidade',
+      title: `Política de Privacidade | ${BRAND_NAME}`,
+      description: `Política de Privacidade do ${BRAND_NAME}: tratamento de dados pessoais e de saúde, LGPD e direitos do titular.`,
+    }
+  }
+
+  if (path === '/termos') {
+    return {
+      ...PRIVATE_SEO,
+      path,
+      canonicalPath: '/termos',
+      title: `Termos de Uso | ${BRAND_NAME}`,
+      description: `Termos de Uso do ${BRAND_NAME}: condições de uso da plataforma de gestão e tele-fisioterapia.`,
+    }
+  }
+
   return {
     ...PRIVATE_SEO,
     path,

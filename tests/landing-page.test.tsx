@@ -53,5 +53,7 @@ describe('LandingPage', () => {
   it('links SEO intent pages from the footer', () => {
     expect(screen.getByRole('link', { name: 'Sistema para fisioterapeutas' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Prontuário eletrônico' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Privacidade' })).toHaveAttribute('href', '/privacidade')
+    expect(screen.getByRole('link', { name: 'Termos' })).toHaveAttribute('href', '/termos')
   })
 })
