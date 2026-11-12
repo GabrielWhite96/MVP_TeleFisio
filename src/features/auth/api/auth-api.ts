@@ -1,4 +1,5 @@
 import { supabase, getSupabaseErrorMessage } from '@/shared/api/supabase'
+import { getPublicOrigin } from '@/shared/native'
 import type { LoginFormData, ForgotPasswordFormData, InviteAcceptFormData } from '../model/schemas'
 import type { UserRole } from '@/shared/types/database'
 
@@ -37,7 +38,7 @@ export async function signOut() {
 }
 
 export async function resetPassword(data: ForgotPasswordFormData) {
-  const origin = window.location.origin
+  const origin = getPublicOrigin()
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
     redirectTo: `${origin}/auth/reset-password`,
   })

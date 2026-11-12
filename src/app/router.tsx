@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom'
 import { DocumentMeta } from '@/app/document-meta'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
+import { DeepLinkBridge } from '@/shared/native'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
 import {
   FerramentasFisioterapeutasPage,
@@ -50,6 +51,7 @@ function RootChrome() {
   return (
     <>
       <DocumentMeta />
+      <DeepLinkBridge />
       <Outlet />
     </>
   )

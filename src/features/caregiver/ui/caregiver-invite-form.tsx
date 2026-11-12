@@ -8,6 +8,7 @@ import { sendInviteEmail } from '@/entities/notification/api/invite-email-api'
 import { pt } from '@/shared/config/i18n/pt'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { queryKeys } from '@/shared/api/query-keys'
+import { buildPublicUrl } from '@/shared/native'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Input, Label } from '@/shared/ui/input'
@@ -29,7 +30,7 @@ export function CaregiverInviteForm({ patientId }: { patientId: string }) {
 
   const [emailNotice, setEmailNotice] = useState<'sent' | 'failed' | null>(null)
   const [copied, setCopied] = useState(false)
-  const signupUrl = `${window.location.origin}/auth/caregiver-signup`
+  const signupUrl = buildPublicUrl('/auth/caregiver-signup')
 
   const invitesQuery = useQuery({
     queryKey: queryKeys.caregiverInvites(patientId),

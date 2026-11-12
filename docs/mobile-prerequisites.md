@@ -1,4 +1,4 @@
-# Checklist — pré-requisitos mobile (Etapa 0)
+# Checklist — pré-requisitos mobile (Etapa 0+)
 
 Itens necessários para as etapas seguintes do plano Capacitor (Android + iOS).  
 Marque conforme for providenciando. **Nada aqui publica o app nas lojas automaticamente.**
@@ -15,9 +15,9 @@ Marque conforme for providenciando. **Nada aqui publica o app nas lojas automati
 
 ## Identidade do app
 
-| Item | Valor proposto | Status |
-|------|----------------|--------|
-| Bundle ID / Application ID | `br.com.fisionotes.app` | Confirmar antes de Etapa 1 avançada / re-gerar nativo |
+| Item | Valor | Status |
+|------|-------|--------|
+| Bundle ID / Application ID | `br.com.fisionotes.app` | **Aprovado** |
 | Nome de exibição | Fisionotes | OK |
 
 ## Jurídico e lojas
@@ -27,17 +27,19 @@ Marque conforme for providenciando. **Nada aqui publica o app nas lojas automati
 | Política de Privacidade (URL) | Em código: `/privacidade` | Revisar texto juridicamente; deploy web sob aprovação |
 | Termos de Uso (URL) | Em código: `/termos` | Idem |
 | E-mail / telefone de suporte nas lojas | Pendente | |
-| Decisão billing SaaS **A / B / C** | Pendente | **Obrigatória antes da Etapa 3** |
+| Decisão billing SaaS **A / B / C** | **B escolhida** | StoreKit + Play Billing + Stripe web — ver `docs/etapa-3-billing-b.md` |
 | Assets ícone 1024 + splash | Pendente | |
-| iPhone físico para TestFlight / Daily | Pendente | |
+| iPhone físico para TestFlight / Daily | **Disponível** | Confirmado |
 
-## Deep links (Etapa 2+)
+## Deep links (Etapa 2)
 
 | Item | Status |
 |------|--------|
-| OK para publicar `/.well-known/apple-app-site-association` | Pendente |
-| OK para publicar `/.well-known/assetlinks.json` | Pendente |
-| Team ID Apple + SHA-256 do cert Android (para assetlinks) | Pendente |
+| Arquivos `/.well-known/apple-app-site-association` e `assetlinks.json` no repo | Feito (placeholders) |
+| Substituir `APPLE_TEAM_ID` no AASA | Pendente (seu Team ID Apple) |
+| Substituir `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` | Pendente (Play App Signing) |
+| OK para publicar well-known em produção (Netlify) | Pendente (aprovação explícita) |
+| Associated Domains + App Links no binário | Feito no projeto nativo |
 
 ## Gate de produção
 
@@ -46,10 +48,8 @@ Marque conforme for providenciando. **Nada aqui publica o app nas lojas automati
 | Deploy produção / submit lojas | Somente com aprovação explícita |
 | Alterações irreversíveis (DNS, secrets produção) | Somente com aprovação explícita |
 
-## Decisão de billing (resumo)
+## Decisão de billing
 
-- **A** — Companion estrito (sem venda SaaS no app; Stripe só na web)
-- **B** — StoreKit + Play Billing + Stripe web (recomendado se o app vender assinatura)
-- **C** — Só B2B organizacional (muda go-to-market)
-
-Escolher **antes** da Etapa 3.
+- ~~A — Companion estrito~~
+- **B — StoreKit + Play Billing + Stripe web** ← escolhida
+- ~~C — Só B2B organizacional~~

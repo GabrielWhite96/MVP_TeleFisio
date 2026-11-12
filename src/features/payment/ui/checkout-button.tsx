@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { CreditCard } from 'lucide-react'
 import { createCheckoutSession } from '@/entities/payment/api/payment-api'
+import { getPublicOrigin, openExternalUrl } from '@/shared/native'
 import { Button } from '@/shared/ui/button'
 import { pt } from '@/shared/config/i18n/pt'
 
@@ -18,16 +19,19 @@ export function CheckoutButton({
   label,
 }: CheckoutButtonProps) {
   const mutation = useMutation({
-    mutationFn: () =>
-      createCheckoutSession({
+    mutationFn: () => {
+      const origin = getPublicOrigin()
+      const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+      return createCheckoutSession({
         amountCents,
         appointmentId,
         treatmentPlanId,
-        successUrl: `${window.location.origin}${window.location.pathname}?paid=1`,
-        cancelUrl: `${window.location.origin}${window.location.pathname}?paid=0`,
-      }),
+        successUrl: `${origin}${path}?paid=1`,
+        cancelUrl: `${origin}${path}?paid=0`,
+      })
+    },
     onSuccess: ({ url }) => {
-      window.location.assign(url)
+      void openExternalUrl(url)
     },
   })
 

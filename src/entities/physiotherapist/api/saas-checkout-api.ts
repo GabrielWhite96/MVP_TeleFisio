@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/api/supabase'
+import { getPublicOrigin, openExternalUrl } from '@/shared/native'
 import type { SaasSubscriptionStatus } from '@/shared/types/database'
 
 async function openSaasCheckout(body: {
@@ -17,16 +18,16 @@ async function openSaasCheckout(body: {
   }
   const payload = (data ?? {}) as { url?: string; error?: string }
   if (!payload.url) throw new Error(payload.error ?? 'Checkout indisponível')
-  window.location.assign(payload.url)
+  await openExternalUrl(payload.url)
 }
 
 export async function startSaasCheckout() {
-  await openSaasCheckout({ origin: window.location.origin })
+  await openSaasCheckout({ origin: getPublicOrigin() })
 }
 
 export async function startPublicSaasCheckout(input: { email: string; fullName: string }) {
   await openSaasCheckout({
-    origin: window.location.origin,
+    origin: getPublicOrigin(),
     email: input.email,
     fullName: input.fullName,
   })
@@ -34,7 +35,7 @@ export async function startPublicSaasCheckout(input: { email: string; fullName: 
 
 export async function startSaasBillingPortal() {
   const { data, error } = await supabase.functions.invoke('create-saas-portal', {
-    body: { origin: window.location.origin },
+    body: { origin: getPublicOrigin() },
   })
   if (error) {
     const context = (error as { context?: Response }).context
@@ -46,7 +47,7 @@ export async function startSaasBillingPortal() {
   }
   const payload = (data ?? {}) as { url?: string; error?: string }
   if (!payload.url) throw new Error(payload.error ?? 'Portal indisponível')
-  window.location.assign(payload.url)
+  await openExternalUrl(payload.url)
 }
 
 export async function getAdminPhysioSubscriptions() {

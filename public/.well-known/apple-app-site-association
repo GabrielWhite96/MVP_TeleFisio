@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "APPLE_TEAM_ID.br.com.fisionotes.app",
+        "paths": [
+          "/auth/*",
+          "/patient/*",
+          "/physio/*",
+          "/caregiver/*",
+          "/assinar",
+          "/privacidade",
+          "/termos"
+        ]
+      }
+    ]
+  }
+}

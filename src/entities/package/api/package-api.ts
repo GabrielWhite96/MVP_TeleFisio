@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/api/supabase'
+import { buildPublicUrl } from '@/shared/native'
 
 export interface RecoveryPackage {
   id: string
@@ -90,8 +91,8 @@ export async function createPackageCheckout(input: {
     body: {
       amountCents: input.amountCents,
       packageId: input.packageId,
-      successUrl: input.successUrl ?? `${window.location.origin}/patient/billing?paid=1`,
-      cancelUrl: input.cancelUrl ?? `${window.location.origin}/patient/billing?paid=0`,
+      successUrl: input.successUrl ?? buildPublicUrl('/patient/billing?paid=1'),
+      cancelUrl: input.cancelUrl ?? buildPublicUrl('/patient/billing?paid=0'),
     },
   })
   if (error) throw error

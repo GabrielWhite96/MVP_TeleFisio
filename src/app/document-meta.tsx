@@ -45,7 +45,7 @@ export function DocumentMeta() {
       ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
       : 'noindex, nofollow'
     const image = getOgImageUrl()
-    const pageUrl = `${window.location.origin}${location.pathname}${location.search}`
+    const pageUrl = `${getCanonicalUrl(location.pathname)}${location.search}`
 
     document.title = seo.title
     upsertMeta('meta[name="description"]', { name: 'description' }, seo.description)

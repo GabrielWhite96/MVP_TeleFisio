@@ -9,6 +9,7 @@ import {
   startGoogleCalendarOAuth,
 } from '@/entities/google-calendar/api/google-calendar-api'
 import { queryKeys } from '@/shared/api/query-keys'
+import { openExternalUrl } from '@/shared/native'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { pt } from '@/shared/config/i18n/pt'
@@ -33,7 +34,7 @@ export function GoogleCalendarConnectButton({
   const connectMutation = useMutation({
     mutationFn: startGoogleCalendarOAuth,
     onSuccess: (url) => {
-      window.location.href = url
+      void openExternalUrl(url)
     },
     onError: (err) => {
       setBanner(err instanceof Error ? err.message : pt.agenda.googleConnectError)

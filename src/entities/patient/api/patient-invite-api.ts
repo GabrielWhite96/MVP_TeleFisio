@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/api/supabase'
+import { buildPublicUrl } from '@/shared/native'
 import type { PatientInvite } from '@/shared/types/database'
 
 export type PatientInviteLookup = {
@@ -75,5 +76,5 @@ export async function resendPatientInvite(input: {
 }
 
 export function buildPatientInviteUrl(token: string) {
-  return `${window.location.origin}/auth/invite/${token}`
+  return buildPublicUrl(`/auth/invite/${token}`)
 }
