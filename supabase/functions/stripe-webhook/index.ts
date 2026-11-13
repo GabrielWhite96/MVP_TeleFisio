@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { sendGmail } from "../_shared/gmail-smtp.ts";
 import { renderTeleFisioEmail, renderTeleFisioText } from "../_shared/email-layout.ts";
+import { mergeEntitlementUpdate } from "../_shared/saas-entitlement.ts";
 
 type StripeObject = {
   id?: string;
@@ -225,6 +226,7 @@ async function provisionSaasAccess(
   const updates: Record<string, string | null> = {
     subscription_status: saasStatus,
     trial_ends_at: saasStatus === "trialing" ? trialEndsAt : null,
+    billing_provider: saasStatus === "inactive" ? null : "stripe",
   };
   if (customer) updates.stripe_customer_id = customer;
   if (subId) updates.stripe_subscription_id = subId;
@@ -422,21 +424,34 @@ Deno.serve(async (req) => {
       const status = event.type === "customer.subscription.deleted"
         ? "inactive"
         : mapSubscriptionStatus(obj?.status);
-      const updates: Record<string, string | null> = {
-        subscription_status: status,
-        trial_ends_at: status === "trialing" ? trialEndsAtFromUnix(obj?.trial_end) : null,
-      };
       const customer = customerId(obj?.customer);
       const subId = obj?.object === "subscription" ? obj.id ?? null : subscriptionId(obj?.subscription);
-      if (customer) updates.stripe_customer_id = customer;
-      if (subId) updates.stripe_subscription_id = subId;
 
-      if (physioFromMeta) {
-        await supabase.from("physiotherapists").update(updates).eq("id", physioFromMeta);
-      } else if (customer) {
-        await supabase.from("physiotherapists").update(updates).eq("stripe_customer_id", customer);
-      } else if (subId) {
-        await supabase.from("physiotherapists").update(updates).eq("stripe_subscription_id", subId);
+      let currentQuery = supabase
+        .from("physiotherapists")
+        .select(
+          "id, profile_id, subscription_status, trial_ends_at, billing_provider, stripe_customer_id, stripe_subscription_id, revenuecat_app_user_id",
+        );
+      if (physioFromMeta) currentQuery = currentQuery.eq("id", physioFromMeta);
+      else if (customer) currentQuery = currentQuery.eq("stripe_customer_id", customer);
+      else if (subId) currentQuery = currentQuery.eq("stripe_subscription_id", subId);
+      else {
+        return new Response(JSON.stringify({ received: true }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: current } = await currentQuery.maybeSingle();
+      const merge = mergeEntitlementUpdate(current, {
+        provider: "stripe",
+        status,
+        trialEndsAt: status === "trialing" ? trialEndsAtFromUnix(obj?.trial_end) : null,
+        stripeCustomerId: customer,
+        stripeSubscriptionId: subId,
+      });
+
+      if (merge.apply && Object.keys(merge.updates).length > 0 && current?.id) {
+        await supabase.from("physiotherapists").update(merge.updates).eq("id", current.id);
       }
 
       return new Response(JSON.stringify({ received: true }), {

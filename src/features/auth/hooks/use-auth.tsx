@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/shared/api/supabase'
 import { queryKeys } from '@/shared/api/query-keys'
+import { identifyRevenueCatUser, logoutRevenueCat } from '@/shared/native'
 import { getProfile } from '../api/auth-api'
 import { capturePasswordRecoveryFromUrl, markPasswordRecovery } from '../lib/password-recovery'
 import type { Profile } from '@/shared/types/database'
@@ -36,11 +37,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.session })
       if (newSession?.user) {
         queryClient.invalidateQueries({ queryKey: queryKeys.profile(newSession.user.id) })
+        void identifyRevenueCatUser(newSession.user.id)
+      } else {
+        void logoutRevenueCat()
       }
     })
 
     return () => subscription.unsubscribe()
   }, [queryClient])
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      void identifyRevenueCatUser(session.user.id)
+    }
+  }, [session?.user?.id])
 
   const profileQuery = useQuery({
     queryKey: queryKeys.profile(session?.user?.id ?? ''),

@@ -7,6 +7,7 @@ export type AuditAction = 'LOGIN' | 'PATIENT_CREATED' | 'PHYSIOTHERAPIST_CREATED
 export type PatientClinicalStatus = 'awaiting_assessment' | 'in_treatment' | 'paused' | 'reassessment' | 'discharged'
 export type PatientAccountStatus = 'no_account' | 'invite_pending' | 'active'
 export type SaasSubscriptionStatus = 'trialing' | 'active' | 'inactive'
+export type SaasBillingProvider = 'stripe' | 'revenuecat'
 export type PatientInviteStatus = 'pending' | 'accepted' | 'revoked' | 'expired'
 
 export interface Database {
@@ -84,6 +85,8 @@ export interface Database {
           bio: string | null
           subscription_status: SaasSubscriptionStatus
           trial_ends_at: string | null
+          billing_provider: SaasBillingProvider | null
+          revenuecat_app_user_id: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           credentials_email_sent_at: string | null
@@ -101,6 +104,8 @@ export interface Database {
           bio?: string | null
           subscription_status?: SaasSubscriptionStatus
           trial_ends_at?: string | null
+          billing_provider?: SaasBillingProvider | null
+          revenuecat_app_user_id?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           credentials_email_sent_at?: string | null

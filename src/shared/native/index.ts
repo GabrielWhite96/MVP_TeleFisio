@@ -9,3 +9,12 @@ export {
   startDeepLinkListener,
 } from './deep-links'
 export { DeepLinkBridge } from './deep-link-bridge'
+export {
+  configureRevenueCat,
+  identifyRevenueCatUser,
+  logoutRevenueCat,
+  purchaseDefaultRevenueCatPackage,
+  restoreRevenueCatPurchases,
+  isRevenueCatConfiguredInEnv,
+  getRevenueCatEntitlementId,
+} from './revenuecat'

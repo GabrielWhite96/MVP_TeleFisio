@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { SplashScreen } from '@capacitor/splash-screen'
+import { configureRevenueCat } from './revenuecat'
 
 /** Initialize native chrome once on Capacitor platforms. Safe no-op on web. */
 export async function bootstrapNativeShell(): Promise<void> {
@@ -20,4 +21,7 @@ export async function bootstrapNativeShell(): Promise<void> {
   } catch {
     // ignore
   }
+
+  // Purchases SDK — keys may be absent in local/dev builds.
+  void configureRevenueCat()
 }

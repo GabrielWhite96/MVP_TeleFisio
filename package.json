@@ -39,6 +39,7 @@
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-pdf/renderer": "^4.9.0",
+    "@revenuecat/purchases-capacitor": "^12.3.3",
     "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.80.7",
     "class-variance-authority": "^0.7.1",

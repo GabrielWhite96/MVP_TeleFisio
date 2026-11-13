@@ -11,6 +11,7 @@ import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
 import { trackBeginCheckout, trackCheckoutSuccess, trackDemoRequest } from '@/shared/lib/analytics'
+import { isNativeApp } from '@/shared/native'
 
 export function SubscribeForm() {
   const [params] = useSearchParams()
@@ -31,6 +32,18 @@ export function SubscribeForm() {
       trackCheckoutSuccess()
     }
   }, [checkoutState])
+
+  if (isNativeApp()) {
+    return (
+      <div className="w-full">
+        <h2 className="font-display text-3xl font-semibold tracking-tight">{pt.auth.subscribeTitle}</h2>
+        <p className="mt-2 text-sm text-[var(--color-muted-foreground)]">{pt.saas.nativePublicSubscribe}</p>
+        <Button asChild size="lg" className="mt-8 w-full">
+          <Link to={ROUTES.login}>{pt.auth.login}</Link>
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full">

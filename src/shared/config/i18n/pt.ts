@@ -178,6 +178,13 @@ export const pt = {
     alreadyActive: 'Sua assinatura está ativa.',
     alreadyTrialing: 'Você está no período de teste grátis.',
     goToDashboard: 'Ir para o painel',
+    manageOnStore: 'Sua assinatura é gerenciada pela App Store ou Google Play. Cancele ou altere o plano nas configurações da loja.',
+    manageOnWeb: 'Sua assinatura foi feita pelo site. Gerencie cancelamento e cartão em fisionotes.com.br no navegador.',
+    storeSubscribe: 'Assinar pela loja',
+    storeRestore: 'Restaurar compras',
+    storePending: 'Compra registrada. Atualizando sua assinatura…',
+    storeUnavailable: 'Assinatura pela loja indisponível neste build. Use o site ou configure as chaves RevenueCat.',
+    nativePublicSubscribe: 'No app, entre com sua conta e assine pela loja. Novas contas profissionais continuam sendo criadas pelo site.',
   },
   landing: {
     skipToContent: 'Ir para o conteúdo',

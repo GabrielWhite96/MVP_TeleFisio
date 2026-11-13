@@ -5,6 +5,7 @@ import { Check } from 'lucide-react'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { getPhysiotherapistByProfileId } from '@/entities/physiotherapist/api/physiotherapist-api'
 import { startSaasBillingPortal, startSaasCheckout } from '@/entities/physiotherapist/api/saas-checkout-api'
+import { resolveBillingCheckoutAction } from '@/entities/physiotherapist/model/saas-entitlement'
 import {
   canManagePractice,
   isInTrial,
@@ -14,6 +15,12 @@ import { queryKeys } from '@/shared/api/query-keys'
 import { SAAS_PLAN } from '@/shared/config/saas-plan'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import {
+  isNativeApp,
+  isRevenueCatConfiguredInEnv,
+  purchaseDefaultRevenueCatPackage,
+  restoreRevenueCatPurchases,
+} from '@/shared/native'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { PageHeader } from '@/shared/ui/page-header'
@@ -30,6 +37,7 @@ export function PhysioSubscriptionPage() {
   const [params] = useSearchParams()
   const queryClient = useQueryClient()
   const checkoutState = params.get('checkout')
+  const native = isNativeApp()
 
   const physioQuery = useQuery({
     queryKey: queryKeys.physiotherapist(user?.id ?? ''),
@@ -50,6 +58,18 @@ export function PhysioSubscriptionPage() {
   const portal = useMutation({
     mutationFn: startSaasBillingPortal,
   })
+  const storePurchase = useMutation({
+    mutationFn: purchaseDefaultRevenueCatPackage,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.physiotherapist(user?.id ?? '') })
+    },
+  })
+  const storeRestore = useMutation({
+    mutationFn: restoreRevenueCatPurchases,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.physiotherapist(user?.id ?? '') })
+    },
+  })
 
   if (!user || physioQuery.isLoading) {
     return (
@@ -63,6 +83,13 @@ export function PhysioSubscriptionPage() {
   const active = physio ? canManagePractice(physio) : false
   const trialing = physio ? isInTrial(physio) : false
   const daysLeft = physio ? trialDaysLeft(physio.trial_ends_at) : null
+  const action = resolveBillingCheckoutAction({
+    isNative: native,
+    entitled: active,
+    billingProvider: physio?.billing_provider ?? null,
+  })
+  const storeReady = isRevenueCatConfiguredInEnv()
+  const storeBusy = storePurchase.isPending || storeRestore.isPending
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
@@ -81,6 +108,11 @@ export function PhysioSubscriptionPage() {
       {checkoutState === 'cancel' ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           {pt.saas.checkoutCancel}
+        </p>
+      ) : null}
+      {(storePurchase.isSuccess || storeRestore.isSuccess) && !active ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {pt.saas.storePending}
         </p>
       ) : null}
 
@@ -119,36 +151,94 @@ export function PhysioSubscriptionPage() {
               <Button asChild className="w-full">
                 <Link to={ROUTES.physio.dashboard}>{pt.saas.goToDashboard}</Link>
               </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => portal.mutate()}
-                disabled={portal.isPending}
-              >
-                {portal.isPending ? pt.common.loading : pt.saas.manage}
-              </Button>
-              <p className="text-xs text-[var(--color-muted-foreground)]">{pt.saas.manageHint}</p>
-              {portal.error ? (
-                <p className="text-sm text-red-600">{(portal.error as Error).message}</p>
+              {action === 'stripe_portal' ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => portal.mutate()}
+                    disabled={portal.isPending}
+                  >
+                    {portal.isPending ? pt.common.loading : pt.saas.manage}
+                  </Button>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">{pt.saas.manageHint}</p>
+                  {portal.error ? (
+                    <p className="text-sm text-red-600">{(portal.error as Error).message}</p>
+                  ) : null}
+                </>
+              ) : null}
+              {action === 'manage_on_store' ? (
+                <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.manageOnStore}</p>
+              ) : null}
+              {action === 'manage_on_web' ? (
+                <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.manageOnWeb}</p>
+              ) : null}
+              {native ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => storeRestore.mutate()}
+                  disabled={storeBusy || !storeReady}
+                >
+                  {storeRestore.isPending ? pt.common.loading : pt.saas.storeRestore}
+                </Button>
               ) : null}
             </div>
           ) : (
-            <>
-              <Button
-                className="w-full"
-                onClick={() => checkout.mutate()}
-                disabled={checkout.isPending}
-              >
-                {checkout.isPending
-                  ? pt.common.loading
-                  : physio?.stripe_customer_id
-                    ? pt.saas.hubCta
-                    : pt.saas.subscribeTrial}
-              </Button>
-              {checkout.error ? (
-                <p className="text-sm text-red-600">{(checkout.error as Error).message}</p>
+            <div className="space-y-3">
+              {action === 'stripe_checkout' ? (
+                <>
+                  <Button
+                    className="w-full"
+                    onClick={() => checkout.mutate()}
+                    disabled={checkout.isPending}
+                  >
+                    {checkout.isPending
+                      ? pt.common.loading
+                      : physio?.stripe_customer_id
+                        ? pt.saas.hubCta
+                        : pt.saas.subscribeTrial}
+                  </Button>
+                  {checkout.error ? (
+                    <p className="text-sm text-red-600">{(checkout.error as Error).message}</p>
+                  ) : null}
+                </>
               ) : null}
-            </>
+              {action === 'revenuecat_purchase' ? (
+                <>
+                  {!storeReady ? (
+                    <p className="text-sm text-amber-800">{pt.saas.storeUnavailable}</p>
+                  ) : null}
+                  <Button
+                    className="w-full"
+                    onClick={() => storePurchase.mutate()}
+                    disabled={storeBusy || !storeReady}
+                  >
+                    {storePurchase.isPending ? pt.common.loading : pt.saas.storeSubscribe}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => storeRestore.mutate()}
+                    disabled={storeBusy || !storeReady}
+                  >
+                    {storeRestore.isPending ? pt.common.loading : pt.saas.storeRestore}
+                  </Button>
+                  {storePurchase.error ? (
+                    <p className="text-sm text-red-600">{(storePurchase.error as Error).message}</p>
+                  ) : null}
+                  {storeRestore.error ? (
+                    <p className="text-sm text-red-600">{(storeRestore.error as Error).message}</p>
+                  ) : null}
+                </>
+              ) : null}
+              {action === 'manage_on_store' ? (
+                <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.manageOnStore}</p>
+              ) : null}
+              {action === 'manage_on_web' ? (
+                <p className="text-sm text-[var(--color-muted-foreground)]">{pt.saas.manageOnWeb}</p>
+              ) : null}
+            </div>
           )}
         </CardContent>
       </Card>
