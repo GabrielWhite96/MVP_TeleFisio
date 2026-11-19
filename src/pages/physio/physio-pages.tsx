@@ -24,6 +24,7 @@ import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-c
 import { DischargePlanButton } from '@/features/treatment-plan/ui/discharge-plan-button'
 import { ClinicalTimeline } from '@/features/clinical-timeline/ui/clinical-timeline'
 import { AvailabilityEditor } from '@/features/scheduling/ui/availability-editor'
+import { BiometricUnlockSettings } from '@/shared/native'
 import { CreatePatientForm } from '@/features/patients/ui/create-patient-form'
 import { ClinicalStatusActions } from '@/features/patients/ui/clinical-status-actions'
 import { PatientInvitePanel } from '@/features/patients/ui/patient-invite-panel'
@@ -873,6 +874,7 @@ export function PhysioProfilePage() {
             </form>
           </CardContent>
         </Card>
+        <BiometricUnlockSettings />
         {physioQuery.data && <AvailabilityEditor physiotherapistId={physioQuery.data.id} />}
       </div>
     

@@ -1,7 +1,8 @@
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom'
 import { DocumentMeta } from '@/app/document-meta'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
-import { DeepLinkBridge } from '@/shared/native'
+import { BiometricGate, DeepLinkBridge, NativePrivacyBlur } from '@/shared/native'
+import { useAuth } from '@/features/auth/hooks/use-auth'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
 import {
   FerramentasFisioterapeutasPage,
@@ -48,12 +49,14 @@ import { AppLayout } from '@/widgets/layout/app-layout'
 import { ROUTES } from '@/shared/config/routes'
 
 function RootChrome() {
+  const { isAuthenticated } = useAuth()
   return (
-    <>
+    <BiometricGate enabled={isAuthenticated}>
       <DocumentMeta />
       <DeepLinkBridge />
+      <NativePrivacyBlur />
       <Outlet />
-    </>
+    </BiometricGate>
   )
 }
 

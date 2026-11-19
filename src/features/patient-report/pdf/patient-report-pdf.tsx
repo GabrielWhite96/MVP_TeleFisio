@@ -765,13 +765,13 @@ function AssessmentBlock({
 }
 
 export async function downloadPatientReportPdf(props: PatientReportPdfProps): Promise<void> {
+  const { shareOrDownloadFile } = await import('@/shared/native/share-file')
   const blob = await pdf(<PatientReportPdf {...props} />).toBlob()
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = reportPdfFileName(props.patientName)
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
+  const fileName = reportPdfFileName(props.patientName)
+  await shareOrDownloadFile({
+    blob,
+    fileName,
+    title: fileName,
+    dialogTitle: 'Compartilhar relatório',
+  })
 }

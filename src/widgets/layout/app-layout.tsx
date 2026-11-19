@@ -227,7 +227,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
       </aside>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:overflow-visible">
-        <header className="studio-field flex h-14 shrink-0 items-center justify-between px-4 text-[var(--color-ink-foreground)] md:hidden">
+        <header className="studio-field flex h-14 shrink-0 items-center justify-between px-4 pt-[env(safe-area-inset-top)] text-[var(--color-ink-foreground)] md:hidden">
           <BrandMark size="sm" layout="horizontal" tone="onDark" className="max-w-[11rem]" />
           <Button
             variant="ghost"

@@ -28,7 +28,7 @@ Marque conforme for providenciando. **Nada aqui publica o app nas lojas automati
 | Termos de Uso (URL) | Em código: `/termos` | Idem |
 | E-mail / telefone de suporte nas lojas | Pendente | |
 | Decisão billing SaaS **A / B / C** | **B escolhida** | StoreKit + Play Billing + Stripe web — ver `docs/etapa-3-billing-b.md` |
-| Assets ícone 1024 + splash | Pendente | |
+| Assets ícone 1024 + splash | **Feito** | `resources/` + gerados em android/ios via `@capacitor/assets` |
 | iPhone físico para TestFlight / Daily | **Disponível** | Confirmado |
 
 ## Deep links (Etapa 2)

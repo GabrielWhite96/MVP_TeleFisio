@@ -66,6 +66,12 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>A câmera é necessária para teleconsultas por vídeo no Fisionotes.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O microfone é necessário para teleconsultas por vídeo no Fisionotes.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>O Face ID desbloqueia o Fisionotes de forma rápida, sem gravar sua senha no aparelho.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

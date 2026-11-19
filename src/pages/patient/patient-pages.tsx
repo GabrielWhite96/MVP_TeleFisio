@@ -23,6 +23,7 @@ import { TreatmentPlanCard } from '@/features/treatment-plan/ui/treatment-plan-c
 import { CaregiverAuthorizeForm } from '@/features/caregiver/ui/caregiver-authorize-form'
 import { CaregiverInviteForm } from '@/features/caregiver/ui/caregiver-invite-form'
 import { ClinicalProfileForm } from '@/features/clinical-profile/ui/clinical-profile-form'
+import { BiometricUnlockSettings } from '@/shared/native'
 import { RecoveryProgressWidget } from '@/widgets/recovery-progress/recovery-progress-widget'
 import {
   PatientCareSummary,
@@ -302,6 +303,7 @@ export function PatientProfilePage() {
             </form>
           </CardContent>
         </Card>
+        <BiometricUnlockSettings />
         {patientQuery.data && <ClinicalProfileForm patientId={patientQuery.data.id} />}
       </div>
     

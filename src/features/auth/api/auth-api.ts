@@ -33,6 +33,8 @@ export async function acceptPatientInvite(input: {
 }
 
 export async function signOut() {
+  const { clearBiometricUnlockFlag } = await import('@/shared/native/biometrics')
+  await clearBiometricUnlockFlag()
   const { error } = await supabase.auth.signOut()
   if (error) throw new Error(getSupabaseErrorMessage(error))
 }

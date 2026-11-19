@@ -9,6 +9,11 @@ const config: CapacitorConfig = {
   },
   ios: {
     scheme: 'Fisionotes',
+    // Daily.co iframe needs autoplay / getUserMedia without an extra gesture.
+    mediaPlaybackRequiresUserAction: false,
+  },
+  android: {
+    allowMixedContent: false,
   },
   plugins: {
     SplashScreen: {
