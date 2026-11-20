@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib/utils'
 
 function PageHeaderRoot({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <header className={cn('flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between', className)}>
+    <header className={cn('flex flex-col gap-2.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4', className)}>
       {children}
     </header>
   )

@@ -52,7 +52,7 @@ export function NotificationInbox({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="page-title">{pt.notifications.title}</h1>
         {unread > 0 && (

@@ -161,15 +161,14 @@ export function AppLayout({ children }: { children?: ReactNode }) {
             to={item.href}
             onClick={() => surface === 'sheet' && setMobileOpen(false)}
             className={cn(
-              'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition-colors',
-              isPatient && 'min-h-12 py-3 text-base md:min-h-0 md:py-2.5 md:text-sm',
+              'flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold transition-colors',
               dock && active && 'relative bg-white/10 text-[var(--color-ink-foreground)] before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-[var(--color-primary)]',
               dock && !active && 'text-[var(--color-ink-foreground)]/65 hover:bg-white/8 hover:text-[var(--color-ink-foreground)]',
               !dock && active && 'bg-[var(--color-secondary)] text-[var(--color-secondary-foreground)]',
               !dock && !active && 'text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-foreground)]'
             )}
           >
-            <Icon className={cn('h-4 w-4', isPatient && 'h-5 w-5')} />
+            <Icon className="h-4 w-4 shrink-0" />
             {item.label}
           </Link>
         )
@@ -227,24 +226,25 @@ export function AppLayout({ children }: { children?: ReactNode }) {
       </aside>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden print:overflow-visible">
-        <header className="studio-field flex h-14 shrink-0 items-center justify-between px-4 pt-[env(safe-area-inset-top)] text-[var(--color-ink-foreground)] md:hidden">
-          <BrandMark size="sm" layout="horizontal" tone="onDark" className="max-w-[11rem]" />
+        <header className="studio-field flex min-h-12 shrink-0 items-center justify-between px-3 pt-[env(safe-area-inset-top)] pb-1 text-[var(--color-ink-foreground)] md:hidden">
+          <BrandMark size="sm" layout="horizontal" tone="onDark" className="max-w-[9.5rem]" />
           <Button
             variant="ghost"
             size="icon"
-            className="text-[var(--color-ink-foreground)] hover:bg-white/10 hover:text-[var(--color-ink-foreground)]"
+            data-compact
+            className="size-9 min-h-9 min-w-9 text-[var(--color-ink-foreground)] hover:bg-white/10 hover:text-[var(--color-ink-foreground)]"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
         </header>
 
         {mobileOpen && (
-          <div className="shrink-0 border-b bg-[var(--color-card)] p-4 md:hidden">
-            <nav className="flex flex-col gap-1">
+          <div className="shrink-0 border-b bg-[var(--color-card)] p-3 md:hidden">
+            <nav className="flex flex-col gap-0.5">
               <NavLinks surface="sheet" />
             </nav>
-            <Button variant="ghost" size="sm" className="mt-4 w-full justify-start" onClick={handleLogout}>
+            <Button variant="ghost" size="sm" className="mt-3 w-full justify-start" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               {pt.auth.logout}
             </Button>
@@ -253,7 +253,7 @@ export function AppLayout({ children }: { children?: ReactNode }) {
 
         <main
           ref={mainRef}
-          className="min-h-0 flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8 lg:p-10 print:overflow-visible"
+          className="min-h-0 flex-1 overflow-y-auto px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:p-8 lg:p-10 print:overflow-visible"
         >
           <SubscriptionBanner />
           {content}
@@ -268,13 +268,12 @@ export function AppLayout({ children }: { children?: ReactNode }) {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  'flex flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-bold',
-                  isPatient && 'min-h-16 py-3 text-sm',
+                  'flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-bold leading-tight',
                   active ? 'text-[var(--color-primary)]' : 'text-[var(--color-ink-foreground)]/55'
                 )}
               >
-                <Icon className={cn('h-5 w-5', isPatient && 'h-6 w-6')} />
-                <span className="truncate px-1">{item.shortLabel ?? item.label.split(' ')[0]}</span>
+                <Icon className="h-4 w-4" />
+                <span className="truncate px-0.5">{item.shortLabel ?? item.label.split(' ')[0]}</span>
               </Link>
             )
           })}

@@ -1,4 +1,4 @@
-export { isNativeApp, getNativePlatform } from './platform'
+export { isNativeApp, isNativeUi, getNativePlatform } from './platform'
 export { bootstrapNativeShell } from './bootstrap'
 export { getPublicOrigin, buildPublicUrl } from './origin'
 export { openExternalUrl } from './open-external'
@@ -9,6 +9,7 @@ export {
   startDeepLinkListener,
 } from './deep-links'
 export { DeepLinkBridge } from './deep-link-bridge'
+export { NativeHardwareBack } from './hardware-back'
 export { shareOrDownloadFile } from './share-file'
 export {
   clearBiometricUnlockFlag,

@@ -2,25 +2,31 @@ import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/use-auth'
+import { getDashboardRoute } from '../api/auth-api'
 import { getPhysiotherapistByProfileId } from '@/entities/physiotherapist/api/physiotherapist-api'
 import { canManagePractice, isPhysioHubPath } from '@/entities/physiotherapist/model/subscription-access'
 import { queryKeys } from '@/shared/api/query-keys'
 import { LoadingSpinner } from '@/shared/ui/states'
 import type { UserRole } from '@/shared/types/database'
 import { ROUTES } from '@/shared/config/routes'
+import { isNativeUi } from '@/shared/native'
+import { NativeAuthBootScreen } from '@/pages/auth/native-auth-layout'
 import { isPasswordRecovery } from '../lib/password-recovery'
+
+function AuthLoading() {
+  if (isNativeUi()) return <NativeAuthBootScreen />
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <LoadingSpinner className="h-8 w-8" />
+    </div>
+  )
+}
 
 export function ProtectedRoute({ children }: { children?: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner className="h-8 w-8" />
-      </div>
-    )
-  }
+  if (isLoading) return <AuthLoading />
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.login} state={{ from: location }} replace />
@@ -43,6 +49,7 @@ export function RoleGuard({
   const { profile, isLoading } = useAuth()
 
   if (isLoading) {
+    if (isNativeUi()) return <NativeAuthBootScreen />
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <LoadingSpinner />
@@ -51,6 +58,10 @@ export function RoleGuard({
   }
 
   if (!profile || !allowedRoles.includes(profile.role)) {
+    if (isNativeUi()) {
+      if (!profile) return <Navigate to={ROUTES.login} replace />
+      return <Navigate to={getDashboardRoute(profile.role)} replace />
+    }
     return <Navigate to={ROUTES.home} replace />
   }
 
@@ -60,26 +71,14 @@ export function RoleGuard({
 export function GuestRoute({ children }: { children?: ReactNode }) {
   const { isAuthenticated, profile, isLoading } = useAuth()
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner className="h-8 w-8" />
-      </div>
-    )
-  }
+  if (isLoading) return <AuthLoading />
 
   if (isAuthenticated && profile) {
     if (isPasswordRecovery()) {
       return <Navigate to={ROUTES.resetPassword} replace />
     }
 
-    const routes: Record<UserRole, string> = {
-      patient: ROUTES.patient.dashboard,
-      physiotherapist: ROUTES.physio.dashboard,
-      admin: ROUTES.admin.dashboard,
-      caregiver: ROUTES.caregiver.dashboard,
-    }
-    return <Navigate to={routes[profile.role]} replace />
+    return <Navigate to={getDashboardRoute(profile.role)} replace />
   }
 
   return children ? <>{children}</> : <Outlet />
@@ -99,6 +98,7 @@ export function SubscriptionGuard({ children }: { children?: ReactNode }) {
   }
 
   if (isLoading || physioQuery.isLoading) {
+    if (isNativeUi()) return <NativeAuthBootScreen />
     return (
       <div className="flex min-h-[200px] items-center justify-center">
         <LoadingSpinner />

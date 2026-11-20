@@ -7,6 +7,8 @@ import { configureRevenueCat } from './revenuecat'
 export async function bootstrapNativeShell(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return
 
+  document.documentElement.classList.add('is-native')
+
   try {
     await StatusBar.setStyle({ style: Style.Dark })
     if (Capacitor.getPlatform() === 'android') {

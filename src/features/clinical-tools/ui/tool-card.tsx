@@ -16,15 +16,15 @@ export function ToolCard({
   onToggleFavorite: () => void
 }) {
   return (
-    <article className="surface-tape flex gap-2 bg-[var(--color-card)] p-4">
-      <Link to={ROUTES.physio.tool(tool.slug)} className="min-w-0 flex-1 space-y-2">
-        <div className="flex flex-wrap gap-2">
+    <article className="surface-tape flex gap-2 bg-[var(--color-card)] p-3 md:p-4">
+      <Link to={ROUTES.physio.tool(tool.slug)} className="min-w-0 flex-1 space-y-1.5 md:space-y-2">
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
           <Badge variant="secondary">{TOOL_KIND_LABELS[tool.kind]}</Badge>
           <Badge variant={tool.reviewStatus === 'verified' ? 'success' : 'outline'}>
             {REVIEW_STATUS_LABELS[tool.reviewStatus]}
           </Badge>
         </div>
-        <h2 className="font-display text-lg font-semibold leading-snug">{tool.name}</h2>
+        <h2 className="font-display text-base font-semibold leading-snug md:text-lg">{tool.name}</h2>
         <p className="text-sm text-[var(--color-muted-foreground)]">{tool.shortDescription}</p>
         <p className="text-sm">
           <span className="font-medium">{pt.tools.purposeLabel}: </span>

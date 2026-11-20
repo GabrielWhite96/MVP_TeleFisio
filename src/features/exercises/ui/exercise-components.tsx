@@ -131,7 +131,7 @@ export function PatientExerciseList({ patientId, canComplete = false }: { patien
   const done = due.filter((pe) => wasCompletedToday(pe.completions as ExerciseCompletionRow[] | null))
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       <ExerciseSection title={pt.exercise.dueToday}>
         {todo.length === 0 ? (
           <p className="text-sm text-[var(--color-muted-foreground)]">{pt.patient.noExercisesToday}</p>

@@ -119,9 +119,9 @@ export function PatientDashboardPage() {
 
   return (
     
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div className="grid gap-4 lg:grid-cols-12 lg:items-end lg:gap-6">
-          <div className="flex flex-col gap-6 lg:col-span-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 md:gap-6">
+        <div className="grid gap-3 lg:grid-cols-12 lg:items-end lg:gap-6">
+          <div className="flex flex-col gap-3 md:gap-6 lg:col-span-8">
             <PatientGreeting firstName={firstName} />
             {patientQuery.data && (
               <PatientTodayHero
@@ -154,13 +154,13 @@ export function PatientDashboardPage() {
         )}
 
         {patientQuery.data && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-3 md:gap-6 lg:grid-cols-2">
             <RecoveryProgressWidget patientId={patientQuery.data.id} />
             <TreatmentPlanCard patientId={patientQuery.data.id} />
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-3 md:gap-6 lg:grid-cols-2">
           <PatientPanel title={pt.patient.history}>
             <AppointmentList
               appointments={history}
@@ -331,7 +331,7 @@ export function PatientAppointmentsPage() {
 
   return (
     
-      <div className="space-y-8">
+      <div className="space-y-4 md:space-y-8">
         <h1 className="page-title">Minhas consultas</h1>
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">{pt.patient.upcoming}</h2>

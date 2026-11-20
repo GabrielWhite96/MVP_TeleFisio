@@ -7,14 +7,45 @@ import { acceptPatientInvite, getDashboardRoute } from '../api/auth-api'
 import { getPatientInviteByToken } from '@/entities/patient/api/patient-invite-api'
 import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { LoadingSpinner } from '@/shared/ui/states'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { isNativeUi } from '@/shared/native'
+import { cn } from '@/shared/lib/utils'
+
+function InviteStatusPanel({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  const native = isNativeUi()
+  return (
+    <div className="w-full">
+      <h2
+        className={cn(
+          'font-display font-semibold tracking-tight',
+          native ? 'text-2xl' : 'text-3xl'
+        )}
+      >
+        {title}
+      </h2>
+      <p className="mt-2 text-sm text-[var(--color-muted-foreground)]">{description}</p>
+      <Link
+        to={ROUTES.login}
+        className="mt-6 inline-block font-bold text-[var(--color-primary)] underline-offset-4 hover:underline"
+      >
+        {pt.auth.login}
+      </Link>
+    </div>
+  )
+}
 
 export function InviteAcceptForm() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
+  const native = isNativeUi()
   const inviteQuery = useQuery({
     queryKey: ['patient-invite', token],
     queryFn: () => getPatientInviteByToken(token!),
@@ -53,68 +84,83 @@ export function InviteAcceptForm() {
 
   if (invite?.status === 'accepted') {
     return (
-      <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
-        <CardHeader>
-          <CardTitle>{pt.auth.inviteAcceptedTitle}</CardTitle>
-          <CardDescription>{pt.auth.inviteAcceptedDescription}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link to={ROUTES.login} className="text-[var(--color-primary)] hover:underline">
-            {pt.auth.login}
-          </Link>
-        </CardContent>
-      </Card>
+      <InviteStatusPanel
+        title={pt.auth.inviteAcceptedTitle}
+        description={pt.auth.inviteAcceptedDescription}
+      />
     )
   }
 
   if (invalid) {
     return (
-      <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
-        <CardHeader>
-          <CardTitle>{pt.auth.inviteInvalidTitle}</CardTitle>
-          <CardDescription>{pt.auth.inviteInvalidDescription}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link to={ROUTES.login} className="text-[var(--color-primary)] hover:underline">
-            {pt.auth.login}
-          </Link>
-        </CardContent>
-      </Card>
+      <InviteStatusPanel
+        title={pt.auth.inviteInvalidTitle}
+        description={pt.auth.inviteInvalidDescription}
+      />
     )
   }
 
   return (
-    <Card className="mx-0 w-full max-w-none border-0 bg-transparent shadow-none">
-      <CardHeader>
-        <CardTitle>{pt.auth.inviteTitle}</CardTitle>
-        <CardDescription>
-          {pt.auth.inviteDescription
-            .replace('{physio}', invite.physiotherapist_name)
-            .replace('{email}', invite.email)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">{pt.auth.fullName}</Label>
-            <Input id="fullName" {...register('fullName')} />
-            {errors.fullName && <p className="text-sm text-red-600">{errors.fullName.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>{pt.auth.email}</Label>
-            <Input value={invite.email} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">{pt.auth.password}</Label>
-            <Input id="password" type="password" {...register('password')} />
-            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
-          </div>
-          {mutation.error && <p className="text-sm text-red-600">{mutation.error.message}</p>}
-          <Button type="submit" className="w-full" disabled={mutation.isPending}>
-            {mutation.isPending ? pt.common.loading : pt.auth.activateAccount}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="w-full">
+      <h2
+        className={cn(
+          'font-display font-semibold tracking-tight',
+          native ? 'text-2xl' : 'text-3xl'
+        )}
+      >
+        {pt.auth.inviteTitle}
+      </h2>
+      <p className="mt-2 text-sm text-[var(--color-muted-foreground)] text-pretty">
+        {pt.auth.inviteDescription
+          .replace('{physio}', invite.physiotherapist_name)
+          .replace('{email}', invite.email)}
+      </p>
+      <form
+        onSubmit={handleSubmit((d) => mutation.mutate(d))}
+        className="mt-6 flex flex-col gap-5"
+      >
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="fullName">{pt.auth.fullName}</Label>
+          <Input id="fullName" autoComplete="name" enterKeyHint="next" {...register('fullName')} />
+          {errors.fullName ? (
+            <p className="text-sm text-[var(--color-destructive)]" role="alert">
+              {errors.fullName.message}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>{pt.auth.email}</Label>
+          <Input value={invite.email} disabled />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="password">{pt.auth.password}</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            enterKeyHint="go"
+            {...register('password')}
+          />
+          {errors.password ? (
+            <p className="text-sm text-[var(--color-destructive)]" role="alert">
+              {errors.password.message}
+            </p>
+          ) : null}
+        </div>
+        {mutation.error ? (
+          <p className="text-sm text-[var(--color-destructive)]" role="alert">
+            {mutation.error.message}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          size="lg"
+          className={cn('w-full', native && 'h-14 min-h-14')}
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? pt.common.loading : pt.auth.activateAccount}
+        </Button>
+      </form>
+    </div>
   )
 }

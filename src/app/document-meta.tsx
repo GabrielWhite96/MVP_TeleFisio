@@ -4,6 +4,7 @@ import { BRAND_NAME } from '@/shared/config/brand'
 import { getCanonicalUrl, getOgImageUrl, OG_IMAGE_ALT } from '@/shared/config/site'
 import { trackPageView } from '@/shared/lib/analytics'
 import { buildJsonLdForSeo, getSeoForPath } from '@/shared/seo/pages'
+import { isNativeApp } from '@/shared/native'
 
 const JSON_LD_ID = 'fisionotes-jsonld'
 
@@ -67,11 +68,13 @@ export function DocumentMeta() {
     upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt' }, OG_IMAGE_ALT)
     upsertJsonLd(buildJsonLdForSeo(seo))
 
-    trackPageView({
-      path: `${location.pathname}${location.search}`,
-      title: seo.title,
-      location: pageUrl,
-    })
+    if (!isNativeApp()) {
+      trackPageView({
+        path: `${location.pathname}${location.search}`,
+        title: seo.title,
+        location: pageUrl,
+      })
+    }
   }, [location.pathname, location.search])
 
   return null

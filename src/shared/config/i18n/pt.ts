@@ -52,6 +52,8 @@ export const pt = {
     inviteAcceptedTitle: 'Conta já ativada',
     inviteAcceptedDescription: 'Faça login para acessar seu portal.',
     activateAccount: 'Ativar conta',
+    nativeTagline: 'Fisioterapia no ritmo do seu corpo.',
+    nativePatientHint: 'Paciente? Use o convite enviado pelo seu fisioterapeuta.',
   },
   common: {
     save: 'Salvar',

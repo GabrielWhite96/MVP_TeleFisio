@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_REVENUECAT_IOS_API_KEY?: string
   readonly VITE_REVENUECAT_ANDROID_API_KEY?: string
   readonly VITE_REVENUECAT_ENTITLEMENT_ID?: string
+  /** Dev-only: preview native auth/chrome UI in the browser (`1` to enable). */
+  readonly VITE_PREVIEW_NATIVE_UI?: string
 }
 
 interface ImportMeta {

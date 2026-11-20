@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom'
 import { DocumentMeta } from '@/app/document-meta'
 import { ProtectedRoute, RoleGuard, GuestRoute, SubscriptionGuard } from '@/features/auth/ui/guards'
-import { BiometricGate, DeepLinkBridge, NativePrivacyBlur } from '@/shared/native'
+import { BiometricGate, DeepLinkBridge, NativeHardwareBack, NativePrivacyBlur } from '@/shared/native'
 import { useAuth } from '@/features/auth/hooks/use-auth'
 import { HomePage, NotFoundPage } from '@/pages/home-page'
 import {
@@ -54,6 +54,7 @@ function RootChrome() {
     <BiometricGate enabled={isAuthenticated}>
       <DocumentMeta />
       <DeepLinkBridge />
+      <NativeHardwareBack />
       <NativePrivacyBlur />
       <Outlet />
     </BiometricGate>

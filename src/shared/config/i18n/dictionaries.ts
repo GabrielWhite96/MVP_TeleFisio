@@ -50,6 +50,8 @@ export const en = {
     inviteAcceptedTitle: 'Account already active',
     inviteAcceptedDescription: 'Sign in to access your portal.',
     activateAccount: 'Activate account',
+    nativeTagline: 'Physiotherapy at your body’s pace.',
+    nativePatientHint: 'Patient? Use the invite from your physiotherapist.',
   },
   common: {
     save: 'Save',

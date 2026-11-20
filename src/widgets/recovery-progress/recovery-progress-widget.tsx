@@ -98,9 +98,9 @@ export function RecoveryProgressWidget({ patientId }: RecoveryProgressWidgetProp
 
 function Metric({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-2xl bg-[var(--color-muted)] p-3 text-center">
-      <p className="text-sm text-[var(--color-muted-foreground)]">{label}</p>
-      <p className="mt-1 font-display text-3xl font-semibold tabular-nums leading-none">{value ?? '—'}</p>
+    <div className="rounded-xl bg-[var(--color-muted)] p-2.5 text-center md:rounded-2xl md:p-3">
+      <p className="text-xs text-[var(--color-muted-foreground)] md:text-sm">{label}</p>
+      <p className="mt-1 font-display text-xl font-semibold tabular-nums leading-none md:text-3xl">{value ?? '—'}</p>
     </div>
   )
 }

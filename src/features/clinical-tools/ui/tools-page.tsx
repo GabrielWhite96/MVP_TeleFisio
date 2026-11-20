@@ -13,7 +13,7 @@ import { ToolCard } from './tool-card'
 import { useToolPrefs } from './use-tool-prefs'
 
 const selectClass =
-  'flex h-12 w-full rounded-2xl border-0 bg-[var(--color-muted)] px-4 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] md:h-11 md:text-sm'
+  'flex h-11 w-full rounded-2xl border-0 bg-[var(--color-muted)] px-3.5 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] md:px-4 md:text-sm'
 
 function Chip({
   active,
@@ -30,7 +30,7 @@ function Chip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'shrink-0 rounded-full border px-3 py-1.5 text-sm',
+        'shrink-0 rounded-full border px-2.5 py-1 text-xs md:px-3 md:py-1.5 md:text-sm',
         active
           ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
           : 'border-[var(--color-border)] bg-[var(--color-card)] hover:bg-[var(--color-accent)]',
@@ -77,7 +77,7 @@ export function PhysioToolsPage() {
 
   return (
     
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div className="space-y-1">
           <h1 className="page-title">{pt.tools.title}</h1>
           <p className="page-kicker">{pt.tools.subtitle}</p>

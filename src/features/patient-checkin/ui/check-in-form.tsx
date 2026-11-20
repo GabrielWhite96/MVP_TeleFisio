@@ -50,8 +50,8 @@ function ScaleSlider({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className={cn(
-          'h-3 w-full cursor-pointer appearance-none rounded-full bg-[var(--color-muted)] accent-[var(--color-primary)]',
-          '[&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-primary)]'
+          'h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--color-muted)] accent-[var(--color-primary)] md:h-3',
+          '[&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-primary)] md:[&::-webkit-slider-thumb]:h-6 md:[&::-webkit-slider-thumb]:w-6'
         )}
         aria-valuemin={0}
         aria-valuemax={10}
@@ -83,9 +83,9 @@ export function CheckInTodaySummary({ checkIn }: { checkIn: CheckIn }) {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => (
-            <div key={metric.label} className="rounded-2xl bg-[var(--color-muted)] p-4 text-center">
-              <p className="text-sm text-[var(--color-muted-foreground)]">{metric.label}</p>
-              <p className="mt-1 font-display text-3xl font-semibold tabular-nums leading-none">{metric.value ?? '—'}</p>
+            <div key={metric.label} className="rounded-xl bg-[var(--color-muted)] p-3 text-center md:rounded-2xl md:p-4">
+              <p className="text-xs text-[var(--color-muted-foreground)] md:text-sm">{metric.label}</p>
+              <p className="mt-1 font-display text-2xl font-semibold tabular-nums leading-none md:text-3xl">{metric.value ?? '—'}</p>
             </div>
           ))}
         </div>
@@ -140,7 +140,7 @@ export function CheckInForm({ patientId, onSuccess }: CheckInFormProps) {
         <CardDescription>{pt.checkIn.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-6">
+        <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4 md:space-y-6">
           {SLIDERS.map(({ name, label }) => (
             <Controller
               key={name}
@@ -157,7 +157,7 @@ export function CheckInForm({ patientId, onSuccess }: CheckInFormProps) {
           </div>
           {mutation.isSuccess && <p className="text-sm text-green-600">{pt.checkIn.success}</p>}
           {mutation.error && <p className="text-sm text-red-600">{(mutation.error as Error).message}</p>}
-          <Button type="submit" className="w-full" size="lg" disabled={mutation.isPending}>
+          <Button type="submit" className="w-full" disabled={mutation.isPending}>
             {mutation.isPending ? pt.common.loading : pt.checkIn.submit}
           </Button>
         </form>

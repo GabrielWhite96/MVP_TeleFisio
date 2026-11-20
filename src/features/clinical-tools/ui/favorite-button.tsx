@@ -18,7 +18,7 @@ export function FavoriteButton({
       aria-label={active ? pt.tools.removeFavorite.replace('{name}', name) : pt.tools.addFavorite.replace('{name}', name)}
       onClick={onToggle}
       className={cn(
-        'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-[var(--color-accent)]',
+        'inline-flex size-9 shrink-0 items-center justify-center rounded-lg hover:bg-[var(--color-accent)] md:size-10',
         active ? 'text-[var(--color-primary)]' : 'text-[var(--color-muted-foreground)]',
       )}
     >

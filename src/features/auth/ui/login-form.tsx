@@ -13,11 +13,14 @@ import { Button } from '@/shared/ui/button'
 import { Input, Label } from '@/shared/ui/input'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { isNativeUi } from '@/shared/native'
+import { cn } from '@/shared/lib/utils'
 
 export function LoginForm() {
   const navigate = useNavigate()
   const location = useLocation()
   const { profile } = useAuth()
+  const native = isNativeUi()
   const [showPassword, setShowPassword] = useState(false)
   const linkError = isExpiredAuthCallback(parseAuthCallback(location.search, location.hash))
     ? pt.auth.resetLinkExpired
@@ -39,11 +42,21 @@ export function LoginForm() {
     },
   })
 
+  const emailRegister = register('email')
+  const passwordRegister = register('password')
+
   return (
     <div className="w-full">
-      <h2 className="font-display text-3xl font-semibold tracking-tight">{pt.auth.login}</h2>
+      <h2
+        className={cn(
+          'font-display font-semibold tracking-tight',
+          native ? 'text-2xl' : 'text-3xl'
+        )}
+      >
+        {pt.auth.login}
+      </h2>
       {linkError ? (
-        <div className="mt-4 space-y-1 text-sm text-[var(--color-destructive)]">
+        <div className="mt-4 space-y-1 text-sm text-[var(--color-destructive)]" role="alert">
           <p>{linkError}</p>
           <Link
             to={ROUTES.forgotPassword}
@@ -55,7 +68,7 @@ export function LoginForm() {
       ) : null}
       <form
         onSubmit={handleSubmit((d) => mutation.mutate(d))}
-        className="mt-8 flex flex-col gap-5"
+        className={cn('flex flex-col gap-5', native ? 'mt-6' : 'mt-8')}
       >
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">{pt.auth.email}</Label>
@@ -63,10 +76,18 @@ export function LoginForm() {
             id="email"
             type="email"
             autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
             spellCheck={false}
-            {...register('email')}
+            inputMode="email"
+            enterKeyHint="next"
+            {...emailRegister}
           />
-          {errors.email && <p className="text-sm text-[var(--color-destructive)]">{errors.email.message}</p>}
+          {errors.email ? (
+            <p className="text-sm text-[var(--color-destructive)]" role="alert">
+              {errors.email.message}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">{pt.auth.password}</Label>
@@ -75,8 +96,9 @@ export function LoginForm() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
+              enterKeyHint="go"
               className="pr-12"
-              {...register('password')}
+              {...passwordRegister}
             />
             <button
               type="button"
@@ -88,14 +110,23 @@ export function LoginForm() {
               {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
             </button>
           </div>
-          {errors.password && (
-            <p className="text-sm text-[var(--color-destructive)]">{errors.password.message}</p>
-          )}
+          {errors.password ? (
+            <p className="text-sm text-[var(--color-destructive)]" role="alert">
+              {errors.password.message}
+            </p>
+          ) : null}
         </div>
-        {mutation.error && (
-          <p className="text-sm text-[var(--color-destructive)]">{mutation.error.message}</p>
-        )}
-        <Button type="submit" size="lg" className="mt-1 w-full" disabled={mutation.isPending}>
+        {mutation.error ? (
+          <p className="text-sm text-[var(--color-destructive)]" role="alert">
+            {mutation.error.message}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          size="lg"
+          className={cn('mt-1 w-full', native && 'h-14 min-h-14')}
+          disabled={mutation.isPending}
+        >
           {mutation.isPending ? pt.common.loading : pt.auth.login}
         </Button>
         <div className="flex flex-col gap-2 pt-1 text-sm">
@@ -105,15 +136,19 @@ export function LoginForm() {
           >
             {pt.auth.forgotPassword}
           </Link>
-          <span className="text-[var(--color-muted-foreground)]">
-            {pt.auth.noAccount}{' '}
-            <Link
-              to={ROUTES.subscribe}
-              className="font-bold text-[var(--color-primary)] underline-offset-4 hover:underline"
-            >
-              {pt.auth.subscribeCta}
-            </Link>
-          </span>
+          {native ? (
+            <p className="text-[var(--color-muted-foreground)]">{pt.auth.nativePatientHint}</p>
+          ) : (
+            <span className="text-[var(--color-muted-foreground)]">
+              {pt.auth.noAccount}{' '}
+              <Link
+                to={ROUTES.subscribe}
+                className="font-bold text-[var(--color-primary)] underline-offset-4 hover:underline"
+              >
+                {pt.auth.subscribeCta}
+              </Link>
+            </span>
+          )}
         </div>
       </form>
     </div>

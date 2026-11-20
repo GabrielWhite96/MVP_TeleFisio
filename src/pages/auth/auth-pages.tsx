@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { LoginForm } from '@/features/auth/ui/login-form'
 import { SubscribeForm } from '@/features/auth/ui/subscribe-form'
 import { ForgotPasswordForm } from '@/features/auth/ui/forgot-password-form'
@@ -10,8 +10,10 @@ import { BrandMark } from '@/shared/ui/brand'
 import { MotionArc } from '@/shared/ui/motion-arc'
 import { ROUTES } from '@/shared/config/routes'
 import { pt } from '@/shared/config/i18n/pt'
+import { isNativeUi } from '@/shared/native'
+import { NativeAuthLayout } from './native-auth-layout'
 
-function AuthLayout({ children }: { children: ReactNode }) {
+function WebAuthLayout({ children }: { children: ReactNode }) {
   const shellRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -85,6 +87,19 @@ function AuthLayout({ children }: { children: ReactNode }) {
   )
 }
 
+function AuthLayout({
+  children,
+  backTo,
+}: {
+  children: ReactNode
+  backTo?: string
+}) {
+  if (isNativeUi()) {
+    return <NativeAuthLayout backTo={backTo}>{children}</NativeAuthLayout>
+  }
+  return <WebAuthLayout>{children}</WebAuthLayout>
+}
+
 export function LoginPage() {
   return (
     <AuthLayout>
@@ -94,6 +109,9 @@ export function LoginPage() {
 }
 
 export function SubscribePage() {
+  if (isNativeUi()) {
+    return <Navigate to={ROUTES.login} replace />
+  }
   return (
     <AuthLayout>
       <SubscribeForm />
@@ -103,7 +121,7 @@ export function SubscribePage() {
 
 export function ForgotPasswordPage() {
   return (
-    <AuthLayout>
+    <AuthLayout backTo={ROUTES.login}>
       <ForgotPasswordForm />
     </AuthLayout>
   )
@@ -111,7 +129,7 @@ export function ForgotPasswordPage() {
 
 export function ResetPasswordPage() {
   return (
-    <AuthLayout>
+    <AuthLayout backTo={ROUTES.login}>
       <ResetPasswordForm />
     </AuthLayout>
   )
@@ -119,7 +137,7 @@ export function ResetPasswordPage() {
 
 export function InviteAcceptPage() {
   return (
-    <AuthLayout>
+    <AuthLayout backTo={ROUTES.login}>
       <InviteAcceptForm />
     </AuthLayout>
   )
@@ -127,7 +145,7 @@ export function InviteAcceptPage() {
 
 export function CaregiverSignupPage() {
   return (
-    <AuthLayout>
+    <AuthLayout backTo={ROUTES.login}>
       <CaregiverSignupForm />
     </AuthLayout>
   )

@@ -129,38 +129,38 @@ export function PhysioDashboardPage() {
 
   return (
     
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <PageHeader.Root>
           <PageHeader.Copy>
             <PageHeader.Title>{pt.physio.dashboard}</PageHeader.Title>
             <PageHeader.Description>{pt.physio.saasTagline}</PageHeader.Description>
           </PageHeader.Copy>
-          <PageHeader.Actions>
-            <Button asChild={practiceOpen} variant="outline" disabled={!practiceOpen}>
+          <PageHeader.Actions className="w-full sm:w-auto">
+            <Button asChild={practiceOpen} variant="outline" size="sm" disabled={!practiceOpen}>
               {practiceOpen ? (
                 <Link to={ROUTES.physio.patientNew}>
-                  <UserPlus className="mr-2 h-4 w-4" />
+                  <UserPlus className="mr-1.5 h-4 w-4" />
                   {pt.physio.newPatient}
                 </Link>
               ) : (
                 <span>
-                  <UserPlus className="mr-2 h-4 w-4" />
+                  <UserPlus className="mr-1.5 h-4 w-4" />
                   {pt.physio.newPatient}
                 </span>
               )}
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link to={ROUTES.physio.billing}>{pt.physio.billing}</Link>
             </Button>
-            <Button asChild={practiceOpen} disabled={!practiceOpen}>
+            <Button asChild={practiceOpen} size="sm" disabled={!practiceOpen}>
               {practiceOpen ? (
                 <Link to={ROUTES.physio.appointmentNew}>
-                  <CalendarPlus className="mr-2 h-4 w-4" />
+                  <CalendarPlus className="mr-1.5 h-4 w-4" />
                   {pt.physio.newAppointment}
                 </Link>
               ) : (
                 <span>
-                  <CalendarPlus className="mr-2 h-4 w-4" />
+                  <CalendarPlus className="mr-1.5 h-4 w-4" />
                   {pt.physio.newAppointment}
                 </span>
               )}
